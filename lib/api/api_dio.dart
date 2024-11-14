@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:flutter/services.dart';
+import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/util/log.dart';
 import 'package:dio_http2_adapter/dio_http2_adapter.dart';
 import 'package:skana_pica/util/tool.dart';

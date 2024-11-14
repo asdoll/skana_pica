@@ -9,6 +9,8 @@ import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
 import 'package:skana_pica/api/models/account_config.dart';
 import 'package:skana_pica/api/models/res.dart';
 import 'package:skana_pica/config/base.dart';
+import 'package:skana_pica/config/setting.dart';
+import 'package:skana_pica/models/pair.dart';
 import 'package:skana_pica/util/log.dart';
 import 'package:skana_pica/util/tool.dart';
 import 'dart:math' as math;
@@ -371,7 +373,7 @@ class ComicSource {
       if (appdata.appSettings.isComicSourceEnabled(source)) {
         var s = builtIn.firstWhere((e) => e.key == source);
         sources.add(s);
-        await s.loadData();
+        //await s.loadData();
         s.initData?.call(s);
       }
     }
@@ -441,12 +443,9 @@ class ComicSource {
   final Widget Function(BuildContext context, String id, String? cover)?
       comicPageBuilder;
 
-  Future<void> loadData() async {
-    var file = File("${Base.dataPath}/comic_source/$key.data");
-    if (await file.exists()) {
-      data = Map.from(jsonDecode(await file.readAsString()));
-    }
-  }
+  // Future<void> loadData() async {
+  //   return;
+  // }
 
   bool _isSaving = false;
   bool _haveWaitingTask = false;
@@ -459,20 +458,19 @@ class ComicSource {
       _haveWaitingTask = false;
     }
     _isSaving = true;
-    var file = File("${Base.dataPath}/comic_source/$key.data");
-    if (!await file.exists()) {
-      await file.create(recursive: true);
+    for (var e in data.entries){
+      appdata.secureStorage.write(key: "${key}_${e.key}", value: e.value.toString());
     }
-    await file.writeAsString(jsonEncode(data));
     _isSaving = false;
   }
 
   Future<bool> reLogin() async {
-    if (data["account"] == null) {
+    if (data["account"] == null || data["password"] == null) {
       return false;
     }
-    final List accountData = data["account"];
-    var res = await account!.login!(accountData[0], accountData[1]);
+    final String user = data["account"];
+    final String pwd = data["password"];
+    var res = await account!.login!(user, pwd);
     if (res.error) {
       log.e(error:"Failed to re-login", res.errorMessage ?? "Error");
     }

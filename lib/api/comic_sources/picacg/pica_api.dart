@@ -4,7 +4,7 @@ import 'package:skana_pica/api/api_dio.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
 import 'package:skana_pica/api/models/res.dart';
-import 'package:skana_pica/config/base.dart';
+import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/models/state_controller.dart';
 import 'package:skana_pica/pages/pre_search_page.dart';
 import 'package:skana_pica/util/log.dart';

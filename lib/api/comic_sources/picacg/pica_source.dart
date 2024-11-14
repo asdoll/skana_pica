@@ -5,7 +5,7 @@ import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/api/models/account_config.dart';
 import 'package:skana_pica/api/models/base_comic.dart';
 import 'package:skana_pica/api/models/res.dart';
-import 'package:skana_pica/config/base.dart';
+import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/pages/pica_comic.dart';
 import 'package:skana_pica/pages/pica_recoms.dart';
 import 'package:skana_pica/util/leaders.dart';
@@ -82,6 +82,11 @@ final picacg = ComicSource.named(
     ],
   ),
   initData: (s) {
+    if(appdata.cookies["picacg_account"] != null) {
+      s.data['account'] = appdata.cookies["picacg_account"];
+      s.data['password'] = appdata.cookies["picacg_password"];
+      s.data['token'] = appdata.cookies["picacg_token"];
+    }
     if (s.data['appChannel'] == null) {
       s.data['appChannel'] = '3';
     }

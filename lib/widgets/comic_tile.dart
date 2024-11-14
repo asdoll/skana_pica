@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:skana_pica/api/models/base_comic.dart';
 import 'package:skana_pica/config/base.dart';
+import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/models/favourites.dart';
 import 'package:skana_pica/util/tool.dart';
 import 'package:skana_pica/util/widget_utils.dart';

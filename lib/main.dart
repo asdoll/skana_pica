@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:skana_pica/api/models/base_comic.dart';
 import 'package:skana_pica/config/base.dart';
+import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/util/log.dart';
 
 Future<void> main() async {
@@ -12,7 +14,8 @@ Future<void> main() async {
     };
     initLogger();
     await Base.init();
-
+    await appdata.init();
+    await ComicSource.init();
     runApp(const MyApp());
   }, (e, s) {
     log.e("Uncaught Error", error: "$e\n$s");

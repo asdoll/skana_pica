@@ -33,7 +33,7 @@ class Leader {
 
   static bool _parseUriContent(BuildContext context, Uri link) {
     if (link.host.contains('illusts')) {
-      var idSource = link.pathSegments.last;
+      //var idSource = link.pathSegments.last;
       try {
         //int id = int.parse(idSource);
         Navigator.of(context, rootNavigator: true)

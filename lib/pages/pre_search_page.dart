@@ -1,5 +1,6 @@
 import 'package:skana_pica/api/models/base_comic.dart';
 import 'package:skana_pica/config/base.dart';
+import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/models/pair.dart';
 import 'package:skana_pica/models/state_controller.dart';
 
