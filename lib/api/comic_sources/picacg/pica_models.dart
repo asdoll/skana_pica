@@ -5,7 +5,7 @@ import 'package:skana_pica/api/models/base_comic.dart';
 part 'pica_models.g.dart';
 
 @JsonSerializable()
-class Profile {
+class PicaProfile {
   String id;
   String title;
   String email;
@@ -17,29 +17,29 @@ class Profile {
   bool? isPunched;
   String? slogan;
 
-  Profile(this.id, this.avatarUrl, this.email, this.exp, this.level, this.name, this.title, this.isPunched, this.slogan, this.frameUrl);
+  PicaProfile(this.id, this.avatarUrl, this.email, this.exp, this.level, this.name, this.title, this.isPunched, this.slogan, this.frameUrl);
 
-  Map<String,dynamic> toJson()=> _$ProfileToJson(this);
+  Map<String,dynamic> toJson()=> _$PicaProfileToJson(this);
 
-  factory Profile.fromJson(Map<String,dynamic> json) => _$ProfileFromJson(json);
+  factory PicaProfile.fromJson(Map<String,dynamic> json) => _$PicaProfileFromJson(json);
   
 }
 
-class CategoryItem {
+class PicaCategoryItem {
   String title;
   String path;
-  CategoryItem(this.title, this.path);
+  PicaCategoryItem(this.title, this.path);
 }
 
 class InitData {
   String imageServer;
   String fileServer;
-  var categories = <CategoryItem>[];
+  var categories = <PicaCategoryItem>[];
   InitData(this.imageServer, this.fileServer);
 }
 
 @JsonSerializable()
-class ComicItemBrief extends BaseComic{
+class PicaComicItemBrief extends BaseComic{
   @override
   String title;
   String author;
@@ -51,11 +51,11 @@ class ComicItemBrief extends BaseComic{
   List<String> tags;
   int? pages;
 
-  ComicItemBrief(this.title, this.author, this.likes, this.path, this.id, this.tags, {this.pages});
+  PicaComicItemBrief(this.title, this.author, this.likes, this.path, this.id, this.tags, {this.pages});
 
-  Map<String,dynamic> toJson()=> _$ComicItemBriefToJson(this);
+  Map<String,dynamic> toJson()=> _$PicaComicItemBriefToJson(this);
 
-  factory ComicItemBrief.fromJson(Map<String,dynamic> json) => _$ComicItemBriefFromJson(json);
+  factory PicaComicItemBrief.fromJson(Map<String,dynamic> json) => _$PicaComicItemBriefFromJson(json);
 
   @override
   String get cover => path;
@@ -68,9 +68,10 @@ class ComicItemBrief extends BaseComic{
 }
 
 @JsonSerializable()
-class ComicItem{
+class PicaComicItem with HistoryMixin{
   String id;
-  Profile creator;
+  PicaProfile creator;
+  @override
   String title;
   String description;
   String thumbUrl;
@@ -86,8 +87,8 @@ class ComicItem{
   int pagesCount;
   String time;
   List<String> eps;
-  List<ComicItemBrief> recommendation;
-  ComicItem(
+  List<PicaComicItemBrief> recommendation;
+  PicaComicItem(
       this.creator,
       this.title,
       this.description,
@@ -107,21 +108,25 @@ class ComicItem{
       this.eps,
       this.recommendation
       );
-  ComicItemBrief toBrief(){
-    return ComicItemBrief(title, author, likes, thumbUrl, id, []);
+  PicaComicItemBrief toBrief(){
+    return PicaComicItemBrief(title, author, likes, thumbUrl, id, []);
   }
 
-  Map<String,dynamic> toJson()=> _$ComicItemToJson(this);
+  Map<String,dynamic> toJson()=> _$PicaComicItemToJson(this);
 
-  factory ComicItem.fromJson(Map<String,dynamic> json) => _$ComicItemFromJson(json);
+  factory PicaComicItem.fromJson(Map<String,dynamic> json) => _$PicaComicItemFromJson(json);
   
+  @override
   String get cover => thumbUrl;
+  @override
   HistoryType get historyType => HistoryType.picacg;
+  @override
   String get subTitle => author;
+  @override
   String get target => id;
 }
 
-class Comment {
+class PicaComment {
   String name;
   String avatarUrl;
   String userId;
@@ -138,7 +143,7 @@ class Comment {
   @override
   String toString()=>"$name:$text";
 
-  Comment(
+  PicaComment(
       this.name,
       this.avatarUrl,
       this.userId,
@@ -154,57 +159,57 @@ class Comment {
       );
 }
 
-class Comments {
-  List<Comment> comments;
+class PicaComments {
+  List<PicaComment> comments;
   String id;
   int pages;
   int loaded;
 
-  Comments(this.comments, this.id, this.pages, this.loaded);
+  PicaComments(this.comments, this.id, this.pages, this.loaded);
 }
 
-class Favorites {
-  List<ComicItemBrief> comics;
+class PicaFavorites {
+  List<PicaComicItemBrief> comics;
   int pages;
   int loaded;
 
-  Favorites(this.comics, this.pages, this.loaded);
+  PicaFavorites(this.comics, this.pages, this.loaded);
 }
 
-class SearchResult{
+class PicaSearchResult{
   String keyWord;
   String sort;
   int pages;
   int loaded;
-  List<ComicItemBrief> comics;
-  SearchResult(this.keyWord,this.sort,this.comics,this.pages,this.loaded);
+  List<PicaComicItemBrief> comics;
+  PicaSearchResult(this.keyWord,this.sort,this.comics,this.pages,this.loaded);
 }
 
-class Reply{
+class PicaReply{
   String id;
   int loaded;
   int total;
-  List<Comment> comments;
-  Reply(this.id,this.loaded,this.total,this.comments);
+  List<PicaComment> comments;
+  PicaReply(this.id,this.loaded,this.total,this.comments);
 }
 
-class GameItemBrief{
+class PicaGameItemBrief{
   String id;
   String iconUrl;
   String name;
   String publisher;
   bool adult;
-  GameItemBrief(this.id,this.name,this.adult,this.iconUrl,this.publisher);
+  PicaGameItemBrief(this.id,this.name,this.adult,this.iconUrl,this.publisher);
 }
 
-class Games{
-  List<GameItemBrief> games;
+class PicaGames{
+  List<PicaGameItemBrief> games;
   int total;
   int loaded;
-  Games(this.games,this.loaded,this.total);
+  PicaGames(this.games,this.loaded,this.total);
 }
 
-class GameInfo{
+class PicaGameInfo{
   String id;
   String name;
   String description;
@@ -215,5 +220,5 @@ class GameInfo{
   bool isLiked;
   int likes;
   int comments;
-  GameInfo(this.id,this.name,this.description,this.icon,this.publisher,this.screenshots,this.link,this.isLiked,this.likes,this.comments);
+  PicaGameInfo(this.id,this.name,this.description,this.icon,this.publisher,this.screenshots,this.link,this.isLiked,this.likes,this.comments);
 }

@@ -1,4 +1,5 @@
 import 'package:path_provider/path_provider.dart';
+import 'package:skana_pica/api/models/base_comic.dart';
 
 class Base {
     /// Path to store app cache.
@@ -114,6 +115,7 @@ class Appdata {
     "1", //83 完全隐藏屏蔽的作品
   ];
 
+  final appSettings = _Settings();
 
   /// 隐式数据, 用于存储一些不需要用户设置的数据, 此数据通常为某些组件的状态, 此设置不应当被同步
   List<String> implicitData = [
@@ -122,6 +124,48 @@ class Appdata {
     "0", // 点击关闭按钮时不显示提示
     webUA, // UA
   ];
+
+  get blockingKeyword => null;
+
+  void writeHistory() {}
+
+  void updateSettings() {}
+}
+
+class _Settings {
+  bool get fullyHideBlockedWorks => false;
+
+  String initialSearchTarget = "";
+
+    /// build-in comic sources
+  bool isComicSourceEnabled(String key) {
+    var index = ComicSource.builtInSources.indexOf(key);
+    if (index == -1) {
+      throw "Not Found";
+    }
+    return appdata.settings[82][index] == '1';
+  }
 }
 
 var appdata = Appdata();
+
+typedef ActionFunc = void Function();
+
+enum ComicType {
+  picacg,
+  ehentai,
+  jm,
+  hitomi,
+  htManga,
+  htFavorite,
+  nhentai,
+  other;
+
+  @override
+  toString() => name;
+}
+
+enum TranslationType{
+  female, male, mixed, language, other, group, artist, cosplayer, parody,
+  character, reclass
+}
