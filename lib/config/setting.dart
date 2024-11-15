@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
 import 'package:skana_pica/api/models/base_comic.dart';
 import 'package:skana_pica/config/base.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,6 +28,7 @@ class Appdata {
         iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
         aOptions: AndroidOptions(encryptedSharedPreferences: true));
     cookies = await secureStorage.readAll();
+    log.d("cookies: $cookies");
   }
 
   ///设置

@@ -1,16 +1,12 @@
 import 'dart:async';
 import 'dart:collection';
-import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
 import 'package:skana_pica/api/models/account_config.dart';
 import 'package:skana_pica/api/models/res.dart';
-import 'package:skana_pica/config/base.dart';
 import 'package:skana_pica/config/setting.dart';
-import 'package:skana_pica/models/pair.dart';
 import 'package:skana_pica/util/log.dart';
 import 'package:skana_pica/util/tool.dart';
 import 'dart:math' as math;
@@ -352,11 +348,11 @@ class ComicSource {
   static final builtIn = [picacg]; //, ehentai, jm, hitomi, htManga, nhentai];
   static const builtInSources = [
     "picacg",
-    "ehentai",
-    "jm",
-    "hitomi",
-    "htmanga",
-    "nhentai"
+    // "ehentai",
+    // "jm",
+    // "hitomi",
+    // "htmanga",
+    // "nhentai"
   ];
 
   static List<ComicSource> sources = [];

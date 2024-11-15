@@ -1,4 +1,5 @@
 
+
 extension ListExtension<T> on List<T>{
   /// Remove all blank value and return the list.
   List<T> getNoBlankList(){

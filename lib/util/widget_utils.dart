@@ -88,6 +88,13 @@ extension WidgetExtension on Widget {
   }
 }
 
+double screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
+double screenHeight(BuildContext context) => MediaQuery.of(context).size.height;
+
+Widget sized(double? width, double? height) {
+  return SizedBox(width: width, height: height);
+}
+
 UiModes uiMode(BuildContext context) {
   if (MediaQuery.of(context).size.shortestSide < 600) {
     return UiModes.m1;

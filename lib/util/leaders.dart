@@ -11,6 +11,12 @@ class Leader {
     );
   }
 
+  static final rootNavigatorKey = GlobalKey<NavigatorState>();
+
+  static pop(BuildContext context) {
+    Navigator.of(context).pop();
+  }
+
   static popUtilHome(BuildContext context) {
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
