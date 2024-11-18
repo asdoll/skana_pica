@@ -28,7 +28,7 @@ class Appdata {
         iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
         aOptions: AndroidOptions(encryptedSharedPreferences: true));
     cookies = await secureStorage.readAll();
-    log.d("cookies: $cookies");
+    await readData();
   }
 
   ///设置
@@ -177,6 +177,7 @@ class Appdata {
 
   Future<void> readSettings() async {
     List<String> st = s.getStringList("settings") ?? [];
+    log.d("read settings: $st");
     if (st.isEmpty) {
       log.w("settings not found, try to read from file");
       var settingsFile = File("${Base.dataPath}/settings");
@@ -199,8 +200,9 @@ class Appdata {
   }
 
   Future<void> updateSettings() async {
-    var settingsFile = File("${Base.dataPath}/settings");
-    await settingsFile.writeAsString(jsonEncode(settings));
+    await s.setStringList("settings", settings);
+    // var settingsFile = File("${Base.dataPath}/settings");
+    // await settingsFile.writeAsString(jsonEncode(settings));
   }
 
   void writeFirstUse() async {
@@ -305,6 +307,7 @@ class _Settings {
 
   set theme(int value) {
     appdata.settings[27] = value.toString();
+    appdata.updateSettings();
   }
 
   /// Dark Mode, 0/1/2 (system/disabled/enable)
@@ -312,6 +315,7 @@ class _Settings {
 
   set darkMode(int value) {
     appdata.settings[32] = value.toString();
+    appdata.updateSettings();
   }
 
   /// 0/1 (detailed/brief)
@@ -325,6 +329,7 @@ class _Settings {
     }
     values[0] = v.toString();
     appdata.settings[44] = values.join(',');
+    appdata.updateSettings();
   }
 
   /// 0/1 (Continuous mode/Paging mode)
@@ -332,6 +337,7 @@ class _Settings {
 
   set comicsListDisplayType(int value) {
     appdata.settings[25] = value.toString();
+    appdata.updateSettings();
   }
 
   /// build-in comic sources
@@ -350,18 +356,21 @@ class _Settings {
     }
     appdata.settings[82] =
         appdata.settings[82].setValueAt(enabled ? '1' : '0', index);
+    appdata.updateSettings();
   }
 
   List<String> get explorePages => appdata.settings[77].split(',');
 
   set explorePages(List<String> pages) {
     appdata.settings[77] = pages.join(',');
+    appdata.updateSettings();
   }
 
   List<String> get categoryPages => appdata.settings[67].split(',');
 
   set categoryPages(List<String> pages) {
     appdata.settings[67] = pages.join(',');
+    appdata.updateSettings();
   }
 
   String get initialSearchTarget => appdata.settings[63];

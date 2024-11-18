@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:forui/theme.dart';
 import 'package:skana_pica/config/setting.dart';
+import 'package:skana_pica/util/log.dart';
 
 class ThemeManager {
   static ThemeManager? _instance;
@@ -11,38 +12,43 @@ class ThemeManager {
     return _instance!;
   }
 
-  int get colorMode => int.tryParse(appdata.settings[32]) ?? 0;
+  static int get colorMode => appdata.appSettings.darkMode;
 
-  int get themeColor => int.tryParse(appdata.settings[27]) ?? 0;
+  static int get themeColor => appdata.appSettings.theme;
 
-  Brightness get brightness =>
+  static Brightness get brightness =>
       WidgetsBinding.instance.platformDispatcher.platformBrightness;
 
-  FThemeData get themeData {
+  static int get currentDarkMode {
     switch (colorMode) {
       case 0:
-        return brightness == Brightness.light
-            ? themes[themeColor].light
-            : themes[themeColor].dark;
+        return brightness == Brightness.light ? 0 : 1;
       case 1:
-        return themes[themeColor].light;
+        return 0;
       default:
-        return themes[themeColor].dark;
+        return 1;
     }
   }
 
+  FThemeData get themeData =>
+      currentDarkMode == 0 ? themes[themeColor].light : themes[themeColor].dark;
+
   ThemeManager._init() {
     theme.value = themeData;
-    WidgetsBinding.instance.platformDispatcher.onPlatformBrightnessChanged = () {
-      updateValue(themeData);
-    };
+    if (colorMode == 0) {
+      WidgetsBinding.instance.platformDispatcher.onPlatformBrightnessChanged =
+          () {
+        updateValue(themeData);
+      };
+    }
   }
 
-  ValueNotifier<FThemeData> theme = ValueNotifier<FThemeData>(FThemes.zinc.light);
+  ValueNotifier<FThemeData> theme =
+      ValueNotifier<FThemeData>(FThemes.zinc.light);
 
   void updateValue(FThemeData t) {
     theme.value = t;
-    print(theme.value);
+    log.d(theme.value);
   }
 
   static textBrightness(Brightness b) {
@@ -72,4 +78,49 @@ class ThemeManager {
     FThemes.yellow,
     FThemes.violet,
   ];
+
+  void toggleDarkMode() {
+    switch (currentDarkMode) {
+      case 0:
+        appdata.appSettings.darkMode = 2;
+        break;
+      case 1:
+        appdata.appSettings.darkMode = 1;
+        break;
+    }
+    WidgetsBinding.instance.platformDispatcher.onPlatformBrightnessChanged =
+        () {};
+    updateValue(themeData);
+  }
+
+  void setSystemMode(int value) {
+    appdata.appSettings.darkMode = value;
+    if (value == 0) {
+      WidgetsBinding.instance.platformDispatcher.onPlatformBrightnessChanged =
+          () {
+        updateValue(themeData);
+      };
+    }
+    updateValue(themeData);
+  }
+
+  void updateTheme() {
+    updateValue(themeData);
+  }
+}
+
+enum ColorTheme {
+  zinc(0),
+  slate(1),
+  red(2),
+  rose(3),
+  orange(4),
+  green(5),
+  blue(6),
+  yellow(7),
+  violet(8);
+
+  final int value;
+
+  const ColorTheme(this.value);
 }

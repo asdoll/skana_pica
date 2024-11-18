@@ -141,11 +141,11 @@ class PicaClient {
         return Res(jsonResponse);
       } else if (res.statusCode == 400) {
         var jsonResponse = jsonDecode(res.data!) as Map<String, dynamic>;
-        return Res.error(jsonResponse["message"]);
+        return Res.error(jsonResponse["message"]?? "Unknown Error");
       } else if (res.statusCode == 401) {
         var reLogin = await loginFromAppdata();
         if (reLogin.error) {
-          return Res.error("登录失效且重新登录失败");
+          return Res.error('Login expired and re-login failed');
         } else {
           return post(url, data);
         }
@@ -155,7 +155,7 @@ class PicaClient {
     } on DioException catch (e) {
       String message;
       if (e.type == DioExceptionType.connectionTimeout) {
-        message = "连接超时";
+        message = "Connection Timeout";
       } else if (e.type != DioExceptionType.unknown) {
         message = e.message!;
       } else {
@@ -185,7 +185,7 @@ class PicaClient {
         return Res.error("Failed to get token");
       }
     } else {
-      return Res.error(res["message"]);
+      return Res.error(res["message"]?? "Failed to login");
     }
   }
 

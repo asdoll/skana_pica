@@ -264,14 +264,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_mobx:
-    dependency: "direct main"
-    description:
-      name: flutter_mobx
-      sha256: "859fbf452fa9c2519d2700b125dd7fb14c508bbdd7fb65e26ca8ff6c92280e2e"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.1+1"
   flutter_secure_storage:
     dependency: "direct main"
     description:
@@ -342,18 +334,18 @@ packages:
     dependency: "direct main"
     description:
       name: forui
-      sha256: b3b4652aaf7e6e3f8165a234a05a53cd80e13b805ae78004b8e5ef35dd67e51c
+      sha256: "6d2488aa910da0f50b257acf6d8181b5878538f76c1cbee6d1d1525d302d41d9"
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.1"
+    version: "0.7.0"
   forui_assets:
     dependency: "direct main"
     description:
       name: forui_assets
-      sha256: "48a036b329a855db9a18ebb3db98d5e9d1320479d747b48efd4e698ec7b1f178"
+      sha256: "17ade05cbb501faf95390f5c71f2eb1aea3e426afcc7aa1eb4289268a089da70"
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.0"
+    version: "0.7.0"
   frontend_server_client:
     dependency: transitive
     description:
@@ -362,6 +354,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.0"
+  get:
+    dependency: "direct main"
+    description:
+      name: get
+      sha256: e4e7335ede17452b391ed3b2ede016545706c01a02292a6c97619705e7d2a85e
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.6.6"
   glob:
     dependency: transitive
     description:
@@ -563,7 +563,7 @@ packages:
     source: hosted
     version: "2.0.0"
   mobx:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: mobx
       sha256: "1f01a429529ac55e5e80c0fcad62c60112fb91df3dec11a9113d71cf0c2e2c4c"
@@ -578,14 +578,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.6.2"
-  nested:
-    dependency: transitive
-    description:
-      name: nested
-      sha256: "03bac4c528c64c95c722ec99280375a6f2fc708eec17c7b3f07253b626cd2a20"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0"
   niku:
     dependency: "direct main"
     description:
@@ -714,14 +706,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.1"
-  provider:
-    dependency: transitive
-    description:
-      name: provider
-      sha256: c8a055ee5ce3fd98d6fc872478b03823ffdb448699c6ebdbbc71d59b596fd48c
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.1.2"
   pub_semver:
     dependency: transitive
     description:
