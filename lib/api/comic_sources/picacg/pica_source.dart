@@ -88,10 +88,10 @@ final picacg = ComicSource.named(
       s.data['token'] = appdata.cookies["picacg_token"];
     }
     if (s.data['appChannel'] == null) {
-      s.data['appChannel'] = '3';
+      s.data['appChannel'] = (int.parse(appdata.settings[3]) + 1).toString();
     }
     if (s.data['imageQuality'] == null) {
-      s.data['imageQuality'] = "original";
+      s.data['imageQuality'] = appdata.settings[48];
     }
   },
   comicTileBuilderOverride: (context, comic, options) {

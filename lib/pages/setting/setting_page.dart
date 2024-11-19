@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
+import 'package:skana_pica/pages/setting/manga.dart';
 import 'package:skana_pica/pages/setting/theme.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/widget_utils.dart';
@@ -46,6 +47,14 @@ class _SettingPageState extends State<SettingPage> {
           suffixIcon: FIcon(FAssets.icons.chevronRight),
           onPress: () {
             Go.to(AppearancePage());
+          },
+        ),
+        FTile(
+          prefixIcon: FIcon(FAssets.icons.images),
+          title: Text('Manga sources'.tr),
+          suffixIcon: FIcon(FAssets.icons.chevronRight),
+          onPress: () {
+            Go.to(MangaSettingPage());
           },
         ),
       ],

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:forui/theme.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/util/log.dart';
+import 'package:skana_pica/util/themejson.dart';
+import 'package:tdesign_flutter/tdesign_flutter.dart';
 
 class ThemeManager {
   static ThemeManager? _instance;
@@ -30,11 +31,13 @@ class ThemeManager {
     }
   }
 
-  FThemeData get themeData =>
-      currentDarkMode == 0 ? themes[themeColor].light : themes[themeColor].dark;
+  TDThemeData get themeData =>
+      (currentDarkMode == 0 ? TDThemeData.fromJson(themesName[themeColor], lightThemeJson) : TDThemeData.fromJson(themesName[themeColor], darkThemeJson)) ?? TDThemeData.defaultData();
 
   ThemeManager._init() {
+    TDTheme.needMultiTheme();
     theme.value = themeData;
+    log.w('theme ${theme.value.name}');
     if (colorMode == 0) {
       WidgetsBinding.instance.platformDispatcher.onPlatformBrightnessChanged =
           () {
@@ -43,10 +46,10 @@ class ThemeManager {
     }
   }
 
-  ValueNotifier<FThemeData> theme =
-      ValueNotifier<FThemeData>(FThemes.zinc.light);
+  ValueNotifier<TDThemeData> theme =
+      ValueNotifier<TDThemeData>(TDThemeData.defaultData());
 
-  void updateValue(FThemeData t) {
+  void updateValue(TDThemeData t) {
     theme.value = t;
     log.d(theme.value);
   }
@@ -54,6 +57,24 @@ class ThemeManager {
   static textBrightness(Brightness b) {
     return b == Brightness.light ? Brightness.dark : Brightness.light;
   }
+
+  static final themesName = [
+    'green',
+    'blue',
+    'yellow',
+    'black',
+    'red',
+    'orange',
+    'purple',
+    'pink',
+    'cyan',
+    'lightgreen',
+    'sky',
+    'lightsky',
+    'lightpurple',
+    'rose',
+    'magenta',
+  ];
 
   static final themeName = [
     "zinc",
@@ -65,18 +86,6 @@ class ThemeManager {
     "blue",
     "yellow",
     "violet",
-  ];
-
-  final themes = [
-    FThemes.zinc,
-    FThemes.slate,
-    FThemes.red,
-    FThemes.rose,
-    FThemes.orange,
-    FThemes.green,
-    FThemes.blue,
-    FThemes.yellow,
-    FThemes.violet,
   ];
 
   void toggleDarkMode() {

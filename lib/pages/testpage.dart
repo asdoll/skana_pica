@@ -16,17 +16,100 @@ class _TestpageState extends State<Testpage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Test Page'),
+    return FScaffold(
+      header: FHeader(
+        title: Container(),
       ),
-      body:  Center(
-        child: FButton(
-          label: Text('Go to Home Page'),
-          onPress: () {
-            mainScreenIndex.changeIndex(2);
-          },
-        ),
+      content: FTabs(
+        tabs: [
+          FTabEntry(
+            label: const Text('Account'),
+            content: FCard(
+              title: const Text('Account'),
+              subtitle: const Text(
+                  'Make changes to your account here. Click save when you are done.'),
+              child: Column(
+                children: [
+                  const FTextField(
+                    label: Text('Name'),
+                    hint: 'John Renalo',
+                  ),
+                ],
+              ),
+            ),
+          ),
+          FTabEntry(
+            label: const Text('Password'),
+            content: FCard(
+              title: const Text('Password'),
+              subtitle: const Text(
+                  'Change your password here. After saving, you will be logged out.'),
+              child: Column(
+                children: [
+                  const FTextField(label: Text('Current password')),
+                ],
+              ),
+            ),
+          ),
+          FTabEntry(
+            label: const Text('Account'),
+            content: FCard(
+              title: const Text('Account'),
+              subtitle: const Text(
+                  'Make changes to your account here. Click save when you are done.'),
+              child: Column(
+                children: [
+                  const FTextField(
+                    label: Text('Name'),
+                    hint: 'John Renalo',
+                  ),
+                ],
+              ),
+            ),
+          ),
+          FTabEntry(
+            label: const Text('Password'),
+            content: FCard(
+              title: const Text('Password'),
+              subtitle: const Text(
+                  'Change your password here. After saving, you will be logged out.'),
+              child: Column(
+                children: [
+                  const FTextField(label: Text('Current password')),
+                ],
+              ),
+            ),
+          ),
+          FTabEntry(
+            label: const Text('Account'),
+            content: FCard(
+              title: const Text('Account'),
+              subtitle: const Text(
+                  'Make changes to your account here. Click save when you are done.'),
+              child: Column(
+                children: [
+                  const FTextField(
+                    label: Text('Name'),
+                    hint: 'John Renalo',
+                  ),
+                ],
+              ),
+            ),
+          ),
+          FTabEntry(
+            label: const Text('Password'),
+            content: FCard(
+              title: const Text('Password'),
+              subtitle: const Text(
+                  'Change your password here. After saving, you will be logged out.'),
+              child: Column(
+                children: [
+                  const FTextField(label: Text('Current password')),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -116,7 +116,9 @@ class Appdata {
     "1", //80 启动时检查自定义漫画源的更新
     "0", //81 使用深色背景
     "111111", //82 内置漫画源启用状态,
-    "1", //83 完全隐藏屏蔽的作品
+    "1", //83 完全隐藏屏蔽的作品,
+    "original", //84 pica图片质量
+    "", //85 last punched time
   ];
 
   /// 隐式数据, 用于存储一些不需要用户设置的数据, 此数据通常为某些组件的状态, 此设置不应当被同步
@@ -315,6 +317,21 @@ class _Settings {
 
   set darkMode(int value) {
     appdata.settings[32] = value.toString();
+    appdata.updateSettings();
+  }
+
+  /// image quality, original/low/middle/high
+  String get imageQuality => appdata.settings[84];
+
+  set imageQuality(String value) {
+    appdata.settings[84] = value;
+    appdata.updateSettings();
+  }
+
+  DateTime? get lastPunchedTime => DateTime.tryParse(appdata.settings[85]);
+
+  set lastPunchedTime(DateTime? value) {
+    appdata.settings[85] = value?.toIso8601String() ?? "";
     appdata.updateSettings();
   }
 

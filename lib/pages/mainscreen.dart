@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:get/get.dart';
+import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:skana_pica/pages/home_page.dart';
 import 'package:skana_pica/pages/me_page.dart';
+import 'package:skana_pica/pages/testpage.dart';
+import 'package:tdesign_flutter/tdesign_flutter.dart';
 
 class Mains extends StatefulWidget {
   static const route = "/";
@@ -35,23 +38,22 @@ class _MainsState extends State<Mains> {
 
     final contents = [
       HomePage(),
-      Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [Text("Categories".tr),
-        FButton(
-          label: Text('Go to Test Page'),
-          onPress: () {
-            Get.updateLocale(Locale('zh', 'TW'));
-          },
-        ),
-        ],
-      ),
+      Testpage(),
       Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [Text("Search".tr)],
       ),
       MePage(),
     ];
+    return Scaffold(
+      appBar: TDNavBar(
+        height: 48,
+        titleFontWeight: FontWeight.w600,
+        title: "test",
+        screenAdaptation: true,
+        useDefaultBack: false,
+    ),
+    );
     return Obx(() => FScaffold(
       content: contents[mainScreenIndex.index.value],
       footer: FBottomNavigationBar(

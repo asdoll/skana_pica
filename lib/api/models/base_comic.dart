@@ -3,6 +3,7 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
 import 'package:skana_pica/api/models/account_config.dart';
 import 'package:skana_pica/api/models/res.dart';
@@ -371,6 +372,9 @@ class ComicSource {
         sources.add(s);
         //await s.loadData();
         s.initData?.call(s);
+      }
+      if(source == "picacg"){
+        await picaClient.init();
       }
     }
   }

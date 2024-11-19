@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:get/get.dart';
+import 'package:skana_pica/config/base.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/pages/me_page.dart';
 import 'package:skana_pica/pages/setting/setting_page.dart';
-import 'package:skana_pica/util/log.dart';
 import 'package:skana_pica/util/theme.dart';
 import 'package:skana_pica/util/widget_utils.dart';
 
@@ -20,6 +20,7 @@ class _AppearancePageState extends State<AppearancePage> {
   late DarkModeController darkModeController;
   late FRadioSelectGroupController<int> controller;
   late FRadioSelectGroupController<int> darkController;
+  late FRadioSelectGroupController<String> languageController;
 
   @override
   void initState() {
@@ -27,6 +28,7 @@ class _AppearancePageState extends State<AppearancePage> {
     controller =
         FRadioSelectGroupController<int>(value: appdata.appSettings.theme);
     controller.addListener(() {
+      if (controller.values.firstOrNull == null) return;
       changeTheme(controller.values.first);
     });
     darkController =
@@ -37,8 +39,17 @@ class _AppearancePageState extends State<AppearancePage> {
       darkModeController = Get.put(DarkModeController());
     }
     darkController.addListener(() {
+      if (darkController.values.firstOrNull == null) return;
       changeColor(darkController.values.first);
       darkModeController.fallback();
+    });
+    languageController =
+        FRadioSelectGroupController<String>(value: appdata.settings[50]);
+    languageController.addListener(() {
+      if (languageController.values.firstOrNull == null) return;
+      appdata.settings[50] = languageController.values.first;
+      appdata.updateSettings();
+      Get.updateLocale(Base.locale);
     });
   }
 
@@ -46,6 +57,7 @@ class _AppearancePageState extends State<AppearancePage> {
   void dispose() {
     controller.dispose();
     darkController.dispose();
+    languageController.dispose();
     super.dispose();
   }
 
@@ -95,7 +107,31 @@ class _AppearancePageState extends State<AppearancePage> {
             FSelectTile(title: Text('Light'.tr), value: 1),
             FSelectTile(title: Text('Dark'.tr), value: 2),
           ],
-        )
+        ),
+        FSelectMenuTile(
+          groupController: languageController,
+          autoHide: true,
+          validator: (value) => value == null ? 'Select an item'.tr : null,
+          prefixIcon: FIcon(FAssets.icons.scanSearch),
+          title: Text("Language".tr),
+          details: ListenableBuilder(
+            listenable: languageController,
+            builder: (context, _) => Text(
+              switch (languageController.values.firstOrNull) {
+                "cn" => "中文(简体)",
+                "tw" => "中文(繁體)",
+                "en" => "English",
+                "" || null || _ => "Follow System".tr,
+              },
+            ),
+          ),
+          menu: [
+            FSelectTile(title: Text("Follow System".tr), value: ""),
+            FSelectTile(title: Text("中文(简体)"), value: "cn"),
+            FSelectTile(title: Text("中文(繁體)"), value: "tw"),
+            FSelectTile(title: Text("English"), value: "en"),
+          ],
+        ),
       ]).paddingTop(20),
     );
   }

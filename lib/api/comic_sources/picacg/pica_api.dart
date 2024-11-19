@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'package:bot_toast/bot_toast.dart';
 import 'package:dio/dio.dart';
+import 'package:get/get.dart';
 import 'package:skana_pica/api/api_dio.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
@@ -141,7 +143,7 @@ class PicaClient {
         return Res(jsonResponse);
       } else if (res.statusCode == 400) {
         var jsonResponse = jsonDecode(res.data!) as Map<String, dynamic>;
-        return Res.error(jsonResponse["message"]?? "Unknown Error");
+        return Res.error(jsonResponse["message"] ?? "Unknown Error");
       } else if (res.statusCode == 401) {
         var reLogin = await loginFromAppdata();
         if (reLogin.error) {
@@ -185,7 +187,7 @@ class PicaClient {
         return Res.error("Failed to get token");
       }
     } else {
-      return Res.error(res["message"]?? "Failed to login");
+      return Res.error(res["message"] ?? "Failed to login");
     }
   }
 
@@ -228,7 +230,7 @@ class PicaClient {
 
   Future<Res<bool>> updateProfile() async {
     if (token == "") {
-      return const Res(true);
+      return const Res(false);
     }
     var res = await getProfile();
     if (res.error) {
@@ -241,8 +243,7 @@ class PicaClient {
   }
 
   Future<Res<List<String>>> getHotTags() async {
-    var response =
-        await get("$apiUrl/keywords");
+    var response = await get("$apiUrl/keywords");
     if (response.error) {
       return Res(null, errorMessage: response.errorMessageWithoutNull);
     }
@@ -256,8 +257,7 @@ class PicaClient {
 
   ///获取分类
   Future<Res<List<PicaCategoryItem>>> getCategories() async {
-    var response =
-        await get("$apiUrl/categories");
+    var response = await get("$apiUrl/categories");
     if (response.error) {
       return Res(null, errorMessage: response.errorMessage);
     }
@@ -281,22 +281,31 @@ class PicaClient {
     }
   }
 
-  ///获取分流ip
-  ///
-  /// 已被废弃, 要在Flutter中使用IP访问只有两种方式, 直接http连接或者忽略证书校验
-  ///
-  /// 由于存在安全问题, 因此放弃
-  Future<String?> init() async {
-    try {
-      var dio = Dio();
-      var res = await dio.get("http://68.183.234.72/init");
-      var jsonResponse =
-          jsonDecode(res.toString()) as Map<String, dynamic>;
-      return jsonResponse["addresses"][0];
-    } catch (e, s) {
-      log.e("Network", error: "$e\n$s");
-      return null;
-    }
+  Future<Res<bool>> init() async {
+    updateProfile().then((res) {
+      if(res.data == false){
+        return Res(true); //not logged in
+      }
+      if (res.error) {
+        return res;
+      } else {
+        //检查是否打卡
+        DateTime? lastPunchedTime = appdata.appSettings.lastPunchedTime;
+        if (appdata.settings[6] == "1" &&
+            (lastPunchedTime == null ||
+                DateTime.now().difference(lastPunchedTime).inDays.abs() > 0)) {
+          punchIn().then((b) {
+            if (b) {
+              appdata.appSettings.lastPunchedTime = DateTime.now();
+              BotToast.showText(text: "Check-in successful".tr);
+              return const Res(true);
+            }
+            return Res(false, errorMessage: "Failed to punch in");
+          });
+        }
+      }
+    });
+    return const Res(true);
   }
 
   ///搜索
@@ -351,15 +360,14 @@ class PicaClient {
       }
       return Res(comics, subData: pages);
     } catch (e, s) {
-      log.e("Data Analyse", error:"$s\n$s");
+      log.e("Data Analyse", error: "$s\n$s");
       return Res(null, errorMessage: e.toString());
     }
   }
 
   ///获取漫画信息
   Future<Res<PicaComicItem>> getComicInfo(String id) async {
-    var response =
-        await get("$apiUrl/comics/$id");
+    var response = await get("$apiUrl/comics/$id");
     if (response.error) {
       return Res(null, errorMessage: response.errorMessage);
     }
@@ -424,7 +432,7 @@ class PicaClient {
           recommendationRes.data);
       return Res(ci);
     } catch (e, s) {
-      log.e("Data Analyse", error:"$s\n$s");
+      log.e("Data Analyse", error: "$s\n$s");
       return Res(null, errorMessage: e.toString());
     }
   }
@@ -448,7 +456,7 @@ class PicaClient {
         }
       }
     } catch (e, s) {
-      log.e("Data Analyse", error:"$s\n$s");
+      log.e("Data Analyse", error: "$s\n$s");
       return Res(null, errorMessage: e.toString());
     }
     return Res(eps.reversed.toList());
@@ -480,8 +488,8 @@ class PicaClient {
   Future<Res<bool>> loadMoreCommends(PicaComments c,
       {String type = "comics"}) async {
     if (c.loaded != c.pages) {
-      var response = await get(
-          "$apiUrl/$type/${c.id}/comments?page=${c.loaded + 1}");
+      var response =
+          await get("$apiUrl/$type/${c.id}/comments?page=${c.loaded + 1}");
       if (response.error) {
         return Res(null, errorMessage: response.errorMessage);
       }
@@ -580,8 +588,7 @@ class PicaClient {
 
   Future<Res<List<PicaComicItemBrief>>> getRandomComics() async {
     var comics = <PicaComicItemBrief>[];
-    var response =
-        await get("$apiUrl/comics/random");
+    var response = await get("$apiUrl/comics/random");
     if (response.success) {
       var res = response.data;
       for (int i = 0; i < res["data"]["comics"].length; i++) {
@@ -713,7 +720,8 @@ class PicaClient {
     var dio = ThisDio();
     var options = _getHeaders("put", token, url.replaceAll("$apiUrl/", ""));
     try {
-      var res = await dio.put(url, data: {"avatar": imageData}, options: options);
+      var res =
+          await dio.put(url, data: {"avatar": imageData}, options: options);
       return res.statusCode == 200;
     } catch (e) {
       return false;
@@ -725,7 +733,7 @@ class PicaClient {
     var dio = ThisDio();
     var options = _getHeaders("put", token, url.replaceAll("$apiUrl/", ""));
     try {
-      var res = await dio.put(url, data: {"slogan": slogan},options: options);
+      var res = await dio.put(url, data: {"slogan": slogan}, options: options);
       if (res.statusCode == 200) {
         return true;
       } else {
@@ -846,8 +854,7 @@ class PicaClient {
   /// 获取本子母/本子妹推荐
   Future<Res<List<List<PicaComicItemBrief>>>> getCollection() async {
     var comics = <List<PicaComicItemBrief>>[[], []];
-    var response =
-        await get("$apiUrl/collections");
+    var response = await get("$apiUrl/collections");
     if (response.error) {
       return Res(null, errorMessage: response.errorMessage);
     }
