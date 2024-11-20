@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:get/get.dart';
-import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
 
 class Testpage extends StatefulWidget {

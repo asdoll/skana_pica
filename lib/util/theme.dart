@@ -13,9 +13,9 @@ class ThemeManager {
     return _instance!;
   }
 
-  static int get colorMode => appdata.appSettings.darkMode;
+  static int get colorMode => appdata.darkMode;
 
-  static int get themeColor => appdata.appSettings.theme;
+  static int get themeColor => appdata.theme;
 
   static Brightness get brightness =>
       WidgetsBinding.instance.platformDispatcher.platformBrightness;
@@ -32,7 +32,7 @@ class ThemeManager {
   }
 
   TDThemeData get themeData =>
-      (currentDarkMode == 0 ? TDThemeData.fromJson(themesName[themeColor], lightThemeJson) : TDThemeData.fromJson(themesName[themeColor], darkThemeJson)) ?? TDThemeData.defaultData();
+      (currentDarkMode == 0 ? TDThemeData.fromJson(themesName[themeColor], lightThemeJson) : buildDarkMode(TDThemeData.fromJson(themesName[themeColor], darkThemeJson))) ?? TDThemeData.defaultData();
 
   ThemeManager._init() {
     TDTheme.needMultiTheme();
@@ -44,6 +44,23 @@ class ThemeManager {
         updateValue(themeData);
       };
     }
+  }
+
+  static TDThemeData buildDarkMode(TDThemeData? t){
+    t ??= TDThemeData.defaultData();
+    var color = t.colorMap;
+    for(int i=1;i<=7;i++){
+      var tmp = color['grayColor$i'];
+      color['grayColor$i'] = color['grayColor${15-i}']!;
+      color['grayColor${15-i}'] = tmp!;
+    }
+    for(int i=1;i<=4;i++){
+      var tmp = color['fontGyColor$i'];
+      color['fontGyColor$i'] = color['fontWhColor$i']!;
+      color['fontWhColor$i'] = tmp!;
+    }
+    color['whiteColor1'] = Colors.black;
+    return t.copyWithTDThemeData(t.name, colorMap: color);
   }
 
   ValueNotifier<TDThemeData> theme =
@@ -91,10 +108,10 @@ class ThemeManager {
   void toggleDarkMode() {
     switch (currentDarkMode) {
       case 0:
-        appdata.appSettings.darkMode = 2;
+        appdata.darkMode = 2;
         break;
       case 1:
-        appdata.appSettings.darkMode = 1;
+        appdata.darkMode = 1;
         break;
     }
     WidgetsBinding.instance.platformDispatcher.onPlatformBrightnessChanged =
@@ -103,7 +120,7 @@ class ThemeManager {
   }
 
   void setSystemMode(int value) {
-    appdata.appSettings.darkMode = value;
+    appdata.darkMode = value;
     if (value == 0) {
       WidgetsBinding.instance.platformDispatcher.onPlatformBrightnessChanged =
           () {

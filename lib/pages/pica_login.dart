@@ -4,7 +4,6 @@ import 'package:forui/forui.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/controller/login.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
-import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/widget_utils.dart';
 
 class PicaLoginPage extends StatefulWidget {

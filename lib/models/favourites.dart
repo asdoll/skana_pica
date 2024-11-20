@@ -36,25 +36,11 @@ final class FavoriteType {
     return ComicType.other;
   }
 
-  ComicSource get comicSource {
-    if (key <= 6) {
-      var key = comicType.name.toLowerCase();
-      return ComicSource.find(key)!;
-    }
-    return ComicSource.sources
-            .firstWhereOrNull((element) => element.intKey == key) ??
-        (throw "Comic Source Not Found");
-  }
-
   String get name {
     if (comicType != ComicType.other) {
       return comicType.name;
     } else {
-      try {
-        return comicSource.name;
-      } catch (e) {
         return "**Unknown**";
-      }
     }
   }
 
@@ -81,7 +67,7 @@ class FavoriteItem {
       return true;
     }
     return ComicSource.sources
-            .firstWhereOrNull((element) => element.intKey == type.key) !=
+            .firstWhereOrNull((element) => element.key.hashCode == type.key) !=
         null;
   }
 
@@ -163,14 +149,6 @@ class FavoriteItem {
   //       target = comic.id,
   //       coverPath = comic.cover;
 
-  FavoriteItem.custom(CustomComic comic)
-      : name = comic.title,
-        author = comic.subTitle,
-        type = FavoriteType(comic.sourceKey.hashCode),
-        tags = comic.tags,
-        target = comic.id,
-        coverPath = comic.cover;
-
   Map<String, dynamic> toJson() => {
         "name": name,
         "author": author,
@@ -213,9 +191,7 @@ class FavoriteItem {
     //   return FavoriteItem.fromHtcomic(comic);
     // } else if (comic is NhentaiComicBrief) {
     //   return FavoriteItem.fromNhentai(comic);
-    } else if (comic is CustomComic) {
-      return FavoriteItem.custom(comic);
-    }
+    } 
     throw UnimplementedError();
   }
 

@@ -7,8 +7,6 @@ import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
 import 'package:skana_pica/api/models/res.dart';
 import 'package:skana_pica/config/setting.dart';
-import 'package:skana_pica/models/state_controller.dart';
-import 'package:skana_pica/pages/pre_search_page.dart';
 import 'package:skana_pica/util/log.dart';
 import 'package:uuid/uuid.dart';
 import 'package:crypto/crypto.dart';
@@ -192,12 +190,34 @@ class PicaClient {
   }
 
   Future<Res<bool>> loginFromAppdata() async {
-    var res = await picacg.reLogin();
+    var res = await reLogin();
     if (res) {
       return const Res(true);
     } else {
       return Res.error("Failed to re-login");
     }
+  }
+
+  Future<bool> reLogin() async {
+    if (picacg.data["account"] == null || picacg.data["password"] == null) {
+      return false;
+    }
+    final String account = picacg.data["account"];
+    final String pwd = picacg.data["password"];
+    var res = await login(account, pwd);
+    if (res.error) {
+      log.e(error: "Failed to re-login", res.errorMessage ?? "Error");
+      return false;
+    }
+    picacg.data['token'] = res.data;
+    var profile = await getProfile();
+    if (profile.error) {
+      picacg.data['token'] = null;
+      return false;
+    }
+    user = profile.data;
+    picacg.data['user'] = profile.data.toJson();
+    return true;
   }
 
   ///获取用户信息
@@ -238,7 +258,7 @@ class PicaClient {
     }
     user = res.data;
     picacg.data['user'] = user!.toJson();
-    picacg.saveData();
+    appdata.saveSecures(picacg.key);
     return const Res(true);
   }
 
@@ -283,20 +303,20 @@ class PicaClient {
 
   Future<Res<bool>> init() async {
     updateProfile().then((res) {
-      if(res.data == false){
+      if (res.data == false) {
         return Res(true); //not logged in
       }
       if (res.error) {
         return res;
       } else {
         //检查是否打卡
-        DateTime? lastPunchedTime = appdata.appSettings.lastPunchedTime;
-        if (appdata.settings[6] == "1" &&
+        DateTime? lastPunchedTime = appdata.lastPunchedTime;
+        if (appdata.pica[2] == "1" &&
             (lastPunchedTime == null ||
                 DateTime.now().difference(lastPunchedTime).inDays.abs() > 0)) {
           punchIn().then((b) {
             if (b) {
-              appdata.appSettings.lastPunchedTime = DateTime.now();
+              appdata.lastPunchedTime = DateTime.now();
               BotToast.showText(text: "Check-in successful".tr);
               return const Res(true);
             }
@@ -352,7 +372,8 @@ class PicaClient {
       if (addToHistory) {
         Future.delayed(const Duration(microseconds: 500), () {
           try {
-            StateController.find<PreSearchController>().update();
+            //TODO:update search history
+            //StateController.find<PreSearchController>().update();
           } catch (e) {
             //忽视
           }

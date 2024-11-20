@@ -17,7 +17,6 @@ import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/log.dart';
 import 'package:skana_pica/util/theme.dart';
 import 'package:skana_pica/util/translate.dart';
-import 'package:tdesign_flutter/tdesign_flutter.dart';
 
 Future<void> main() async {
   runZonedGuarded(() async {
@@ -63,7 +62,7 @@ class _MyAppState extends State<MyApp> {
             GlobalCupertinoLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
           ],
-          theme: ThemeData(extensions: [value]),
+          theme: ThemeData(),
           locale: Base.locale,
           builder: BotToastInit(),
           home: AnnotatedRegion<SystemUiOverlayStyle>(

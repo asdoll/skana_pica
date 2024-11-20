@@ -143,23 +143,23 @@ class _MangaSettingPageState extends State<MangaSettingPage> {
     ]);
   }
   void picaInit() {
-    picaStreamController = FRadioSelectGroupController<int>(value:int.parse(appdata.settings[3]));
+    picaStreamController = FRadioSelectGroupController<int>(value:int.parse(appdata.pica[0]));
     picaStreamController.addListener(() {
       if(picaStreamController.values.firstOrNull == null) return;
-      appdata.settings[3] = picaStreamController.values.first.toString();
-      appdata.updateSettings();
+      appdata.pica[0] = picaStreamController.values.first.toString();
+      appdata.updateSettings("pica");
       picacg.data['appChannel'] = (picaStreamController.values.first + 1).toString();
     });
-    picaImageQualityController = FRadioSelectGroupController<String>(value: appdata.appSettings.imageQuality);
+    picaImageQualityController = FRadioSelectGroupController<String>(value: appdata.picaImageQuality);
     picaImageQualityController.addListener(() {
       if(picaImageQualityController.values.firstOrNull == null) return;
-      appdata.appSettings.imageQuality = picaImageQualityController.values.first;
+      appdata.picaImageQuality = picaImageQualityController.values.first;
       picacg.data['imageQuality'] = picaImageQualityController.values.first;
     });
-    picaSearchController = FRadioSelectGroupController<int>(value: appdata.getSearchMode());
+    picaSearchController = FRadioSelectGroupController<int>(value: appdata.picaSearchMode);
     picaSearchController.addListener(() {
       if(picaSearchController.values.firstOrNull == null) return;
-      appdata.setSearchMode(picaSearchController.values.first);
+      appdata.picaSearchMode = picaSearchController.values.first;
     });
     autoCheckInController = AutoCheckInController();
   }
@@ -167,10 +167,10 @@ class _MangaSettingPageState extends State<MangaSettingPage> {
 }
 
 class AutoCheckInController extends GetxController {
-  final autoCheckIn = (appdata.settings[6] == "1").obs;
+  final autoCheckIn = (appdata.pica[2] == "1").obs;
   void toggleAutoCheckIn() {
     autoCheckIn.value = !autoCheckIn.value;
-    appdata.settings[6] = autoCheckIn.value ? "1" : "0";
-    appdata.updateSettings();
+    appdata.pica[2] = autoCheckIn.value ? "1" : "0";
+    appdata.updateSettings("pica");
   }
 }

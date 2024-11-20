@@ -1,6 +1,7 @@
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:skana_pica/api/models/base_comic.dart';
+import 'package:skana_pica/api/models/history_type.dart';
 
 part 'pica_models.g.dart';
 

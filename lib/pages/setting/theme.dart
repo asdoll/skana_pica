@@ -26,13 +26,13 @@ class _AppearancePageState extends State<AppearancePage> {
   void initState() {
     super.initState();
     controller =
-        FRadioSelectGroupController<int>(value: appdata.appSettings.theme);
+        FRadioSelectGroupController<int>(value: appdata.theme);
     controller.addListener(() {
       if (controller.values.firstOrNull == null) return;
       changeTheme(controller.values.first);
     });
     darkController =
-        FRadioSelectGroupController<int>(value: appdata.appSettings.darkMode);
+        FRadioSelectGroupController<int>(value: appdata.darkMode);
     try {
       darkModeController = Get.find();
     } catch (e) {
@@ -44,11 +44,11 @@ class _AppearancePageState extends State<AppearancePage> {
       darkModeController.fallback();
     });
     languageController =
-        FRadioSelectGroupController<String>(value: appdata.settings[50]);
+        FRadioSelectGroupController<String>(value: appdata.general[2]);
     languageController.addListener(() {
       if (languageController.values.firstOrNull == null) return;
-      appdata.settings[50] = languageController.values.first;
-      appdata.updateSettings();
+      appdata.general[2] = languageController.values.first;
+      appdata.updateSettings("general");
       Get.updateLocale(Base.locale);
     });
   }
@@ -146,12 +146,12 @@ class _AppearancePageState extends State<AppearancePage> {
   }
 
   void changeTheme(int index) {
-    appdata.appSettings.theme = index;
+    appdata.theme = index;
     ThemeManager.instance.updateTheme();
   }
 
   void changeColor(int first) {
-    appdata.appSettings.darkMode = first;
+    appdata.darkMode = first;
     darkModeController.setSystemMode(first);
   }
 }

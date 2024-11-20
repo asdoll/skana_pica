@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/pages/setting/setting_page.dart';
-import 'package:skana_pica/pages/setting/theme.dart';
 import 'package:skana_pica/util/leaders.dart';
-import 'package:skana_pica/util/log.dart';
 import 'package:skana_pica/util/theme.dart';
 import 'package:skana_pica/util/widget_utils.dart';
 
