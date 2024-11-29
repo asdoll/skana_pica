@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/util/log.dart';
-import 'package:skana_pica/util/themejson.dart';
-import 'package:tdesign_flutter/tdesign_flutter.dart';
+import 'package:flex_color_scheme/flex_color_scheme.dart';
 
 class ThemeManager {
   static ThemeManager? _instance;
@@ -31,13 +30,11 @@ class ThemeManager {
     }
   }
 
-  TDThemeData get themeData =>
-      (currentDarkMode == 0 ? TDThemeData.fromJson(themesName[themeColor], lightThemeJson) : buildDarkMode(TDThemeData.fromJson(themesName[themeColor], darkThemeJson))) ?? TDThemeData.defaultData();
+  static ThemeData get themeData =>
+      currentDarkMode ==0 ? FlexThemeData.light(scheme: FlexScheme.mandyRed):FlexThemeData.dark(scheme: FlexScheme.mandyRed);
 
   ThemeManager._init() {
-    TDTheme.needMultiTheme();
     theme.value = themeData;
-    log.w('theme ${theme.value.name}');
     if (colorMode == 0) {
       WidgetsBinding.instance.platformDispatcher.onPlatformBrightnessChanged =
           () {
@@ -46,27 +43,10 @@ class ThemeManager {
     }
   }
 
-  static TDThemeData buildDarkMode(TDThemeData? t){
-    t ??= TDThemeData.defaultData();
-    var color = t.colorMap;
-    for(int i=1;i<=7;i++){
-      var tmp = color['grayColor$i'];
-      color['grayColor$i'] = color['grayColor${15-i}']!;
-      color['grayColor${15-i}'] = tmp!;
-    }
-    for(int i=1;i<=4;i++){
-      var tmp = color['fontGyColor$i'];
-      color['fontGyColor$i'] = color['fontWhColor$i']!;
-      color['fontWhColor$i'] = tmp!;
-    }
-    color['whiteColor1'] = Colors.black;
-    return t.copyWithTDThemeData(t.name, colorMap: color);
-  }
+  ValueNotifier<ThemeData> theme =
+      ValueNotifier<ThemeData>(ThemeData.light());
 
-  ValueNotifier<TDThemeData> theme =
-      ValueNotifier<TDThemeData>(TDThemeData.defaultData());
-
-  void updateValue(TDThemeData t) {
+  void updateValue(ThemeData t) {
     theme.value = t;
     log.d(theme.value);
   }

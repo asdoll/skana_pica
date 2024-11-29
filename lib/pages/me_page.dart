@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:forui/forui.dart';
 import 'package:get/get.dart';
+import 'package:skana_pica/pages/mainscreen.dart';
 import 'package:skana_pica/pages/setting/setting_page.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/theme.dart';
 import 'package:skana_pica/util/widget_utils.dart';
 
 class MePage extends StatefulWidget {
+  static const route = "${Mains.route}me";
+
   const MePage({super.key});
 
   @override
@@ -14,52 +16,38 @@ class MePage extends StatefulWidget {
 }
 
 class _MePageState extends State<MePage> {
-  late DarkModeController themeQuickController;
-
-  @override
-  void initState() {
-    super.initState();
-    try{
-      themeQuickController = Get.find();
-    }
-    catch(e){
-      themeQuickController = Get.put(DarkModeController());
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return FScaffold(
-      header: FHeader(
+    DarkModeController themeQuickController = Get.put(DarkModeController());
+    return Scaffold(
+      appBar: AppBar(
         title: Text("Me".tr),
         actions: [
           Obx(
-            () => FButton.icon(
-              style: FButtonStyle.ghost,
-              child: themeQuickController.isDark > 0
-                  ? FIcon(FAssets.icons.moon, size: 24,)
-                  : FIcon(FAssets.icons.sun, size: 24),
-              onPress: () {
+            () => IconButton(
+              icon: themeQuickController.isDark.value > 0
+                  ? Icon(Icons.nightlight_round)
+                  : Icon(Icons.wb_sunny),
+              onPressed: () {
                 themeQuickController.toggleDarkMode();
               },
             ),
           ),
-          FButton.icon(
-            style: FButtonStyle.ghost,
-            child: FIcon(FAssets.icons.settings, size: 24),
-            onPress: () {
-              Go.to(SettingPage());
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: () {
+              Go.to(() => SettingPage());
             },
           ),
         ],
       ),
-      content: _buildContent(context).paddingTop(20),
+      body: _buildContent(context).padding(EdgeInsets.only(top: 20)),
     );
   }
 
   Widget _buildContent(BuildContext context) {
-    return FCard(
-      image: Placeholder(),
+    return Card(
+      child: Placeholder(),
     );
   }
 }

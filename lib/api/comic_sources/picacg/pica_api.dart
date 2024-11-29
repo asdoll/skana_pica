@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:dio/dio.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' as Get;
 import 'package:skana_pica/api/api_dio.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
@@ -115,6 +115,20 @@ class PicaClient {
       return Res.error(message);
     } catch (e) {
       return Res.error(e.toString());
+    }
+  }
+
+  Future<Response<ResponseBody>> getStream(String url) async {
+    if (token == "") {
+      throw Exception("未登录");
+    }
+    await setNetworkProxy();
+    var res = await dio.get<ResponseBody>(url,
+        options: Options(responseType: ResponseType.stream));
+    if (res.statusCode == 200) {
+      return res;
+    } else {
+      throw Exception("Invalid Status Code ${res.statusCode}");
     }
   }
 
@@ -363,7 +377,8 @@ class PicaClient {
                   res["data"]["comics"]["docs"][i]["thumb"]["path"],
               res["data"]["comics"]["docs"][i]["_id"],
               tags,
-              pages: res["data"]["comics"]["docs"][i]["pagesCount"]);
+              pages: res["data"]["comics"]["docs"][i]["pagesCount"],
+              epsCount: res["data"]["comics"]["docs"][i]["epsCount"]);
           comics.add(si);
         } catch (e) {
           continue;

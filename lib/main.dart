@@ -8,8 +8,11 @@ import 'package:get/get.dart';
 import 'package:skana_pica/api/models/base_comic.dart';
 import 'package:skana_pica/config/base.dart';
 import 'package:skana_pica/config/setting.dart';
+import 'package:skana_pica/controller/favourite.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
+import 'package:skana_pica/pages/me_page.dart';
 import 'package:skana_pica/pages/pica_login.dart';
+import 'package:skana_pica/pages/pica_search.dart';
 import 'package:skana_pica/pages/setting/manga.dart';
 import 'package:skana_pica/pages/setting/theme.dart';
 import 'package:skana_pica/pages/setting/setting_page.dart';
@@ -28,6 +31,8 @@ Future<void> main() async {
     await Base.init();
     await appdata.init();
     await ComicSource.init();
+    favorController = Get.put(FavorController(), permanent: true);
+    await favorController.fetch();
     runApp(const MyApp());
   }, (e, s) {
     log.e("Uncaught Error", error: "$e\n$s");
@@ -62,7 +67,7 @@ class _MyAppState extends State<MyApp> {
             GlobalCupertinoLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
           ],
-          theme: ThemeData(),
+          theme: value,
           locale: Base.locale,
           builder: BotToastInit(),
           home: AnnotatedRegion<SystemUiOverlayStyle>(
@@ -78,6 +83,8 @@ class _MyAppState extends State<MyApp> {
             GetPage(name: Mains.route, page: () => Mains()),
             GetPage(name: PicaLoginPage.route, page: () => PicaLoginPage()),
             GetPage(name: SettingPage.route, page: () => SettingPage()),
+            GetPage(name: MePage.route, page: () => MePage()),
+            GetPage(name: PicaSearchPage.route, page: () => PicaSearchPage()),
             GetPage(name: AppearancePage.route, page: () => AppearancePage()),
             GetPage(name: MangaSettingPage.route, page: () => MangaSettingPage()),
           ],

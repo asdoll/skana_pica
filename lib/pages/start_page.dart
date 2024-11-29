@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:forui/forui.dart';
+import 'package:skana_pica/pages/home_page.dart';
+import 'package:skana_pica/util/leaders.dart';
 
 class StartPage extends StatefulWidget {
   const StartPage({super.key});
@@ -11,14 +12,14 @@ class StartPage extends StatefulWidget {
 class _StartPageState extends State<StartPage> {
   @override
   Widget build(BuildContext context) {
-    return FScaffold(content: Column(
+    return Scaffold(body: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text('Start Page'),
-        FButton(
-          label: Text('Go to Home Page'),
-          onPress: () {
-            Navigator.pushNamed(context, '/home');
+        ElevatedButton(
+          child: Text('Go to Home Page'),
+          onPressed: () {
+            Go.to(HomePage());
           },
         ),
       ],

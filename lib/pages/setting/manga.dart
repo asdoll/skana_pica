@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:forui/forui.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
 import 'package:skana_pica/config/setting.dart';
@@ -15,155 +14,135 @@ class MangaSettingPage extends StatefulWidget {
 }
 
 class _MangaSettingPageState extends State<MangaSettingPage> {
-  late FRadioSelectGroupController<int> picaStreamController;
-  late FRadioSelectGroupController<String> picaImageQualityController;
-  late FRadioSelectGroupController<int> picaSearchController;
   late AutoCheckInController autoCheckInController;
 
   @override
   void initState() {
     super.initState();
-    picaInit();
+    autoCheckInController = Get.put(AutoCheckInController());
   }
 
   @override
   void dispose() {
-    picaStreamController.dispose();
-    picaImageQualityController.dispose();
     super.dispose();
+    Get.delete<AutoCheckInController>();
   }
 
   @override
   Widget build(BuildContext context) {
-    return FScaffold(
-      header: FHeader.nested(
+    return Scaffold(
+      appBar: AppBar(
         title: Text("Manga sources".tr),
-        prefixActions: [
-          FHeaderAction.back(onPress: () => Get.back()),
-        ],
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () => Get.back(),
+        ),
       ),
-      content: Column(
+      body: Column(
         children: [
-          _buildPica(context).paddingTop(20),
+          _buildPica(context).padding(EdgeInsets.only(top: 20)),
         ],
       ),
     );
   }
 
-  FTileGroup _buildPica(BuildContext context) {
-    return FTileGroup(
-      label: Text("Picacg".tr),
-      children: [
-      FSelectMenuTile(
-        groupController: picaStreamController,
-        autoHide: true,
-        validator: (value) => value == null ? 'Select an item'.tr : null,
-        prefixIcon: FIcon(FAssets.icons.gitCompareArrows),
-        title: Text("Set stream".tr),
-        details: ListenableBuilder(
-          listenable: picaStreamController,
-          builder: (context, _) => Text(
-              switch (picaStreamController.values.firstOrNull) {
-              0 => 'Stream 1'.tr,
-              1 => 'Stream 2'.tr,
-              null || 2 => 'Stream 3'.tr,
-              _ => 'Stream 3'.tr,
-            },
+  Widget _buildPica(BuildContext context) {
+    return ListTileTheme(
+      contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("Picacg".tr),
+          ListTile(
+            leading: Icon(Icons.compare_arrows),
+            title: Text("Set stream".tr),
+            trailing: DropdownButton<int>(
+              value: int.parse(appdata.pica[0]),
+              items: [
+                DropdownMenuItem(value: 0, child: Text('Stream 1'.tr)),
+                DropdownMenuItem(value: 1, child: Text('Stream 2'.tr)),
+                DropdownMenuItem(value: 2, child: Text('Stream 3'.tr)),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  appdata.pica[0] = value.toString();
+                  appdata.updateSettings("pica");
+                  picacg.data['appChannel'] = (value + 1).toString();
+                }
+              },
+            ),
           ),
-        ),
-        menu: [
-          FSelectTile(title: Text('Stream 1'.tr), value: 0),
-          FSelectTile(title: Text('Stream 2'.tr), value: 1),
-          FSelectTile(title: Text('Stream 3'.tr), value: 2),
+          ListTile(
+            leading: Icon(Icons.image),
+            title: Text("Set image quality".tr),
+            trailing: DropdownButton<String>(
+              value: appdata.picaImageQuality,
+              items: [
+                DropdownMenuItem(value: 'low', child: Text('Low'.tr)),
+                DropdownMenuItem(value: 'medium', child: Text('Medium'.tr)),
+                DropdownMenuItem(value: 'high', child: Text('High'.tr)),
+                DropdownMenuItem(
+                    value: 'original', child: Text('Original image'.tr)),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  appdata.picaImageQuality = value;
+                  picacg.data['imageQuality'] = value;
+                }
+              },
+            ),
+          ),
+          ListTile(
+            leading: Icon(Icons.search),
+            title: Text("Set search and category sorting mode".tr),
+            trailing: DropdownButton<int>(
+              value: appdata.picaSearchMode,
+              items: [
+                DropdownMenuItem(value: 0, child: Text('New to Old'.tr)),
+                DropdownMenuItem(value: 1, child: Text('Old to New'.tr)),
+                DropdownMenuItem(value: 2, child: Text('Most Likes'.tr)),
+                DropdownMenuItem(value: 3, child: Text('Most Viewed'.tr)),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  appdata.picaSearchMode = value;
+                }
+              },
+            ),
+          ),
+          ListTile(
+            leading: Icon(Icons.view_agenda_outlined),
+            title: Text("Set page view mode".tr),
+            trailing: DropdownButton<String>(
+              value: appdata.pica[6],
+              items: [
+                DropdownMenuItem(value: "0", child: Text('Infinite Scroll'.tr)),
+                DropdownMenuItem(value: "1", child: Text('Page View'.tr)),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  appdata.pica[6] = value;
+                  appdata.updateSettings("pica");
+                }
+              },
+            ),
+          ),
+          ListTile(
+            leading: Icon(Icons.calendar_today),
+            title: Text("Auto check-in".tr),
+            trailing: Obx(() {
+              return Switch(
+                value: autoCheckInController.autoCheckIn.value,
+                onChanged: (value) {
+                  autoCheckInController.toggleAutoCheckIn();
+                },
+              );
+            }),
+          ),
         ],
       ),
-      FSelectMenuTile(
-        groupController: picaImageQualityController,
-        autoHide: true,
-        validator: (value) => value == null ? 'Select an item'.tr : null,
-        prefixIcon: FIcon(FAssets.icons.image),
-        title: Text("Set image quality".tr),
-        details: ListenableBuilder(
-          listenable: picaImageQualityController,
-          builder: (context, _) => Text(
-            switch (picaImageQualityController.values.firstOrNull) {
-              null || "original" => "Original image".tr,
-              "low" => 'Low'.tr,
-              "medium" => 'Medium'.tr,
-              "high" => 'High'.tr,
-              _ => 'Original image'.tr,
-            },
-          ),
-        ),
-        menu: [
-          FSelectTile(title: Text('Low'.tr), value: 'low'),
-          FSelectTile(title: Text('Medium'.tr), value: 'medium'),
-          FSelectTile(title: Text('High'.tr), value: 'high'),
-          FSelectTile(title: Text('Original image'.tr), value: 'original'),
-        ],
-      ),
-            FSelectMenuTile(
-        groupController: picaSearchController,
-        autoHide: true,
-        validator: (value) => value == null ? 'Select an item'.tr : null,
-        prefixIcon: FIcon(FAssets.icons.scanSearch),
-        title: Text("Set search and category sorting mode".tr),
-        details: ListenableBuilder(
-          listenable: picaSearchController,
-          builder: (context, _) => Text(
-            switch (picaSearchController.values.firstOrNull) {
-              0 => 'New to Old'.tr,
-              1 => 'Old to New'.tr,
-              2 => "Most Likes".tr,
-              3 => "Most Viewed".tr,
-              null || _ => 'New to Old'.tr,
-            },
-          ),
-        ),
-        menu: [
-          FSelectTile(title: Text('New to Old'.tr), value: 0),
-          FSelectTile(title: Text('Old to New'.tr), value: 1),
-          FSelectTile(title: Text('Most Likes'.tr), value: 2),
-          FSelectTile(title: Text('Most Viewed'.tr), value: 3),
-        ],
-      ),
-      
-      FTile(
-        prefixIcon: FIcon(FAssets.icons.calendar),
-        title: Text("Auto check-in".tr),
-        suffixIcon: Obx((){return FSwitch(
-                      value: autoCheckInController.autoCheckIn.value,
-                      onChange: (value) {
-                        autoCheckInController.toggleAutoCheckIn();
-                      },
-                    );}),
-        onPress: () {
-        },
-      ),
-    ]);
+    );
   }
-  void picaInit() {
-    picaStreamController = FRadioSelectGroupController<int>(value:int.parse(appdata.pica[0]));
-    picaStreamController.addListener(() {
-      if(picaStreamController.values.firstOrNull == null) return;
-      appdata.pica[0] = picaStreamController.values.first.toString();
-      appdata.updateSettings("pica");
-      picacg.data['appChannel'] = (picaStreamController.values.first + 1).toString();
-    });
-    picaImageQualityController = FRadioSelectGroupController<String>(value: appdata.picaImageQuality);
-    picaImageQualityController.addListener(() {
-      if(picaImageQualityController.values.firstOrNull == null) return;
-      appdata.picaImageQuality = picaImageQualityController.values.first;
-      picacg.data['imageQuality'] = picaImageQualityController.values.first;
-    });
-    picaSearchController = FRadioSelectGroupController<int>(value: appdata.picaSearchMode);
-    picaSearchController.addListener(() {
-      if(picaSearchController.values.firstOrNull == null) return;
-      appdata.picaSearchMode = picaSearchController.values.first;
-    });
-    autoCheckInController = AutoCheckInController();
-  }
-
 }
 
 class AutoCheckInController extends GetxController {

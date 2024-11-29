@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-
-import 'package:forui/forui.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/controller/login.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
-import 'package:skana_pica/util/widget_utils.dart';
 
 class PicaLoginPage extends StatefulWidget {
   static const route = "${Mains.route}picalogin";
@@ -15,18 +12,21 @@ class PicaLoginPage extends StatefulWidget {
 }
 
 class _PicaLoginPageState extends State<PicaLoginPage> {
-  LoginController loginController = LoginController();
   TextEditingController accountController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    return FScaffold(
-      header: FHeader.nested(
+    LoginController loginController = Get.put(LoginController());
+    return Scaffold(
+      appBar: AppBar(
         title: Text("Pica Login".tr),
-        prefixActions: [FHeaderAction.back(onPress: () => Get.back())],
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () => Get.back(),
+        ),
       ),
-      content: Obx(() {
+      body: Obx(() {
         if (loginController.isLoading.isTrue) {
           return Center(
             child: CircularProgressIndicator(
@@ -34,45 +34,60 @@ class _PicaLoginPageState extends State<PicaLoginPage> {
             ),
           );
         } else {
-          return Column(
-            children: [
-              FCard(
-                title: Text("Login".tr),
-                subtitle: Text("Login to your Pica Account".tr),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 8),
-                    FTextField(
-                      label: Text("Account".tr),
-                      controller: accountController,
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        Text(
+                          "Login".tr,
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          "Login to your Pica Account".tr,
+                        ),
+                        SizedBox(height: 16),
+                        TextField(
+                          decoration: InputDecoration(
+                            labelText: "Account".tr,
+                          ),
+                          controller: accountController,
+                        ),
+                        SizedBox(height: 8),
+                        TextField(
+                          decoration: InputDecoration(
+                            labelText: "Password".tr,
+                          ),
+                          controller: passwordController,
+                          obscureText: true,
+                          maxLines: 1,
+                        ),
+                        SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            loginController.picalogin(accountController.text,
+                                passwordController.text, context);
+                          },
+                          child: Text("Login".tr),
+                        ),
+                        SizedBox(height: 8),
+                        if (loginController.error.isNotEmpty)
+                          Text(
+                            loginController.error.value.tr,
+                            style: TextStyle(color: Colors.red),
+                          ),
+                      ],
                     ),
-                    const SizedBox(height: 8),
-                    FTextField(
-                      label: Text("Password".tr),
-                      controller: passwordController,
-                      obscureText: true,
-                      maxLines: 1,
-                    ),
-                    const SizedBox(height: 16),
-                    FButton(
-                      label: Text("Login".tr),
-                      onPress: () {
-                        loginController.picalogin(accountController.text,
-                            passwordController.text, context);
-                      },
-                    ),
-                    const SizedBox(height: 8),
-                    if (loginController.error.isNotEmpty)
-                      Text(
-                        loginController.error.value.tr,
-                        style: TextStyle(color: Colors.red),
-                      ),
-                  ],
+                  ),
                 ),
-              ),
-              SizedBox(height: 1),
-            ],
-          ).paddingTop(screenHeight(context) * 0.2);
+              ],
+            ),
+          );
         }
       }),
     );

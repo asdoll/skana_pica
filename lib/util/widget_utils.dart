@@ -86,6 +86,10 @@ extension WidgetExtension on Widget {
   Widget fixHeight(double height) {
     return SizedBox(height: height, child: this);
   }
+
+  Widget rounded(double radius) {
+    return ClipRRect(borderRadius: BorderRadius.circular(radius), child: this);
+  }
 }
 
 double screenWidth(BuildContext context) => MediaQuery.of(context).size.width;

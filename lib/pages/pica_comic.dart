@@ -1,11 +1,10 @@
 import 'package:flutter/widgets.dart';
+import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 
 class PicacgComicPage extends StatefulWidget {
-  final String id;
+  final PicaComicItemBrief comic;
 
-  final String? cover;
-
-  const PicacgComicPage(this.id, this.cover, {super.key});
+  const PicacgComicPage(this.comic,{super.key});
 
   @override
   State<StatefulWidget> createState() {

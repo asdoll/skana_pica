@@ -51,8 +51,9 @@ class PicaComicItemBrief extends BaseComic{
   @override
   List<String> tags;
   int? pages;
+  int? epsCount;
 
-  PicaComicItemBrief(this.title, this.author, this.likes, this.path, this.id, this.tags, {this.pages});
+  PicaComicItemBrief(this.title, this.author, this.likes, this.path, this.id, this.tags, {this.pages, this.epsCount});
 
   Map<String,dynamic> toJson()=> _$PicaComicItemBriefToJson(this);
 

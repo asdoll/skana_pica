@@ -1,90 +1,80 @@
+import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
-import 'package:forui/forui.dart';
 import 'package:get/get.dart';
-import 'package:get/get_connect/http/src/utils/utils.dart';
+import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/pages/home_page.dart';
 import 'package:skana_pica/pages/me_page.dart';
-import 'package:skana_pica/pages/testpage.dart';
-import 'package:tdesign_flutter/tdesign_flutter.dart';
+import 'package:skana_pica/pages/pica_search.dart';
+
+final ScrollController globalScrollController = ScrollController();
 
 class Mains extends StatefulWidget {
   static const route = "/";
-  final int index;
 
-  const Mains({super.key, this.index = 0});
+  const Mains({super.key});
 
   @override
   State<Mains> createState() => _MainsState();
 }
 
-class _MainsState extends State<Mains> {
-  late MainScreenIndex mainScreenIndex;
-
-  @override
-  void initState() {
-    super.initState();
-    mainScreenIndex = Get.put(MainScreenIndex());
-    mainScreenIndex.changeIndex(widget.index);
-  }
-
-  @override
-  void dispose() {
-    mainScreenIndex.dispose();
-    super.dispose();
-  }
-
+class _MainsState extends State<Mains> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
-
-    final contents = [
-      HomePage(),
-      Testpage(),
-      Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [Text("Search".tr)],
-      ),
-      MePage(),
-    ];
+    MainScreenIndex mainScreenIndex = Get.put(MainScreenIndex());
     return Scaffold(
-      appBar: TDNavBar(
-        height: 48,
-        titleFontWeight: FontWeight.w600,
-        title: "test",
-        screenAdaptation: true,
-        useDefaultBack: false,
-    ),
-    );
-    return Obx(() => FScaffold(
-      content: contents[mainScreenIndex.index.value],
-      footer: FBottomNavigationBar(
-        index: mainScreenIndex.index.value,
-        onChange: (i) => mainScreenIndex.changeIndex(i),
-        children: [
-          FBottomNavigationBarItem(
-            icon: FIcon(FAssets.icons.house),
-            label: Text("Home".tr),
-          ),
-          FBottomNavigationBarItem(
-            icon: FIcon(FAssets.icons.layoutGrid),
-            label: Text("Categories".tr),
-          ),
-          FBottomNavigationBarItem(
-            icon: FIcon(FAssets.icons.search),
-            label: Text("Search".tr),
-          ),
-          FBottomNavigationBarItem(
-            icon: FIcon(FAssets.icons.ghost),
-            label: Text("Me".tr),
-          ),
-        ],
-      ),
-    ),);
+        body: Obx(() {
+          switch (mainScreenIndex.index.value) {
+            case 0:
+              return HomePage();
+            case 1:
+              return PicaSearchPage();
+            case 2:
+              return MePage();
+            default:
+              return HomePage();
+          }
+        }),
+        bottomNavigationBar: Obx(
+          () => GestureDetector(
+              child: BottomNavigationBar(
+            currentIndex: mainScreenIndex.index.value,
+            onTap: (index) => mainScreenIndex.changeIndex(index),
+            type: BottomNavigationBarType.fixed,
+            selectedItemColor: Get.theme.primaryColor,
+            items: [
+              BottomNavigationBarItem(
+                icon: Icon(
+                  Icons.motion_photos_on_outlined,
+                  size: 30,
+                ),
+                activeIcon: Icon(Icons.motion_photos_on, size: 35),
+                label: "",
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.auto_awesome_outlined, size: 30),
+                activeIcon: Icon(Icons.auto_awesome, size: 35),
+                label: "",
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.pest_control_rodent_outlined, size: 30),
+                activeIcon: Icon(Icons.pest_control_rodent, size: 35),
+                label: "",
+              ),
+            ],
+          )),
+        ));
   }
 }
 
 class MainScreenIndex extends GetxController {
-  var index = 0.obs;
+  RxInt index = (int.tryParse(appdata.general[5]) ?? 0).obs;
   void changeIndex(int i) {
+    if (index.value == i && i == 0) goToTop();
     index.value = i;
+  }
+
+  void goToTop() {
+    globalScrollController.animateTo(0,
+        duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
   }
 }

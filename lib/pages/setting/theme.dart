@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:forui/forui.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/config/base.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/pages/me_page.dart';
 import 'package:skana_pica/pages/setting/setting_page.dart';
 import 'package:skana_pica/util/theme.dart';
-import 'package:skana_pica/util/widget_utils.dart';
 
 class AppearancePage extends StatefulWidget {
   static const route = "${SettingPage.route}/appearance";
@@ -17,141 +15,115 @@ class AppearancePage extends StatefulWidget {
 }
 
 class _AppearancePageState extends State<AppearancePage> {
-  late DarkModeController darkModeController;
-  late FRadioSelectGroupController<int> controller;
-  late FRadioSelectGroupController<int> darkController;
-  late FRadioSelectGroupController<String> languageController;
-
   @override
-  void initState() {
-    super.initState();
-    controller =
-        FRadioSelectGroupController<int>(value: appdata.theme);
-    controller.addListener(() {
-      if (controller.values.firstOrNull == null) return;
-      changeTheme(controller.values.first);
-    });
-    darkController =
-        FRadioSelectGroupController<int>(value: appdata.darkMode);
+  Widget build(BuildContext context) {
+    AppearanceController appearanceController = Get.put(AppearanceController());
+    DarkModeController darkModeController;
     try {
       darkModeController = Get.find();
     } catch (e) {
       darkModeController = Get.put(DarkModeController());
     }
-    darkController.addListener(() {
-      if (darkController.values.firstOrNull == null) return;
-      changeColor(darkController.values.first);
-      darkModeController.fallback();
-    });
-    languageController =
-        FRadioSelectGroupController<String>(value: appdata.general[2]);
-    languageController.addListener(() {
-      if (languageController.values.firstOrNull == null) return;
-      appdata.general[2] = languageController.values.first;
-      appdata.updateSettings("general");
-      Get.updateLocale(Base.locale);
-    });
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("Appearance".tr),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () => Get.back(),
+          ),
+        ),
+        body: Obx(() {
+          return ListView(
+            padding: EdgeInsets.all(20),
+            children: [
+              ListTile(
+                leading: Icon(Icons.palette),
+                trailing: DropdownButton<int>(
+                  value: appearanceController.theme.value,
+                  items: _buildThemeList(context),
+                  onChanged: (value) {
+                    if (value != null) {
+                      appearanceController.changeTheme(value);
+                    }
+                  },
+                ),
+                title: Text('Color Theme'.tr),
+              ),
+              ListTile(
+                leading: Icon(Icons.dark_mode_rounded),
+                trailing: DropdownButton<int>(
+                  value: appearanceController.darkMode.value,
+                  items: [
+                    DropdownMenuItem(value: 0, child: Text('Follow System'.tr)),
+                    DropdownMenuItem(value: 1, child: Text('Light'.tr)),
+                    DropdownMenuItem(value: 2, child: Text('Dark'.tr)),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      appearanceController.changeColor(value);
+                      darkModeController.setSystemMode(value);
+                      darkModeController.fallback();
+                    }
+                  },
+                ),
+                title: Text('Dark Mode'.tr),
+              ),
+              ListTile(
+                leading: Icon(Icons.language),
+                trailing: DropdownButton<String>(
+                  value: appearanceController.language.value,
+                  items: [
+                    DropdownMenuItem(
+                        value: "", child: Text('Follow System'.tr)),
+                    DropdownMenuItem(value: "cn", child: Text("中文(简体)")),
+                    DropdownMenuItem(value: "tw", child: Text("中文(繁體)")),
+                    DropdownMenuItem(value: "en", child: Text("English")),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      appearanceController.changeLanguage(value);
+                    }
+                  },
+                ),
+                title: Text("Language".tr),
+              ),
+            ],
+          );
+        }));
   }
 
-  @override
-  void dispose() {
-    controller.dispose();
-    darkController.dispose();
-    languageController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FScaffold(
-      header: FHeader.nested(
-        title: Text("Appearance".tr),
-        prefixActions: [
-          FHeaderAction.back(onPress: () => Get.back()),
-        ],
-      ),
-      content: FTileGroup(children: [
-        FSelectMenuTile(
-          groupController: controller,
-          autoHide: true,
-          validator: (value) => value == null ? 'Select an item'.tr : null,
-          prefixIcon: FIcon(FAssets.icons.palette),
-          title: Text('Color Theme'.tr),
-          details: ListenableBuilder(
-            listenable: controller,
-            builder: (context, _) => Text(
-              ThemeManager.themeName[controller.values.firstOrNull ?? 0].tr,
-            ),
-          ),
-          menu: _buildThemeList(context),
-        ),
-        FSelectMenuTile(
-          groupController: darkController,
-          autoHide: true,
-          validator: (value) => value == null ? 'Select an item'.tr : null,
-          prefixIcon: FIcon(FAssets.icons.palette),
-          title: Text('Dark Mode'.tr),
-          details: ListenableBuilder(
-            listenable: darkController,
-            builder: (context, _) => Text(
-              switch (darkController.values.firstOrNull) {
-                null || 0 => 'Follow System'.tr,
-                1 => 'Light'.tr,
-                2 => 'Dark'.tr,
-                _ => 'Follow System'.tr,
-              },
-            ),
-          ),
-          menu: [
-            FSelectTile(title: Text('Follow System'.tr), value: 0),
-            FSelectTile(title: Text('Light'.tr), value: 1),
-            FSelectTile(title: Text('Dark'.tr), value: 2),
-          ],
-        ),
-        FSelectMenuTile(
-          groupController: languageController,
-          autoHide: true,
-          validator: (value) => value == null ? 'Select an item'.tr : null,
-          prefixIcon: FIcon(FAssets.icons.scanSearch),
-          title: Text("Language".tr),
-          details: ListenableBuilder(
-            listenable: languageController,
-            builder: (context, _) => Text(
-              switch (languageController.values.firstOrNull) {
-                "cn" => "中文(简体)",
-                "tw" => "中文(繁體)",
-                "en" => "English",
-                "" || null || _ => "Follow System".tr,
-              },
-            ),
-          ),
-          menu: [
-            FSelectTile(title: Text("Follow System".tr), value: ""),
-            FSelectTile(title: Text("中文(简体)"), value: "cn"),
-            FSelectTile(title: Text("中文(繁體)"), value: "tw"),
-            FSelectTile(title: Text("English"), value: "en"),
-          ],
-        ),
-      ]).paddingTop(20),
-    );
-  }
-
-  List<FSelectTile> _buildThemeList(context) {
-    List<FSelectTile> list = [];
+  List<DropdownMenuItem<int>> _buildThemeList(context) {
+    List<DropdownMenuItem<int>> list = [];
     for (int i = 0; i < ThemeManager.themeName.length; i++) {
-      list.add(
-          FSelectTile(title: Text(ThemeManager.themeName[i].tr), value: i));
+      list.add(DropdownMenuItem(
+        value: i,
+        child: Text(ThemeManager.themeName[i].tr),
+      ));
     }
     return list;
   }
+}
+
+class AppearanceController extends GetxController {
+  var theme = appdata.theme.obs;
+  var darkMode = appdata.darkMode.obs;
+  var language = appdata.general[2].obs;
 
   void changeTheme(int index) {
     appdata.theme = index;
     ThemeManager.instance.updateTheme();
+    theme.value = index;
   }
 
   void changeColor(int first) {
     appdata.darkMode = first;
-    darkModeController.setSystemMode(first);
+    darkMode.value = first;
+  }
+
+  void changeLanguage(String value) {
+    appdata.general[2] = value;
+    appdata.updateSettings("general");
+    language.value = value;
+    Get.updateLocale(Base.locale);
   }
 }

@@ -26,6 +26,15 @@ extension ListExtension<T> on List<T>{
       add(value);
     }
   }
+
+  String listToString(String? separator){
+    String res = "";
+    separator ??= ";";
+    for(var value in this){
+      res += value.toString() + separator;
+    }
+    return res;
+  }
 }
 
 extension StringExtension on String{
@@ -34,6 +43,19 @@ extension StringExtension on String{
 
   /// convert this to a one-element list.
   List<String> toList() => [this];
+
+  List<int> stringToIntList(String? separator){
+    separator ??= ";";
+    if(isEmpty){
+      return [];
+    }
+    var list = split(separator);
+    List<int> res = [];
+    for(var value in list){
+      res.add(int.parse(value));
+    }
+    return res;
+  }
 
   String _nums(){
     String res = "";

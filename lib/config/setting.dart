@@ -63,6 +63,7 @@ class Appdata {
     "", //2 language empty=system
     "0", //3 hosts
     "0", //4 代理设置, 0代表使用系统代理
+    "0", //5 mainscreen default tab
   ];
 
   List<String> pica = [
@@ -71,6 +72,8 @@ class Appdata {
     "1", //2 启动时签到
     "", //3 last punched time
     "dd", //4 搜索模式
+    "", //5 blocked category
+    "0", //6 page view(1) or unlimited scroll(0)
   ];
 
   Future<bool> firstLaunch() async {

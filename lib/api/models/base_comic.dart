@@ -18,6 +18,7 @@ class ComicSource {
   static List<Source> sources = [];
 
   static Future<void> init() async {
+      picacg.init();
       await picaClient.init();
   }
 }
