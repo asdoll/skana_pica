@@ -11,6 +11,7 @@ import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/favourite.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
 import 'package:skana_pica/pages/me_page.dart';
+import 'package:skana_pica/pages/pica_list_comics.dart';
 import 'package:skana_pica/pages/pica_login.dart';
 import 'package:skana_pica/pages/pica_search.dart';
 import 'package:skana_pica/pages/setting/manga.dart';
@@ -85,6 +86,7 @@ class _MyAppState extends State<MyApp> {
             GetPage(name: SettingPage.route, page: () => SettingPage()),
             GetPage(name: MePage.route, page: () => MePage()),
             GetPage(name: PicaSearchPage.route, page: () => PicaSearchPage()),
+            GetPage(name: PicaCatComicsPage.route, page: () => PicaCatComicsPage(id:Get.parameters['id']!, type:Get.parameters['type']!)),
             GetPage(name: AppearancePage.route, page: () => AppearancePage()),
             GetPage(name: MangaSettingPage.route, page: () => MangaSettingPage()),
           ],

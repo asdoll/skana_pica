@@ -74,6 +74,8 @@ class Appdata {
     "dd", //4 搜索模式
     "", //5 blocked category
     "0", //6 page view(1) or unlimited scroll(0)
+    "3", //7 preload pages
+    "1", //8 preload when enter details page
   ];
 
   Future<bool> firstLaunch() async {
@@ -207,6 +209,12 @@ class Appdata {
   set picaSearchMode(int mode) {
     var modes = ["dd", "da", "ld", "vd"];
     appdata.pica[4] = modes[mode];
+    appdata.updateSettings("pica");
+  }
+
+  List<String> get blockedCategory => appdata.pica[5].split(";");
+  set blockedCategory(List<String> value) {
+    appdata.pica[5] = value.join(";");
     appdata.updateSettings("pica");
   }
 }

@@ -46,7 +46,7 @@ class _SettingPageState extends State<SettingPage> {
         ),
         ListTile(
           leading: Icon(Icons.image),
-          title: Text('Manga sources'.tr),
+          title: Text('Manga Settings'.tr),
           onTap: () {
             Go.to(MangaSettingPage());
           },

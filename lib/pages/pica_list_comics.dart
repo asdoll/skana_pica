@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:skana_pica/pages/mainscreen.dart';
 import 'package:skana_pica/widgets/pica_comic_list.dart';
 
 class PicaCatComicsPage extends StatefulWidget {
+  static const route = "${Mains.route}catcomics";
+
   final String id;
   final String type;
   final bool isMain;

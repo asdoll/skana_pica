@@ -4,16 +4,22 @@ import 'package:skana_pica/main.dart';
 
 class Go {
   /// Similar to **Navigation.push()**
-  static Future<T?> to<T>(dynamic page, {dynamic arguments, Transition? transition, bool? opaque}) async {
+  static Future<T?> to<T>(dynamic page,
+      {dynamic arguments,
+      Transition? transition,
+      bool? opaque,
+      bool preventDuplicates = true}) async {
     return await Get.to<T>(page,
         arguments: arguments,
         transition: transition ?? Transition.rightToLeft,
         duration: const Duration(milliseconds: 200),
-        opaque: opaque);
+        opaque: opaque,
+        preventDuplicates: preventDuplicates);
   }
 
   /// Similar to **Navigation.pushReplacement**
-  static Future<dynamic> off(dynamic page, {dynamic arguments, Transition? transition}) async {
+  static Future<dynamic> off(dynamic page,
+      {dynamic arguments, Transition? transition}) async {
     Get.off(
       page,
       arguments: arguments,
@@ -23,7 +29,8 @@ class Go {
   }
 
   /// Similar to **Navigation.pushAndRemoveUntil()**
-  static Future<dynamic> offUntil(dynamic page, {Transition? transition}) async {
+  static Future<dynamic> offUntil(dynamic page,
+      {Transition? transition}) async {
     Get.offUntil(
         GetPageRoute(
           page: page,
@@ -77,7 +84,7 @@ class Leader {
         //int id = int.parse(idSource);
         Navigator.of(context, rootNavigator: true)
             .push(MaterialPageRoute(builder: (context) {
-          return Container();//IllustPageLite(id.toString());
+          return Container(); //IllustPageLite(id.toString());
         }));
       } catch (e) {}
       return true;
@@ -86,8 +93,8 @@ class Leader {
   }
 
   static Future<dynamic> pushWithScaffold(context, Widget widget,
-      {Widget? icon, Widget? title, bool root =false}) {
-    if(root) {
+      {Widget? icon, Widget? title, bool root = false}) {
+    if (root) {
       return Navigator.of(context, rootNavigator: true).push(MaterialPageRoute(
         builder: (context) => Scaffold(
           body: widget,
@@ -108,7 +115,7 @@ class Leader {
     bool forceSkipWrap = false,
     bool root = false,
   }) {
-    if(root) {
+    if (root) {
       return Navigator.of(context, rootNavigator: true).push(MaterialPageRoute(
         builder: (context) => Scaffold(
           body: widget,

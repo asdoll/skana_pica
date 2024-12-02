@@ -10,7 +10,7 @@ late FavorController favorController;
 class FavorController extends GetxController {
   RxList<String> favorComics = <String>[].obs;
   RxBool isLoading = false.obs;
-  String lastId = "";
+  RxString lastId = "".obs;
 
   void addFavor(String id) {
     if (favorComics.contains(id)) {
@@ -25,13 +25,12 @@ class FavorController extends GetxController {
     favorComics.refresh();
   }
 
-  void favorCall(PicaComicItemBrief comic) {
-    String id = comic.id;
-    if (isLoading.value && lastId == id) {
+  void favorCall(String id) {
+    if (isLoading.value && lastId.value == id) {
       return;
     }
     isLoading.value = true;
-    lastId = id;
+    lastId.value = id;
     bool isFavor = favorComics.contains(id);
     picaClient.favouriteOrUnfavouriteComic(id).then((value) {
       if (value) {
@@ -84,7 +83,7 @@ class FavorController extends GetxController {
 class BookmarksController extends GetxController {
   RxList<PicaComicItemBrief> bookmarks = <PicaComicItemBrief>[].obs;
   RxBool isLoading = false.obs;
-  String lastId = "";
+  RxString lastId = "".obs;
 
   void addBookmark(PicaComicItemBrief comic) {
     if (bookmarks.contains(comic)) {
@@ -101,11 +100,11 @@ class BookmarksController extends GetxController {
 
   void favorCall(PicaComicItemBrief comic) {
     String id = comic.id;
-    if (isLoading.value && lastId == id) {
+    if (isLoading.value && lastId.value == id) {
       return;
     }
     isLoading.value = true;
-    lastId = id;
+    lastId.value = id;
     bool isFavor = favorController.favorComics.contains(id);
     picaClient.favouriteOrUnfavouriteComic(id).then((value) {
       if (value) {
@@ -125,11 +124,11 @@ class BookmarksController extends GetxController {
   }
 
   void fetch() {
-    if (isLoading.value && lastId == "bookmarks") {
+    if (isLoading.value && lastId.value == "bookmarks") {
       return;
     }
     isLoading.value = true;
-    lastId = "bookmarks";
+    lastId.value = "bookmarks";
     bookmarks.clear();
     int pages = 1;
     picaClient.getFavorites(1, appdata.pica[4] == "da").then((value) {
@@ -152,5 +151,27 @@ class BookmarksController extends GetxController {
     });
     favorController.addList(bookmarks);
     isLoading.value = false;
+  }
+}
+
+class LikeController extends GetxController {
+  RxBool isLoading = false.obs;
+  RxBool isLike = false.obs;
+
+  bool likeCall(String id) {
+    if (isLoading.value) {
+      return false;
+    }
+    isLoading.value = true;
+    picaClient.likeOrUnlikeComic(id).then((value) {
+      if (!value) {
+        BotToast.showText(text: "Network Error".tr);
+        isLoading.value = false;
+        return false;
+      }
+      isLike.value = !isLike.value;
+      isLoading.value = false;
+    });
+    return true;
   }
 }

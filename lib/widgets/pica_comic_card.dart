@@ -7,6 +7,7 @@ import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/widget_utils.dart';
 import 'package:skana_pica/widgets/pica_image.dart';
 import 'package:skana_pica/widgets/pica_tagchip.dart';
+import 'package:skana_pica/widgets/tag_finished.dart';
 
 class PicaComicCard extends StatefulWidget {
   final PicaComicItemBrief comic;
@@ -110,6 +111,13 @@ class _PicaComicCardState extends State<PicaComicCard> {
                                   '${comic.epsCount ?? 1}E/${comic.pages ?? 1}P',
                                   style: Theme.of(context).textTheme.labelLarge,
                                 ),
+                                const SizedBox(
+                                  width: 8,
+                                ),
+                                if (comic.finished == true)
+                                  TagFinished()
+                                else
+                                  Container(),
                               ],
                             ),
                           ),
@@ -138,16 +146,20 @@ class _PicaComicCardState extends State<PicaComicCard> {
                   ],
                 ),
               ),
-              if (!widget.isBookmarkPage &&
-                  favorController.favorComics.contains(widget.comic.id))
-                Positioned(
-                    bottom: 8,
-                    right: 8,
-                    child: Icon(
-                      Icons.bookmark_added_rounded,
-                      color: Get.theme.primaryColor.withOpacity(0.3),
-                      size: Get.width / 8,
-                    ))
+              Obx(() {
+                if (!widget.isBookmarkPage &&
+                    favorController.favorComics.contains(widget.comic.id)) {
+                  return Positioned(
+                      bottom: 8,
+                      right: 8,
+                      child: Icon(
+                        Icons.bookmark_added_rounded,
+                        color: Get.theme.primaryColor.withOpacity(0.3),
+                        size: Get.width / 8,
+                      ));
+                }
+                return Container();
+              })
             ],
           )),
     );

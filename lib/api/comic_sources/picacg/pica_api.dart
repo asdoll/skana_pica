@@ -378,7 +378,8 @@ class PicaClient {
               res["data"]["comics"]["docs"][i]["_id"],
               tags,
               pages: res["data"]["comics"]["docs"][i]["pagesCount"],
-              epsCount: res["data"]["comics"]["docs"][i]["epsCount"]);
+              epsCount: res["data"]["comics"]["docs"][i]["epsCount"],
+              finished: res["data"]["comics"]["docs"][i]["finished"]);
           comics.add(si);
         } catch (e) {
           continue;
@@ -457,6 +458,7 @@ class PicaClient {
           categories,
           tags,
           res["data"]["comic"]["likesCount"] ?? 0,
+          res["data"]["comic"]["totalViews"] ?? 0,
           res["data"]["comic"]["commentsCount"] ?? 0,
           res["data"]["comic"]["isFavourite"] ?? false,
           res["data"]["comic"]["isLiked"] ?? false,
@@ -465,7 +467,9 @@ class PicaClient {
           res["data"]["comic"]["pagesCount"],
           res["data"]["comic"]["updated_at"],
           epsRes.data,
-          recommendationRes.data);
+          recommendationRes.data,
+          res["data"]["comic"]["finished"]
+          );
       return Res(ci);
     } catch (e, s) {
       log.e("Data Analyse", error: "$s\n$s");
@@ -521,7 +525,7 @@ class PicaClient {
     return Res(imageUrls);
   }
 
-  Future<Res<bool>> loadMoreCommends(PicaComments c,
+  Future<Res<bool>> loadMoreComments(PicaComments c,
       {String type = "comics"}) async {
     if (c.loaded != c.pages) {
       var response =
@@ -578,9 +582,9 @@ class PicaClient {
     return const Res(true);
   }
 
-  Future<PicaComments> getCommends(String id, {String type = "comics"}) async {
+  Future<PicaComments> getComments(String id, {String type = "comics"}) async {
     var t = PicaComments([], id, 1, 0);
-    await loadMoreCommends(t, type: type);
+    await loadMoreComments(t, type: type);
     return t;
   }
 
@@ -612,7 +616,8 @@ class PicaClient {
                 res["data"]["comics"]["docs"][i]["thumb"]["path"],
             res["data"]["comics"]["docs"][i]["_id"],
             tags,
-            pages: res["data"]["comics"]["docs"][i]["pagesCount"]);
+            pages: res["data"]["comics"]["docs"][i]["pagesCount"],
+            finished: res["data"]["comics"]["docs"][i]["finished"]);
         comics.add(si);
       }
       return Res(comics, subData: pages);
@@ -697,6 +702,7 @@ class PicaClient {
           res["data"]["comics"][i]["_id"],
           tags,
           pages: res["data"]["comics"][i]["pagesCount"],
+          finished: res["data"]["comics"]["docs"][i]["finished"]
         );
         comics.add(si);
       } finally {}
@@ -908,6 +914,7 @@ class PicaClient {
             res["data"]["collections"][0]["comics"][i]["_id"],
             [],
             pages: res["data"]["collections"][0]["comics"][i]["pagesCount"],
+            finished: res["data"]["comics"]["docs"][i]["finished"]
           );
           comics[0].add(si);
         } catch (e) {
@@ -1048,6 +1055,7 @@ class PicaClient {
           res["data"]["comics"]["docs"][i]["_id"],
           tags,
           pages: res["data"]["comics"]["docs"][i]["pagesCount"],
+          finished: res["data"]["comics"]["docs"][i]["finished"],
         );
         comics.add(si);
       } catch (e) {
@@ -1083,6 +1091,7 @@ class PicaClient {
           res["data"]["comics"]["docs"][i]["_id"],
           tags,
           pages: res["data"]["comics"]["docs"][i]["pagesCount"],
+          finished: res["data"]["comics"]["docs"][i]["finished"]
         );
         comics.add(si);
       } catch (e) {

@@ -39,6 +39,13 @@ class InitData {
   InitData(this.imageServer, this.fileServer);
 }
 
+class PicaEpsImages {
+  String eps;
+  List<String> imageUrl;
+  int? loaded;
+  PicaEpsImages(this.eps, this.imageUrl);
+}
+
 @JsonSerializable()
 class PicaComicItemBrief extends BaseComic{
   @override
@@ -52,8 +59,9 @@ class PicaComicItemBrief extends BaseComic{
   List<String> tags;
   int? pages;
   int? epsCount;
+  bool? finished;
 
-  PicaComicItemBrief(this.title, this.author, this.likes, this.path, this.id, this.tags, {this.pages, this.epsCount});
+  PicaComicItemBrief(this.title, this.author, this.likes, this.path, this.id, this.tags, {this.pages, this.epsCount, this.finished});
 
   Map<String,dynamic> toJson()=> _$PicaComicItemBriefToJson(this);
 
@@ -82,6 +90,7 @@ class PicaComicItem with HistoryMixin{
   List<String> categories;
   List<String> tags;
   int likes;
+  int totalViews;
   int comments;
   bool isLiked;
   bool isFavourite;
@@ -90,6 +99,7 @@ class PicaComicItem with HistoryMixin{
   String time;
   List<String> eps;
   List<PicaComicItemBrief> recommendation;
+  bool finished;
   PicaComicItem(
       this.creator,
       this.title,
@@ -100,6 +110,7 @@ class PicaComicItem with HistoryMixin{
       this.categories,
       this.tags,
       this.likes,
+      this.totalViews,
       this.comments,
       this.isFavourite,
       this.isLiked,
@@ -108,7 +119,8 @@ class PicaComicItem with HistoryMixin{
       this.pagesCount,
       this.time,
       this.eps,
-      this.recommendation
+      this.recommendation,
+      this.finished
       );
   PicaComicItemBrief toBrief(){
     return PicaComicItemBrief(title, author, likes, thumbUrl, id, []);
@@ -117,6 +129,8 @@ class PicaComicItem with HistoryMixin{
   Map<String,dynamic> toJson()=> _$PicaComicItemToJson(this);
 
   factory PicaComicItem.fromJson(Map<String,dynamic> json) => _$PicaComicItemFromJson(json);
+
+  PicaComicItem.error(String id):this(PicaProfile("","","",0,0,"","",null,null,null),"error","","","","",[],[],0,0,0,false,false,0,id,0,"",[],[],false);
   
   @override
   String get cover => thumbUrl;

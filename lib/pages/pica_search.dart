@@ -68,9 +68,9 @@ class _PicaSearchPageState extends State<PicaSearchPage> {
             itemCount: categoriesController.categories.length,
             itemBuilder: (context, index) {
               return InkWell(
-                onTap: () => Go.to(() => PicaCatComicsPage(
+                onTap: () => Go.to(PicaCatComicsPage(
                     id: categoriesController.categories[index],
-                    type: "category")),
+                    type: "category"),preventDuplicates: false),
                 child: Card(
                   clipBehavior: Clip.antiAlias,
                   shape: const RoundedRectangleBorder(

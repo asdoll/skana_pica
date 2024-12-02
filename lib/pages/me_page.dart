@@ -36,7 +36,7 @@ class _MePageState extends State<MePage> {
           IconButton(
             icon: Icon(Icons.settings),
             onPressed: () {
-              Go.to(() => SettingPage());
+              Go.to(SettingPage());
             },
           ),
         ],
