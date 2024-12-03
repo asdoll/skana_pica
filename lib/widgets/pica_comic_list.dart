@@ -11,12 +11,16 @@ class PicaComicsPage extends StatefulWidget {
   final String keyword;
   final String type;
   final bool isMain;
+  final bool? addToHistory;
+  final String? sort;
 
   const PicaComicsPage(
       {super.key,
       this.isMain = false,
       required this.keyword,
-      required this.type});
+      required this.type,
+      this.addToHistory,
+      this.sort});
 
   @override
   State<PicaComicsPage> createState() => _PicaComicsPageState();
@@ -32,6 +36,7 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
       controlFinishRefresh: true,
       controlFinishLoad: true,
     );
+    ScrollController scrollController = ScrollController();
     try {
       controller = Get.find<ComicListController>(tag: tag);
     } catch (e) {
@@ -53,7 +58,10 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                   onSelected: (bool selected) {
                     if (selected) {
                       controller.init(widget.keyword,
-                          isAuthor: author, sort: "dd");
+                          isAuthor: author,
+                          sort: "dd",
+                          addToHistory: widget.addToHistory ?? false,
+                          isSearch: widget.type == "search");
                     }
                   },
                 ),
@@ -64,7 +72,10 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                   onSelected: (bool selected) {
                     if (selected) {
                       controller.init(widget.keyword,
-                          isAuthor: author, sort: "da");
+                          isAuthor: author,
+                          sort: "da",
+                          addToHistory: widget.addToHistory ?? false,
+                          isSearch: widget.type == "search");
                     }
                   },
                 ),
@@ -75,7 +86,10 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                   onSelected: (bool selected) {
                     if (selected) {
                       controller.init(widget.keyword,
-                          isAuthor: author, sort: "ld");
+                          isAuthor: author,
+                          sort: "ld",
+                          addToHistory: widget.addToHistory ?? false,
+                          isSearch: widget.type == "search");
                     }
                   },
                 ),
@@ -86,7 +100,10 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                   onSelected: (bool selected) {
                     if (selected) {
                       controller.init(widget.keyword,
-                          isAuthor: author, sort: "vd");
+                          isAuthor: author,
+                          sort: "vd",
+                          addToHistory: widget.addToHistory ?? false,
+                          isSearch: widget.type == "search");
                     }
                   },
                 ),
@@ -134,6 +151,15 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                                   if (pageNumber != null &&
                                       pageNumber > 0 &&
                                       pageNumber <= controller.total.value) {
+                                    widget.isMain
+                                        ? globalScrollController.animateTo(0,
+                                            duration: const Duration(
+                                                microseconds: 200),
+                                            curve: Curves.ease)
+                                        : scrollController.animateTo(0,
+                                            duration: const Duration(
+                                                microseconds: 200),
+                                            curve: Curves.ease);
                                     controller.pageFetch(pageNumber);
                                     Get.back();
                                   } else {
@@ -156,6 +182,15 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                                     if (pageNumber != null &&
                                         pageNumber > 0 &&
                                         pageNumber <= controller.total.value) {
+                                      widget.isMain
+                                          ? globalScrollController.animateTo(0,
+                                              duration: const Duration(
+                                                  microseconds: 200),
+                                              curve: Curves.ease)
+                                          : scrollController.animateTo(0,
+                                              duration: const Duration(
+                                                  microseconds: 200),
+                                              curve: Curves.ease);
                                       controller.pageFetch(pageNumber);
                                       Get.back();
                                     } else {
@@ -178,12 +213,30 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                 TextButton(
                     onPressed: (controller.page.value == 1)
                         ? null
-                        : () => controller.pageFetch(controller.page.value - 1),
+                        : () {
+                            widget.isMain
+                                ? globalScrollController.animateTo(0,
+                                    duration: const Duration(microseconds: 200),
+                                    curve: Curves.ease)
+                                : scrollController.animateTo(0,
+                                    duration: const Duration(microseconds: 200),
+                                    curve: Curves.ease);
+                            controller.pageFetch(controller.page.value - 1);
+                          },
                     child: Text("Prev Page".tr)),
                 TextButton(
                     onPressed: (controller.page.value == controller.total.value)
                         ? null
-                        : () => controller.pageFetch(controller.page.value + 1),
+                        : () {
+                            widget.isMain
+                                ? globalScrollController.animateTo(0,
+                                    duration: const Duration(microseconds: 200),
+                                    curve: Curves.ease)
+                                : scrollController.animateTo(0,
+                                    duration: const Duration(microseconds: 200),
+                                    curve: Curves.ease);
+                            controller.pageFetch(controller.page.value + 1);
+                          },
                     child: Text("Next Page".tr)),
               ],
             ),
@@ -193,7 +246,8 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
           Expanded(
             child: EasyRefresh(
               controller: easyRefreshController,
-              scrollController: widget.isMain ? globalScrollController : null,
+              scrollController:
+                  widget.isMain ? globalScrollController : scrollController,
               onLoad: (appdata.pica[6] == "1")
                   ? null
                   : () async {
@@ -212,7 +266,11 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
               onRefresh: () async {
                 bool res;
                 if (controller.keyword.isEmpty) {
-                  res = controller.init(widget.keyword, isAuthor: author);
+                  res = controller.init(widget.keyword,
+                      isAuthor: author,
+                      sort: widget.sort ?? "",
+                      addToHistory: widget.addToHistory ?? false,
+                      isSearch: widget.type == "search");
                 } else {
                   res = controller
                       .reload((appdata.pica[6] == "1") ? false : true);
@@ -225,25 +283,44 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
               },
               refreshOnStart: true,
               child: ListView.builder(
-                controller: widget.isMain ? globalScrollController : null,
+                controller:
+                    widget.isMain ? globalScrollController : scrollController,
                 itemCount: (appdata.pica[6] == "1")
                     ? controller.comics.length + 1
                     : controller.comics.length,
                 itemBuilder: (context, index) {
                   if (index == controller.comics.length &&
-                      (controller.page.value < controller.total.value)) {
+                      (controller.page.value < controller.total.value) &&
+                      !controller.isLoading.value) {
                     return Center(
-                      child: TextButton(
-                          onPressed: () =>
-                              controller.pageFetch(controller.page.value + 1),
-                          child: Text("Next Page".tr,
-                              style: TextStyle(
-                                  fontSize:
-                                      Get.textTheme.titleLarge!.fontSize))),
+                      child: IconButton(
+                          onPressed: () {
+                            widget.isMain
+                                ? globalScrollController.animateTo(0,
+                                    duration: const Duration(microseconds: 200),
+                                    curve: Curves.ease)
+                                : scrollController.animateTo(0,
+                                    duration: const Duration(microseconds: 200),
+                                    curve: Curves.ease);
+                            controller.pageFetch(controller.page.value + 1);
+                          },
+                          icon: Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            size: 40,
+                          )),
                     );
                   }
                   if (controller.comics.isEmpty) {
-                    return Container();
+                    return Container(
+                        height: Get.height * 0.8,
+                        child: Center(
+                          child: Text(
+                            "[ ]",
+                            style: Get.textTheme.displayLarge?.copyWith(
+                                color: Get.theme.colorScheme.onPrimary
+                                    .withOpacity(0.7)),
+                          ),
+                        ));
                   }
                   return PicaComicCard(
                     controller.comics[index],

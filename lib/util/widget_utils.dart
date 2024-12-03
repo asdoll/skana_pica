@@ -45,10 +45,6 @@ extension WidgetExtension on Widget {
         padding: EdgeInsets.symmetric(horizontal: padding), child: this);
   }
 
-  Widget paddingAll(double padding) {
-    return Padding(padding: EdgeInsets.all(padding), child: this);
-  }
-
   Widget toCenter() {
     return Center(child: this);
   }

@@ -348,11 +348,6 @@ class PicaClient {
       {bool addToHistory = false}) async {
     var response = await post('$apiUrl/comics/advanced-search?page=$page',
         {"keyword": keyWord, "sort": sort});
-    if (page == 1 && addToHistory && keyWord != "") {
-      appdata.searchHistory.remove(keyWord);
-      appdata.searchHistory.add(keyWord);
-      appdata.writeHistory();
-    }
     if (response.error) {
       return Res(null, errorMessage: response.errorMessage);
     }
@@ -384,16 +379,6 @@ class PicaClient {
         } catch (e) {
           continue;
         }
-      }
-      if (addToHistory) {
-        Future.delayed(const Duration(microseconds: 500), () {
-          try {
-            //TODO:update search history
-            //StateController.find<PreSearchController>().update();
-          } catch (e) {
-            //忽视
-          }
-        });
       }
       return Res(comics, subData: pages);
     } catch (e, s) {
@@ -535,6 +520,7 @@ class PicaClient {
       }
       var res = response.data;
       c.pages = res["data"]["comments"]["pages"];
+      c.total = res["data"]["comments"]["total"];
       for (int i = 0; i < res["data"]["comments"]["docs"].length; i++) {
         String url = "";
         try {
@@ -583,7 +569,7 @@ class PicaClient {
   }
 
   Future<PicaComments> getComments(String id, {String type = "comics"}) async {
-    var t = PicaComments([], id, 1, 0);
+    var t = PicaComments([], id, 1, 0, 0);
     await loadMoreComments(t, type: type);
     return t;
   }
@@ -616,6 +602,7 @@ class PicaClient {
                 res["data"]["comics"]["docs"][i]["thumb"]["path"],
             res["data"]["comics"]["docs"][i]["_id"],
             tags,
+            epsCount: res["data"]["comics"]["docs"][i]["epsCount"],
             pages: res["data"]["comics"]["docs"][i]["pagesCount"],
             finished: res["data"]["comics"]["docs"][i]["finished"]);
         comics.add(si);
@@ -648,7 +635,9 @@ class PicaClient {
                   res["data"]["comics"][i]["thumb"]["path"],
               res["data"]["comics"][i]["_id"],
               tags,
-              pages: res["data"]["comics"][i]["pagesCount"]);
+              epsCount: res["data"]["comics"]["docs"][i]["epsCount"],
+              pages: res["data"]["comics"][i]["pagesCount"],
+              finished: res["data"]["comics"]["docs"][i]["finished"]);
           comics.add(si);
         } finally {}
       }
@@ -701,6 +690,7 @@ class PicaClient {
               res["data"]["comics"][i]["thumb"]["path"],
           res["data"]["comics"][i]["_id"],
           tags,
+          epsCount: res["data"]["comics"]["docs"][i]["epsCount"],
           pages: res["data"]["comics"][i]["pagesCount"],
           finished: res["data"]["comics"]["docs"][i]["finished"]
         );
@@ -812,7 +802,7 @@ class PicaClient {
               res["data"]["comments"]["docs"][i]["_user"]["level"] ?? 0,
               res["data"]["comments"]["docs"][i]["content"] ?? "",
               0,
-              "",
+              res["data"]["comments"]["docs"][i]["_id"],
               res["data"]["comments"]["docs"][i]["isLiked"],
               res["data"]["comments"]["docs"][i]["likesCount"] ?? 0,
               res["data"]["comments"]["docs"][i]["_user"]["character"],
@@ -883,6 +873,7 @@ class PicaClient {
                 res["data"]["comics"][i]["thumb"]["path"],
             res["data"]["comics"][i]["_id"],
             tags,
+          pages: res["data"]["comics"][i]["pagesCount"],
           );
           comics.add(si);
         } finally {}
@@ -913,8 +904,9 @@ class PicaClient {
                 res["data"]["collections"][0]["comics"][i]["thumb"]["path"],
             res["data"]["collections"][0]["comics"][i]["_id"],
             [],
+            epsCount: res["data"]["collections"]["docs"][i]["epsCount"],
             pages: res["data"]["collections"][0]["comics"][i]["pagesCount"],
-            finished: res["data"]["comics"]["docs"][i]["finished"]
+            finished: res["data"]["collections"]["docs"][i]["finished"]
           );
           comics[0].add(si);
         } catch (e) {
@@ -934,7 +926,9 @@ class PicaClient {
                 res["data"]["collections"][1]["comics"][i]["thumb"]["path"],
             res["data"]["collections"][1]["comics"][i]["_id"],
             [],
+            epsCount: res["data"]["collections"]["docs"][i]["epsCount"],
             pages: res["data"]["collections"][1]["comics"][i]["pagesCount"],
+            finished: res["data"]["collections"]["docs"][i]["finished"]
           );
           comics[1].add(si);
         } finally {}
@@ -1054,6 +1048,7 @@ class PicaClient {
               res["data"]["comics"]["docs"][i]["thumb"]["path"],
           res["data"]["comics"]["docs"][i]["_id"],
           tags,
+          epsCount: res["data"]["comics"]["docs"][i]["epsCount"],
           pages: res["data"]["comics"]["docs"][i]["pagesCount"],
           finished: res["data"]["comics"]["docs"][i]["finished"],
         );
@@ -1090,6 +1085,7 @@ class PicaClient {
               res["data"]["comics"]["docs"][i]["thumb"]["path"],
           res["data"]["comics"]["docs"][i]["_id"],
           tags,
+          epsCount: res["data"]["comics"]["docs"][i]["epsCount"],
           pages: res["data"]["comics"]["docs"][i]["pagesCount"],
           finished: res["data"]["comics"]["docs"][i]["finished"]
         );

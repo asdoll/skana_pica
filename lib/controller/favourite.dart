@@ -3,7 +3,9 @@ import 'package:get/get.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/config/setting.dart';
-
+import 'package:skana_pica/controller/comicstore.dart';
+import 'package:skana_pica/controller/comment.dart';
+import 'package:skana_pica/util/log.dart';
 
 late FavorController favorController;
 
@@ -157,6 +159,7 @@ class BookmarksController extends GetxController {
 class LikeController extends GetxController {
   RxBool isLoading = false.obs;
   RxBool isLike = false.obs;
+  RxInt likes = 0.obs;
 
   bool likeCall(String id) {
     if (isLoading.value) {
@@ -172,6 +175,40 @@ class LikeController extends GetxController {
       isLike.value = !isLike.value;
       isLoading.value = false;
     });
+    return true;
+  }
+
+  bool commentLikeCall(String id, {String? commentComicId, String? commentId}) {
+    if (isLoading.value) {
+      return false;
+    }
+    isLoading.value = true;
+    picaClient.likeOrUnlikeComment(id).then((value) {
+      if (!value) {
+        BotToast.showText(text: "Network Error".tr);
+        isLoading.value = false;
+        return false;
+      }
+      isLike.value = !isLike.value;
+      if (commentComicId != null) {
+        try {
+          ComicStore store = Get.find<ComicStore>(tag: commentComicId);
+          store.fetchComments();
+        } catch (e) {
+          log.e(e);
+        }
+      }
+      if (commentId != null) {
+        try {
+          CommentController controller = Get.find<CommentController>(tag: commentId);
+          controller.fetch();
+        } catch (e) {
+          log.e(e);
+        }
+      }
+      isLoading.value = false;
+    });
+
     return true;
   }
 }

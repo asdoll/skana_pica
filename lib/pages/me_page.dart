@@ -26,8 +26,8 @@ class _MePageState extends State<MePage> {
           Obx(
             () => IconButton(
               icon: themeQuickController.isDark.value > 0
-                  ? Icon(Icons.nightlight_round)
-                  : Icon(Icons.wb_sunny),
+                  ? Icon(Icons.nights_stay)
+                  : Icon(Icons.wb_sunny_sharp),
               onPressed: () {
                 themeQuickController.toggleDarkMode();
               },

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
 import 'package:skana_pica/pages/setting/manga.dart';
 import 'package:skana_pica/pages/setting/theme.dart';
@@ -30,6 +31,7 @@ class _SettingPageState extends State<SettingPage> {
   }
 
   Widget _buildContent(BuildContext context) {
+    SettingController settingController = Get.put(SettingController());
     return ListView(
       children: [
         ListTile(
@@ -51,7 +53,42 @@ class _SettingPageState extends State<SettingPage> {
             Go.to(MangaSettingPage());
           },
         ),
+        ListTile(
+            leading: Icon(Icons.switch_access_shortcut_rounded),
+            title: Text('Home Page'.tr),
+            trailing: Obx(
+              () => DropdownButton(
+                value: settingController.defaultPage.value,
+                items: [
+                  DropdownMenuItem(
+                    value: "0",
+                    child: Text("Left".tr),
+                  ),
+                  DropdownMenuItem(
+                    value: "1",
+                    child: Text("Middle".tr),
+                  ),
+                  DropdownMenuItem(
+                    value: "2",
+                    child: Text("Right".tr),
+                  ),
+                ],
+                onChanged: (String? value) {
+                  settingController.changeDefaultPage(value!);
+                },
+              ),
+            )),
       ],
     );
+  }
+}
+
+class SettingController extends GetxController {
+  RxString defaultPage = appdata.general[5].obs;
+
+  void changeDefaultPage(String index) {
+    defaultPage.value = index;
+    appdata.general[5] = index;
+    appdata.updateSettings("general");
   }
 }

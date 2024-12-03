@@ -96,24 +96,33 @@ class _PicaComicCardState extends State<PicaComicCard> {
                                 const SizedBox(
                                   width: 8,
                                 ),
-                                Icon(
-                                  Icons.sticky_note_2_outlined,
-                                  size: 12,
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .labelLarge!
-                                      .color,
-                                ),
-                                const SizedBox(
-                                  width: 2,
-                                ),
-                                Text(
-                                  '${comic.epsCount ?? 1}E/${comic.pages ?? 1}P',
-                                  style: Theme.of(context).textTheme.labelLarge,
-                                ),
-                                const SizedBox(
-                                  width: 8,
-                                ),
+                                if (comic.epsCount != null ||
+                                    comic.pages != null)
+                                  Icon(
+                                    Icons.sticky_note_2_outlined,
+                                    size: 12,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .labelLarge!
+                                        .color,
+                                  ),
+                                if (comic.epsCount != null ||
+                                    comic.pages != null)
+                                  const SizedBox(
+                                    width: 2,
+                                  ),
+                                if (comic.epsCount != null ||
+                                    comic.pages != null)
+                                  Text(
+                                    '${comic.epsCount != null ? "${comic.epsCount}E/" : ""}${comic.pages != null ? "${comic.pages}P" : ""}',
+                                    style:
+                                        Theme.of(context).textTheme.labelLarge,
+                                  ),
+                                if (comic.epsCount != null ||
+                                    comic.pages != null)
+                                  const SizedBox(
+                                    width: 8,
+                                  ),
                                 if (comic.finished == true)
                                   TagFinished()
                                 else

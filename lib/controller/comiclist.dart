@@ -12,16 +12,34 @@ class ComicListController extends GetxController {
   bool isAuthor = false;
   String keyword = "";
   RxString sort = "".obs;
+  bool isSearch = false;
+  bool addToHistory = true;
 
   bool fetch() {
-    if(isLoading.value){
+    if (isLoading.value) {
       return true;
     }
     isLoading.value = true;
     sort.value = sort.value.isEmpty ? appdata.pica[4] : sort.value;
+    if (isSearch) {
+      picaClient
+          .search(keyword, sort.value, page.value, addToHistory: addToHistory)
+          .then((value) {
+        if (value.error) {
+          isLoading.value = false;
+          BotToast.showText(text: "Failed to load data".tr);
+          return false;
+        }
+        total.value = value.subData;
+        comics.addAll(value.data);
+        isLoading.value = false;
+      });
+      comics.refresh();
+      return true;
+    }
     picaClient
-        .getCategoryComics(keyword, page.value, sort.value,
-            isAuthor ? "a" : "c")
+        .getCategoryComics(
+            keyword, page.value, sort.value, isAuthor ? "a" : "c")
         .then((value) {
       if (value.error) {
         isLoading.value = false;
@@ -37,16 +55,19 @@ class ComicListController extends GetxController {
   }
 
   bool onLoad() {
-    if(isLoading.value){
+    if (isLoading.value) {
       return true;
     }
     page.value++;
     return fetch();
   }
 
-  bool init(String keyword, {String sort = "", bool isAuthor = false, int page = 1}) {
+  bool init(String keyword,
+      {String sort = "", bool isAuthor = false, int page = 1, bool addToHistory = false, bool isSearch = false}) {
     this.keyword = keyword;
     this.isAuthor = isAuthor;
+    this.addToHistory = addToHistory;
+    this.isSearch = isSearch;
     sort.isEmpty ? this.sort.value = appdata.pica[4] : this.sort.value = sort;
     this.page.value = page;
     comics.clear();
@@ -54,10 +75,10 @@ class ComicListController extends GetxController {
   }
 
   bool pageFetch(int page) {
-    if(isLoading.value){
+    if (isLoading.value) {
       return true;
     }
-    if (page > total.value || page <= 1) {
+    if (page > total.value || page < 1) {
       return false;
     }
     this.page.value = page;

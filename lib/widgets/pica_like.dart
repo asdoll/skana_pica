@@ -45,8 +45,18 @@ class _PicaFavorButtonState extends State<PicaFavorButton> {
 class PicaLikeButton extends StatefulWidget {
   final String id;
   final bool isLike;
+  final double? size;
+  final bool isComment;
+  final String? commentComicId;
+  final bool isReply;
 
-  const PicaLikeButton(this.id, {super.key, required this.isLike});
+  const PicaLikeButton(this.id,
+      {super.key,
+      required this.isLike,
+      this.size,
+      this.isComment = false,
+      this.commentComicId,
+      this.isReply = false});
 
   @override
   State<PicaLikeButton> createState() => _PicaLikeButtonState();
@@ -55,26 +65,32 @@ class PicaLikeButton extends StatefulWidget {
 class _PicaLikeButtonState extends State<PicaLikeButton> {
   @override
   Widget build(BuildContext context) {
-    LikeController likeController = Get.put(LikeController(), tag: widget.id);
+    LikeController likeController = Get.put(LikeController(),
+        tag: widget.isComment ? "c${widget.id}" : widget.id);
     likeController.isLike.value = widget.isLike;
+    double size = widget.size ?? _iconSize;
     return Obx(() => IconButton(
           icon: likeController.isLoading.value
               ? SizedBox(
-                  width: _iconSize,
-                  height: _iconSize,
-                  child: CircularProgressIndicator())
+                  width: size, height: size, child: CircularProgressIndicator())
               : likeController.isLike.value
                   ? Icon(
                       Icons.favorite_rounded,
                       color: Colors.red,
-                      size: _iconSize,
+                      size: size,
                     )
                   : Icon(
                       Icons.favorite_border_rounded,
-                      size: _iconSize,
+                      size: size,
                     ),
           onPressed: () {
-            likeController.likeCall(widget.id);
+            if (widget.isComment) {
+              likeController.commentLikeCall(widget.id,
+                  commentComicId: widget.isReply ? null : widget.commentComicId,
+                  commentId: widget.isReply ? widget.commentComicId : null);
+            } else {
+              likeController.likeCall(widget.id);
+            }
           },
         ));
   }

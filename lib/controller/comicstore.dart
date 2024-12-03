@@ -16,7 +16,7 @@ class ComicStore extends GetxController {
 
   Rx<PicaComicItem> comic = PicaComicItem.error("").obs;
 
-  Rx<PicaComments> comments = PicaComments([], "", 1, 0).obs;
+  Rx<PicaComments> comments = PicaComments([], "", 1, 0, 0).obs;
 
   void fetch(String id) async {
     if (isLoading.value) {
@@ -97,7 +97,7 @@ class ComicStore extends GetxController {
     epsList.refresh();
   }
 
-  void fetchComments(){
+  void fetchComments() {
     if (isLoading.value) {
       return;
     }
@@ -107,6 +107,30 @@ class ComicStore extends GetxController {
       comments.refresh();
     });
     isLoading.value = false;
+  }
+
+  void initComments() {
+    comments.value = PicaComments([], "", 1, 0, 0);
+    fetchComments();
+  }
+
+  bool loadMoreComments() {
+    if (isLoading.value) {
+      return true;
+    }
+    isLoading.value = true;
+    if (comments.value.pages > comments.value.loaded) {
+      comments.value.loaded++;
+    }
+    picaClient.loadMoreComments(comments.value).then((value) {
+      if(value.error){
+        isLoading.value = false;
+        return false;
+      }
+      if (value.data) comments.refresh();
+    });
+    isLoading.value = false;
+    return true;
   }
 
   void preLoad(String eps) {

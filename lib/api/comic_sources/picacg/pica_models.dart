@@ -157,7 +157,7 @@ class PicaComment {
   String time;
 
   @override
-  String toString()=>"$name:$text";
+  String toString()=>"$id:$name:$text";
 
   PicaComment(
       this.name,
@@ -173,6 +173,7 @@ class PicaComment {
       this.slogan,
       this.time
       );
+  PicaComment.error():this("","","",0,"",0,"",false,0,null,null,"");
 }
 
 class PicaComments {
@@ -180,8 +181,9 @@ class PicaComments {
   String id;
   int pages;
   int loaded;
+  int total;
 
-  PicaComments(this.comments, this.id, this.pages, this.loaded);
+  PicaComments(this.comments, this.id, this.pages, this.loaded, this.total);
 }
 
 class PicaFavorites {

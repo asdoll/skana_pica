@@ -9,10 +9,12 @@ import 'package:skana_pica/api/models/base_comic.dart';
 import 'package:skana_pica/config/base.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/favourite.dart';
+import 'package:skana_pica/controller/searchhistory.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
 import 'package:skana_pica/pages/me_page.dart';
 import 'package:skana_pica/pages/pica_list_comics.dart';
 import 'package:skana_pica/pages/pica_login.dart';
+import 'package:skana_pica/pages/pica_results.dart';
 import 'package:skana_pica/pages/pica_search.dart';
 import 'package:skana_pica/pages/setting/manga.dart';
 import 'package:skana_pica/pages/setting/theme.dart';
@@ -34,6 +36,8 @@ Future<void> main() async {
     await ComicSource.init();
     favorController = Get.put(FavorController(), permanent: true);
     await favorController.fetch();
+    searchHistoryController = Get.put(SearchHistoryController(), permanent: true);
+    searchHistoryController.init();
     runApp(const MyApp());
   }, (e, s) {
     log.e("Uncaught Error", error: "$e\n$s");
@@ -86,6 +90,7 @@ class _MyAppState extends State<MyApp> {
             GetPage(name: SettingPage.route, page: () => SettingPage()),
             GetPage(name: MePage.route, page: () => MePage()),
             GetPage(name: PicaSearchPage.route, page: () => PicaSearchPage()),
+            GetPage(name: PicaResultsPage.route, page: () => PicaResultsPage(keyword: Get.parameters['keyword']!)),
             GetPage(name: PicaCatComicsPage.route, page: () => PicaCatComicsPage(id:Get.parameters['id']!, type:Get.parameters['type']!)),
             GetPage(name: AppearancePage.route, page: () => AppearancePage()),
             GetPage(name: MangaSettingPage.route, page: () => MangaSettingPage()),

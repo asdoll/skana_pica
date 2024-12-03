@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:flutter_cache_manager/src/web/mime_converter.dart';
@@ -48,13 +50,17 @@ class DioResponse implements FileServiceResponse {
 
 class ImagesCacheManager extends CacheManager with ImageCacheManager {
   static const key = 'PicaCachedImage';
-  ImagesCacheManager():super(
-    Config(
-      key,
-      repo: JsonCacheInfoRepository(databaseName: key),
-      fileSystem: IOFileSystem(key),
-      fileService: DioFileService(),
-  ));
+  ImagesCacheManager()
+      : super(Config(
+          key,
+          repo: JsonCacheInfoRepository(databaseName: key),
+          fileSystem: IOFileSystem(key),
+          fileService: DioFileService(),
+        ));
 }
 
 ImagesCacheManager imagesCacheManager = ImagesCacheManager();
+
+ImageProvider imageProvider(String url) {
+  return CachedNetworkImageProvider(url, cacheManager: imagesCacheManager);
+}
