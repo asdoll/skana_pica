@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:skana_pica/api/managers/image_cache_manage.dart' show imagesCacheManager;
+import 'package:skana_pica/api/managers/image_cache_manage.dart'
+    show imagesCacheManager;
 
 class PicaImage extends StatefulWidget {
   final String url;
@@ -11,6 +12,7 @@ class PicaImage extends StatefulWidget {
   final double? height;
   final double? width;
   final String? host;
+  final bool useProgressIndicator;
 
   PicaImage(this.url,
       {this.placeWidget,
@@ -19,7 +21,8 @@ class PicaImage extends StatefulWidget {
       this.enableMemoryCache,
       this.height,
       this.host,
-      this.width});
+      this.width,
+      this.useProgressIndicator = false});
 
   @override
   State<PicaImage> createState() => _PicaImageState();
@@ -62,8 +65,9 @@ class _PicaImageState extends State<PicaImage> {
   @override
   Widget build(BuildContext context) {
     return CachedNetworkImage(
-        placeholder: (context, url) =>
-            widget.placeWidget ?? Container(height: height),
+        placeholder: widget.useProgressIndicator
+            ? null
+            : (context, url) => widget.placeWidget ?? Container(height: height),
         errorWidget: (context, url, _) => SizedBox(
               height: height,
               child: Center(
@@ -71,10 +75,21 @@ class _PicaImageState extends State<PicaImage> {
                   onPressed: () {
                     setState(() {});
                   },
-                  child: Text(":("),
+                  child: Icon(Icons.error_outline_sharp),
                 ),
               ),
             ),
+        progressIndicatorBuilder: widget.useProgressIndicator
+            ? (context, url, progress) => SizedBox(
+                  height: height,
+                  width: width,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      value: progress.progress,
+                    ),
+                  ),
+                )
+            : null,
         fadeOutDuration:
             widget.fade ? const Duration(milliseconds: 1000) : null,
         // memCacheWidth: width?.toInt(),

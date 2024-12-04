@@ -78,6 +78,13 @@ class Appdata {
     "1", //8 preload when enter details page
   ];
 
+  List<String> read = [
+    "0", //0 限制图片宽度
+    "0", //1 阅读器图片布局方式, 0-contain, 1-cover
+    "5", //2 翻页方式: 1从左向右,2从右向左,3从上至下,4从上至下(连续),5 duo,6 duo reversed
+    "1", //3 阅读器背景色 1-dark, 0-light
+  ];
+
   Future<bool> firstLaunch() async {
     bool f = s.getBool("_is_first_launch") ?? true;
     if (f) {
@@ -103,6 +110,13 @@ class Appdata {
         pica[i] = p[i];
       }
     }
+    List<String> r = s.getStringList("read") ?? [];
+    log.d("read read settings: $r");
+    if (r.isNotEmpty) {
+      for (int i = 0; i < r.length && i < read.length; i++) {
+        read[i] = r[i];
+      }
+    }
   }
 
   Future<void> updateSettings(String? type) async {
@@ -113,9 +127,13 @@ class Appdata {
       case "pica":
         await s.setStringList("pica", pica);
         break;
+      case "read":
+        await s.setStringList("read", read);
+        break;
       default:
         await s.setStringList("general", general);
         await s.setStringList("pica", pica);
+        await s.setStringList("read", read);
     }
   }
 
@@ -126,6 +144,7 @@ class Appdata {
 
   Future<void> writeData() async {
     await updateSettings("");
+    writeHistory();
     await s.setStringList("blockingKeyword", blockingKeyword);
   }
 
@@ -150,6 +169,10 @@ class Appdata {
       var newPica = List<String>.from(json["pica"]);
       for (var i = 0; i < pica.length && i < newPica.length; i++) {
         pica[i] = newPica[i];
+      }
+      var newRead = List<String>.from(json["read"]);
+      for (var i = 0; i < read.length && i < newRead.length; i++) {
+        read[i] = newRead[i];
       }
       blockingKeyword = Set<String>.from(
               ((json["blockingKeywords"] ?? []) + blockingKeyword) as List)
@@ -216,6 +239,13 @@ class Appdata {
   set blockedCategory(List<String> value) {
     appdata.pica[5] = value.join(";");
     appdata.updateSettings("pica");
+  }
+
+  bool get useDarkBackground => appdata.read[3] == "1";
+
+  set useDarkBackground(bool value) {
+    appdata.read[3] = value ? "1" : "0";
+    appdata.updateSettings("read");
   }
 }
 

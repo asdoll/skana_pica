@@ -98,6 +98,7 @@ class Messages extends Translations {
           "Right": "Right",
           "Load More": "Load More",
           "Failed to reply": "Failed to reply",
+          "Internal Error": "Internal Error",
 //below are translation with parameters
           "at_page": "Page @page/@total",
           "block_cate": "Block Category @cate?",
@@ -193,6 +194,7 @@ class Messages extends Translations {
           "Right": "右",
           "Load More": "加载更多",
           "Failed to reply": "回复失败",
+          "Internal Error": "内部错误",
 //below are translation with parameters
           "at_page": "第@page/@total页",
           "block_cate": '屏蔽分类"@cate?"',
@@ -288,6 +290,7 @@ class Messages extends Translations {
           "Right": "右",
           "Load More": "加載更多",
           "Failed to reply": "回復失敗",
+          "Internal Error": "內部錯誤",
 //below are translation with parameters
           "at_page": "第@page/@total頁",
           "block_cate": '屏蔽分類"@cate?"',

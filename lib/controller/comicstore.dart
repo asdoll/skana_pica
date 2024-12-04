@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:bot_toast/bot_toast.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
@@ -17,6 +18,10 @@ class ComicStore extends GetxController {
   Rx<PicaComicItem> comic = PicaComicItem.error("").obs;
 
   Rx<PicaComments> comments = PicaComments([], "", 1, 0, 0).obs;
+
+  RxInt currentEps = 0.obs;
+
+  RxInt currentIndex = 0.obs;
 
   void fetch(String id) async {
     if (isLoading.value) {
@@ -79,19 +84,20 @@ class ComicStore extends GetxController {
       return;
     }
     isLoading.value = true;
+    epsList = List.generate(comic.eps.length, (index) => PicaEpsImages("", []),
+            growable: false)
+        .obs;
     for (int i = 0; i < comic.eps.length; i++) {
-      {
-        picaClient.getComicContent(comic.id, i + 1).then((value) {
-          if (value.error) {
-            log.e(
-                "Failed to load comic content: ${comic.title}/${comic.eps[i]}");
-            epsList.refresh();
-            isLoading.value = false;
-            return;
-          }
-          epsList.add(PicaEpsImages(comic.eps[i], value.data));
-        });
-      }
+      picaClient.getComicContent(comic.id, i + 1).then((value) {
+        if (value.error) {
+          log.e("Failed to load comic content: ${comic.title}/${comic.eps[i]}");
+          epsList.refresh();
+          isLoading.value = false;
+          return;
+        }
+        log.i("Comic eps loaded: $i/${comic.eps[i]}");
+        epsList[i] = PicaEpsImages(comic.eps[i], value.data);
+      });
     }
     isLoading.value = false;
     epsList.refresh();
@@ -123,7 +129,7 @@ class ComicStore extends GetxController {
       comments.value.loaded++;
     }
     picaClient.loadMoreComments(comments.value).then((value) {
-      if(value.error){
+      if (value.error) {
         isLoading.value = false;
         return false;
       }
@@ -133,30 +139,30 @@ class ComicStore extends GetxController {
     return true;
   }
 
-  void preLoad(String eps) {
-    int index = findIndex(eps);
-    if (index == -1) {
+  void preLoad({int? eps, int? index}) {
+    if (eps == null || eps < 0) {
+      eps = currentEps.value;
+    }
+    if (index == null || index < 0) {
+      index = currentIndex.value;
+    }
+    if (epsList[eps].imageUrl.isEmpty) {
       return;
     }
-    if (epsList[index].imageUrl.isEmpty) {
-      return;
-    }
-    if (epsList[index].loaded == null) {
-      epsList[index].loaded = 0;
-    }
-    int loaded = epsList[index].loaded ?? 0;
+    epsList[eps].loaded = index;
     int preLength = int.parse(appdata.pica[7]);
-    for (int i = loaded;
-        i < min(epsList[index].imageUrl.length, loaded + preLength);
+    if (appdata.read[2] == "5" || appdata.read[2] == "6") {
+      preLength *= 2;
+    }
+    for (int i = index;
+        i < min(epsList[eps].imageUrl.length, index + preLength);
         i++) {
-      imagesCacheManager
-          .getImageFile(epsList[index].imageUrl[loaded], withProgress: true)
-          .listen((event) {
+      imagesCacheManager.getImageFile(epsList[eps].imageUrl[i]).listen((event) {
         if (event is FileInfo) {
-          log.i("Image loaded: comic${epsList[index].eps}/$loaded");
+          log.t("Image loaded: comic${epsList[eps!].eps}, $eps/$i");
         }
       });
-      epsList[index].loaded = loaded + 1;
+      epsList[eps].loaded = i;
     }
   }
 
@@ -167,5 +173,80 @@ class ComicStore extends GetxController {
       }
     }
     return -1;
+  }
+
+  void setPage(int eps, int index) {
+    currentEps.value = eps;
+    currentIndex.value = index;
+  }
+
+  void nextChapter({PageController? controller, bool duo = false}) {
+    if (currentEps.value < epsList.length - 1) {
+      currentEps.value++;
+      currentIndex.value = 0;
+      log.i('next current index: ${currentIndex.value}');
+      if (duo) {
+        controller?.jumpToPage(1);
+      } else {
+        controller?.animateToPage(1,
+            duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
+      }
+    }
+  }
+
+  void prevChapter({PageController? controller, bool duo = false}) {
+    if (currentEps.value > 0) {
+      currentEps.value--;
+      currentIndex.value = epsList[currentEps.value].imageUrl.length - 1;
+      if (duo) {
+        currentIndex.value = 0;
+        log.i('pre current index: ${currentIndex.value}');
+        controller?.jumpToPage(1);
+      } else {
+        log.i('pre current index: ${currentIndex.value}');
+        controller?.animateToPage(currentIndex.value + 1,
+            duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
+      }
+    } else {
+      currentIndex.value = 0;
+      controller?.animateToPage(1,
+          duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
+    }
+  }
+
+  int calcItemCount() {
+    int count = epsList[currentEps.value].imageUrl.length ~/ 2;
+    if (epsList[currentEps.value].imageUrl.length % 2 != 0) {
+      count++;
+    }
+    return count;
+  }
+
+  void nextPage({PageController? controller, bool duo = false}) {
+    if (currentIndex.value < epsList[currentEps.value].imageUrl.length - 1) {
+      if (duo) {
+        currentIndex.value += 2;
+      } else {
+        currentIndex.value++;
+      }
+      controller?.animateToPage(currentIndex.value,
+          duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
+    } else {
+      nextChapter(controller: controller);
+    }
+  }
+
+  void prevPage({PageController? controller, bool duo = false}) {
+    if (currentIndex.value > 0) {
+      if (duo) {
+        currentIndex.value -= 2;
+      } else {
+        currentIndex.value--;
+      }
+      controller?.animateToPage(currentIndex.value,
+          duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
+    } else {
+      prevChapter(controller: controller);
+    }
   }
 }

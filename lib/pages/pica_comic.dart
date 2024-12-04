@@ -8,6 +8,7 @@ import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/controller/comicstore.dart';
 import 'package:skana_pica/pages/pica_comments.dart';
 import 'package:skana_pica/pages/pica_list_comics.dart';
+import 'package:skana_pica/pages/pica_read.dart';
 import 'package:skana_pica/pages/pica_results.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/widget_utils.dart';
@@ -392,7 +393,10 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                     ChoiceChip(
                       label: Text(comicDetailController.comic.value.eps[index]),
                       selected: false,
-                      onSelected: (bool value) {},
+                      onSelected: (bool value) {
+                        comicDetailController.setPage(index, 0);
+                        Go.to(PicaReadPage(id: comicDetailController.comic.value.id));
+                      },
                     ),
                 ],
               ).paddingAll(16),
