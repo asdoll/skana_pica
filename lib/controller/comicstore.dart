@@ -77,17 +77,14 @@ class ComicStore extends GetxController {
       comic.refresh();
       isLoading.value = false;
       fetchVisitHistory().then((e) {
-        log.i("Fetch visit history");
         fetchEps(value.data);
         fetchComments();
         fastPreLoad();
         currentEps.listen((value) {
-          log.i("Current eps changed: $value");
           history!.lastEps = value;
           M.o.addVisitHistory(history!);
         });
         currentIndex.listen((value) {
-          log.i("Current index changed: $value");
           history!.lastIndex = value;
           M.o.addVisitHistory(history!);
         });
@@ -98,7 +95,7 @@ class ComicStore extends GetxController {
   Future<void> fetchVisitHistory() async {
     history = await M.o.getVisitHistoryByComic(comic.value.id);
     if (history != null) {
-      log.i("Visit history loaded: ${history!.lastEps}/${history!.lastIndex}");
+      log.t("Visit history loaded: ${history!.lastEps}/${history!.lastIndex}");
       currentEps.value = history!.lastEps;
       currentIndex.value = history!.lastIndex;
     } else {
