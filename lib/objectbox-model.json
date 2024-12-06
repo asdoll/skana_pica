@@ -1,0 +1,170 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:934961953504288234",
+      "lastPropertyId": "21:681865333549185662",
+      "name": "PicaHistoryItem",
+      "properties": [
+        {
+          "id": "1:6341736062610660487",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8613982307863720405",
+          "name": "comicid",
+          "type": 9,
+          "flags": 2048,
+          "indexId": "1:964436338497289185"
+        },
+        {
+          "id": "3:2256937786434127625",
+          "name": "creatorName",
+          "type": 9
+        },
+        {
+          "id": "4:5378509306088481726",
+          "name": "creatorAvatarUrl",
+          "type": 9
+        },
+        {
+          "id": "5:6287210427860393371",
+          "name": "title",
+          "type": 9
+        },
+        {
+          "id": "6:7300982318746180751",
+          "name": "description",
+          "type": 9
+        },
+        {
+          "id": "7:4631871282316877796",
+          "name": "thumbUrl",
+          "type": 9
+        },
+        {
+          "id": "8:9205264874137865526",
+          "name": "author",
+          "type": 9
+        },
+        {
+          "id": "9:5717694677577417770",
+          "name": "chineseTeam",
+          "type": 9
+        },
+        {
+          "id": "10:3405840685623883829",
+          "name": "categories",
+          "type": 30
+        },
+        {
+          "id": "11:5745979056742379833",
+          "name": "tags",
+          "type": 30
+        },
+        {
+          "id": "12:3957509065925340357",
+          "name": "likes",
+          "type": 6
+        },
+        {
+          "id": "13:3685497997303171032",
+          "name": "totalViews",
+          "type": 6
+        },
+        {
+          "id": "14:888590685730694280",
+          "name": "comments",
+          "type": 6
+        },
+        {
+          "id": "15:2516806268504251111",
+          "name": "isLiked",
+          "type": 1
+        },
+        {
+          "id": "16:3667233471746857339",
+          "name": "isFavourite",
+          "type": 1
+        },
+        {
+          "id": "17:2715613557484795661",
+          "name": "epsCount",
+          "type": 6
+        },
+        {
+          "id": "18:2845408691519885711",
+          "name": "pagesCount",
+          "type": 6
+        },
+        {
+          "id": "19:2480177023870171453",
+          "name": "time",
+          "type": 9
+        },
+        {
+          "id": "20:101857731713638079",
+          "name": "eps",
+          "type": 30
+        },
+        {
+          "id": "21:681865333549185662",
+          "name": "finished",
+          "type": 1
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "2:2642588347593645620",
+      "lastPropertyId": "5:3866779235976576313",
+      "name": "VisitHistory",
+      "properties": [
+        {
+          "id": "1:7302583641781423211",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:901494975789310643",
+          "name": "comicid",
+          "type": 9,
+          "flags": 2048,
+          "indexId": "2:1072393021655251565"
+        },
+        {
+          "id": "3:138369532601250315",
+          "name": "lastEps",
+          "type": 6
+        },
+        {
+          "id": "4:8716007204185303216",
+          "name": "lastIndex",
+          "type": 6
+        },
+        {
+          "id": "5:3866779235976576313",
+          "name": "timestamp",
+          "type": 9
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "2:2642588347593645620",
+  "lastIndexId": "2:1072393021655251565",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [],
+  "retiredRelationUids": [],
+  "version": 1
+}

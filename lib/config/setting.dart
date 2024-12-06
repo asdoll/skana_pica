@@ -83,6 +83,10 @@ class Appdata {
     "0", //1 阅读器图片布局方式, 0-contain, 1-cover
     "5", //2 翻页方式: 1从左向右,2从右向左,3从上至下,4从上至下(连续),5 duo,6 duo reversed
     "1", //3 阅读器背景色 1-dark, 0-light
+    "25", //4 tap to next page threshold
+    "0", //5 orientation, 0-auto, 1-portrait, 2-landscape
+    "5", //6 autoPageTurningInterval
+    "200", //7 animation duration
   ];
 
   Future<bool> firstLaunch() async {

@@ -15,6 +15,14 @@ import '../config/base.dart';
 class MyLogInterceptor implements Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
+    if (err.requestOptions.method == "GET" &&
+        err.requestOptions.path.contains("static") &&
+        err.response?.statusCode == 404) {
+      log.t("Network:"
+          "${err.requestOptions.method} ${err.requestOptions.path}\n$err\n${err.response?.data.toString()}");
+      handler.next(err);
+      return;
+    }
     log.e("Network:"
         "${err.requestOptions.method} ${err.requestOptions.path}\n$err\n${err.response?.data.toString()}");
     switch (err.type) {

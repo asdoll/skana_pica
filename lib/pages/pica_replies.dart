@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
-import 'package:skana_pica/api/managers/image_cache_manage.dart';
+import 'package:skana_pica/api/managers/image_cache_manager.dart';
 import 'package:skana_pica/controller/comment.dart';
 import 'package:skana_pica/pages/pica_comments.dart';
 import 'package:skana_pica/widgets/pica_comment_bar.dart';

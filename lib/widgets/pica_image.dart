@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:skana_pica/api/managers/image_cache_manage.dart'
+import 'package:skana_pica/api/managers/image_cache_manager.dart'
     show imagesCacheManager;
 
 class PicaImage extends StatefulWidget {

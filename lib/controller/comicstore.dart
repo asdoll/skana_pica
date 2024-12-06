@@ -4,9 +4,12 @@ import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get/get.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
-import 'package:skana_pica/api/managers/image_cache_manage.dart';
+import 'package:skana_pica/api/managers/history_manager.dart';
+import 'package:skana_pica/api/managers/image_cache_manager.dart';
+import 'package:skana_pica/api/models/objectbox_models.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/favourite.dart';
 import 'package:skana_pica/util/log.dart';
@@ -22,6 +25,32 @@ class ComicStore extends GetxController {
   RxInt currentEps = 0.obs;
 
   RxInt currentIndex = 0.obs;
+
+  RxBool useDarkBackground = appdata.useDarkBackground.obs;
+
+  RxInt readMode = int.parse(appdata.read[2]).obs;
+
+  RxInt imageLayout = int.parse(appdata.read[1]).obs;
+
+  RxBool limitImageWidth = (appdata.read[0] == "1").obs;
+
+  RxInt tapThreshold = int.parse(appdata.read[4]).obs;
+
+  RxBool autoPageTurning = false.obs;
+
+  RxInt autoPageTurningInterval = 5.obs;
+
+  RxInt orientation = 0.obs;
+
+  RxBool barVisible = false.obs;
+
+  RxInt animationDuration = 200.obs;
+
+  PageController? autoPagingPageController;
+
+  ItemScrollController? autoPagingScrollController;
+
+  VisitHistory? history;
 
   void fetch(String id) async {
     if (isLoading.value) {
@@ -47,9 +76,39 @@ class ComicStore extends GetxController {
       }
       comic.refresh();
       isLoading.value = false;
-      fetchEps(value.data);
-      fetchComments();
+      fetchVisitHistory().then((e) {
+        log.i("Fetch visit history");
+        fetchEps(value.data);
+        fetchComments();
+        fastPreLoad();
+        currentEps.listen((value) {
+          log.i("Current eps changed: $value");
+          history!.lastEps = value;
+          M.o.addVisitHistory(history!);
+        });
+        currentIndex.listen((value) {
+          log.i("Current index changed: $value");
+          history!.lastIndex = value;
+          M.o.addVisitHistory(history!);
+        });
+      });
     });
+  }
+
+  Future<void> fetchVisitHistory() async {
+    history = await M.o.getVisitHistoryByComic(comic.value.id);
+    if (history != null) {
+      log.i("Visit history loaded: ${history!.lastEps}/${history!.lastIndex}");
+      currentEps.value = history!.lastEps;
+      currentIndex.value = history!.lastIndex;
+    } else {
+      history = VisitHistory(
+          comicid: comic.value.id,
+          lastEps: currentEps.value,
+          lastIndex: currentIndex.value,
+          timestamp: DateTime.now().millisecondsSinceEpoch.toString());
+      M.o.addVisitHistory(history!);
+    }
   }
 
   void toggleLike() {
@@ -95,7 +154,7 @@ class ComicStore extends GetxController {
           isLoading.value = false;
           return;
         }
-        log.i("Comic eps loaded: $i/${comic.eps[i]}");
+        log.t("Comic eps loaded: $i/${comic.eps[i]}");
         epsList[i] = PicaEpsImages(comic.eps[i], value.data);
       });
     }
@@ -184,12 +243,13 @@ class ComicStore extends GetxController {
     if (currentEps.value < epsList.length - 1) {
       currentEps.value++;
       currentIndex.value = 0;
-      log.i('next current index: ${currentIndex.value}');
+      log.t('next current index: ${currentIndex.value}');
       if (duo) {
         controller?.jumpToPage(1);
       } else {
         controller?.animateToPage(1,
-            duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
+            duration: Duration(milliseconds: animationDuration.value),
+            curve: Curves.easeInOut);
       }
     }
   }
@@ -200,17 +260,19 @@ class ComicStore extends GetxController {
       currentIndex.value = epsList[currentEps.value].imageUrl.length - 1;
       if (duo) {
         currentIndex.value = 0;
-        log.i('pre current index: ${currentIndex.value}');
+        log.t('pre current index: ${currentIndex.value}');
         controller?.jumpToPage(1);
       } else {
-        log.i('pre current index: ${currentIndex.value}');
+        log.t('pre current index: ${currentIndex.value}');
         controller?.animateToPage(currentIndex.value + 1,
-            duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
+            duration: Duration(milliseconds: animationDuration.value),
+            curve: Curves.easeInOut);
       }
     } else {
       currentIndex.value = 0;
       controller?.animateToPage(1,
-          duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
+          duration: Duration(milliseconds: animationDuration.value),
+          curve: Curves.easeInOut);
     }
   }
 
@@ -229,24 +291,143 @@ class ComicStore extends GetxController {
       } else {
         currentIndex.value++;
       }
-      controller?.animateToPage(currentIndex.value,
-          duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
+      controller?.animateToPage(controller.page!.round() + 1,
+          duration: Duration(milliseconds: animationDuration.value),
+          curve: Curves.easeInOut);
     } else {
-      nextChapter(controller: controller);
+      nextChapter(controller: controller, duo: duo);
     }
   }
 
   void prevPage({PageController? controller, bool duo = false}) {
-    if (currentIndex.value > 0) {
+    if (currentIndex.value > 1) {
       if (duo) {
         currentIndex.value -= 2;
       } else {
         currentIndex.value--;
       }
-      controller?.animateToPage(currentIndex.value,
-          duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
+      controller?.animateToPage(controller.page!.round() - 1,
+          duration: Duration(milliseconds: animationDuration.value),
+          curve: Curves.easeInOut);
     } else {
-      prevChapter(controller: controller);
+      prevChapter(controller: controller, duo: duo);
     }
+  }
+
+  void nextScroll({ItemScrollController? controller}) {
+    if (currentIndex.value < epsList[currentEps.value].imageUrl.length - 1) {
+      currentIndex.value++;
+      controller?.scrollTo(
+          index: currentIndex.value + 1,
+          duration: Duration(milliseconds: animationDuration.value),
+          curve: Curves.easeInOut);
+    } else {
+      nextChapter();
+    }
+  }
+
+  void fastPreLoad() {
+    if (appdata.pica[8] == "1") {
+      preLoad();
+    }
+  }
+
+  void setDarkBackground(bool dark) {
+    useDarkBackground.value = dark;
+    appdata.useDarkBackground = dark;
+  }
+
+  void setReadMode(int mode) {
+    readMode.value = mode;
+    appdata.read[2] = mode.toString();
+    appdata.updateSettings("read");
+  }
+
+  void setImageLayout(int layout) {
+    imageLayout.value = layout;
+    appdata.read[1] = layout.toString();
+    appdata.updateSettings("read");
+    BotToast.showText(text: "Re-enter to take effect".tr);
+  }
+
+  void setLimitImageWidth(bool limit) {
+    limitImageWidth.value = limit;
+    appdata.read[0] = limit ? "1" : "0";
+    appdata.updateSettings("read");
+    BotToast.showText(text: "Re-enter to take effect".tr);
+  }
+
+  void setTapThreshold(int threshold) {
+    tapThreshold.value = threshold;
+    appdata.read[4] = threshold.toString();
+    appdata.updateSettings("read");
+  }
+
+  void setAutoPageTurning() {
+    autoPageTurning.value = !autoPageTurning.value;
+    if (autoPageTurning.value) {
+      autoPageTurningStart(
+          autoPagingPageController, autoPagingScrollController);
+    } else {
+      autoPageTurningStop();
+    }
+  }
+
+  void setAutoPageTurningInterval(int interval) {
+    autoPageTurningInterval.value = interval;
+    appdata.read[6] = interval.toString();
+    appdata.updateSettings("read");
+  }
+
+  void setOrientation() {
+    orientation.value = (orientation.value + 1) % 3;
+    appdata.read[5] = orientation.toString();
+    appdata.updateSettings("read");
+  }
+
+  void setBarVisible() {
+    barVisible.value = !barVisible.value;
+  }
+
+  void setAnimationDuration(int duration) {
+    animationDuration.value = duration;
+    appdata.pica[7] = duration.toString();
+    appdata.updateSettings("pica");
+  }
+
+  void autoPageTurningStart(
+      PageController? controller, ItemScrollController? scrollController) {
+    autoPagingPageController = controller;
+    autoPagingScrollController = scrollController;
+    autoPageTurningTask();
+  }
+
+  void autoPageTurningTask() async {
+    if (currentIndex.value == epsList[currentEps.value].imageUrl.length - 1) {
+      autoPageTurningStop();
+      return;
+    }
+    int sec = autoPageTurningInterval.value;
+    for (int i = 0; i < sec * 10; i++) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      if (!autoPageTurning.value) {
+        return;
+      }
+    }
+    log.i("Auto page turning");
+    if (readMode.value == 4) {
+      if (autoPagingScrollController != null) {
+        nextScroll(controller: autoPagingScrollController);
+      }
+    } else {
+      if (autoPagingPageController != null) {
+        nextPage(controller: autoPagingPageController, duo: readMode.value > 4);
+      }
+    }
+    autoPageTurningTask();
+  }
+
+  void autoPageTurningStop() {
+    autoPageTurning.value = false;
   }
 }

@@ -1,78 +1,86 @@
+import 'dart:io';
 
+import 'package:bot_toast/bot_toast.dart';
+import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
+import 'package:skana_pica/api/managers/image_cache_manager.dart';
+import 'package:share_plus/share_plus.dart';
 
-extension ListExtension<T> on List<T>{
+extension ListExtension<T> on List<T> {
   /// Remove all blank value and return the list.
-  List<T> getNoBlankList(){
+  List<T> getNoBlankList() {
     List<T> newList = [];
-    for(var value in this){
-      if(value.toString() != ""){
+    for (var value in this) {
+      if (value.toString() != "") {
         newList.add(value);
       }
     }
     return newList;
   }
 
-  T? firstWhereOrNull(bool Function(T element) test){
-    for(var element in this){
-      if(test(element)){
+  T? firstWhereOrNull(bool Function(T element) test) {
+    for (var element in this) {
+      if (test(element)) {
         return element;
       }
     }
     return null;
   }
 
-  void addIfNotNull(T? value){
-    if(value != null){
+  void addIfNotNull(T? value) {
+    if (value != null) {
       add(value);
     }
   }
 
-  String listToString(String? separator){
+  String listToString(String? separator) {
     String res = "";
     separator ??= ";";
-    for(var value in this){
+    for (var value in this) {
       res += value.toString() + separator;
     }
     return res;
   }
 }
 
-extension StringExtension on String{
+extension StringExtension on String {
   ///Remove all value that would display blank on the screen.
-  String get removeAllBlank => replaceAll("\n", "").replaceAll(" ", "").replaceAll("\t", "");
+  String get removeAllBlank =>
+      replaceAll("\n", "").replaceAll(" ", "").replaceAll("\t", "");
 
   /// convert this to a one-element list.
   List<String> toList() => [this];
 
-  List<int> stringToIntList(String? separator){
+  List<int> stringToIntList(String? separator) {
     separator ??= ";";
-    if(isEmpty){
+    if (isEmpty) {
       return [];
     }
     var list = split(separator);
     List<int> res = [];
-    for(var value in list){
+    for (var value in list) {
       res.add(int.parse(value));
     }
     return res;
   }
 
-  String _nums(){
+  String _nums() {
     String res = "";
-    for(int i=0; i<length; i++){
-      res += this[i].isNum?this[i]:"";
+    for (int i = 0; i < length; i++) {
+      res += StringExtension(this[i]).isNum ? this[i] : "";
     }
     return res;
   }
 
   String get nums => _nums();
 
-  String setValueAt(String value, int index){
-    return replaceRange(index, index+1, value);
+  String setValueAt(String value, int index) {
+    return replaceRange(index, index + 1, value);
   }
 
-  String? subStringOrNull(int start, [int? end]){
-    if(start < 0 || (end != null && end > length)){
+  String? subStringOrNull(int start, [int? end]) {
+    if (start < 0 || (end != null && end > length)) {
       return null;
     }
     return substring(start, end);
@@ -97,7 +105,7 @@ extension StringExtension on String{
     return (value == null) ? false : RegExp(pattern).hasMatch(value);
   }
 
-  bool _isURL(){
+  bool _isURL() {
     final regex = RegExp(
         r'^((http|https|ftp)://)?[\w-]+(\.[\w-]+)+([\w.,@?^=%&:/~+#-|]*[\w@?^=%&/~+#-])?$',
         caseSensitive: false);
@@ -109,10 +117,10 @@ extension StringExtension on String{
   bool get isNum => double.tryParse(this) != null;
 }
 
-extension MapExtension<S, T> on Map<S, List<T>>{
-  int _getTotalLength(){
+extension MapExtension<S, T> on Map<S, List<T>> {
+  int _getTotalLength() {
     int res = 0;
-    for(var l in values.toList()){
+    for (var l in values.toList()) {
       res += l.length;
     }
     return res;
@@ -121,8 +129,46 @@ extension MapExtension<S, T> on Map<S, List<T>>{
   int get totalLength => _getTotalLength();
 }
 
-class ListOrNull{
-  static List<T>? from<T>(Iterable<dynamic>? i){
+class ListOrNull {
+  static List<T>? from<T>(Iterable<dynamic>? i) {
     return i == null ? null : List.from(i);
+  }
+}
+
+String getExtensionName(String url) {
+  var fileName = url.split('/').last;
+  if (fileName.contains('.')) {
+    return '.${fileName.split('.').last}';
+  }
+  return '.jpg';
+}
+
+void saveImage(String url) async {
+  if (Platform.isIOS && (await Permission.photosAddOnly.status.isDenied)) {
+    if (await Permission.storage.request().isDenied) {
+      BotToast.showText(text: "Permission denied".tr);
+      return;
+    }
+  }
+  var file = await imagesCacheManager.getSingleFile(url);
+  if (file.existsSync()) {
+    var fileName = url.split('/').last;
+    if (!fileName.contains('.')) {
+      fileName += getExtensionName(url);
+    }
+    await ImageGallerySaverPlus.saveImage(await file.readAsBytes(),
+        quality: 100, name: fileName);
+    BotToast.showText(text: "$fileName ${"Saved".tr}");
+  }
+}
+
+void shareImage(String url) async {
+  var file = await imagesCacheManager.getSingleFile(url);
+  if (file.existsSync()) {
+    var fileName = url.split('/').last;
+    if (!fileName.contains('.')) {
+      fileName += getExtensionName(url);
+    }
+    Share.shareXFiles([XFile(file.path)]);
   }
 }

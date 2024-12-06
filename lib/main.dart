@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
+import 'package:skana_pica/api/managers/history_manager.dart';
 import 'package:skana_pica/api/models/base_comic.dart';
 import 'package:skana_pica/config/base.dart';
 import 'package:skana_pica/config/setting.dart';
@@ -38,6 +39,7 @@ Future<void> main() async {
     await favorController.fetch();
     searchHistoryController = Get.put(SearchHistoryController(), permanent: true);
     searchHistoryController.init();
+    await M.init();
     runApp(const MyApp());
   }, (e, s) {
     log.e("Uncaught Error", error: "$e\n$s");

@@ -192,7 +192,13 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                               const SizedBox(
                                 width: 8,
                               ),
-                              Icon(
+                            ],
+                          ),
+                          SizedBox(
+                            height: 4,
+                          ),
+                          Row(children: [
+                            Icon(
                                 Icons.sticky_note_2_outlined,
                                 size: 12,
                                 color: Theme.of(context)
@@ -215,8 +221,7 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                                 TagFinished()
                               else
                                 Container(),
-                            ],
-                          ),
+                          ],),
                           SizedBox(
                             height: 8,
                           ),
@@ -387,6 +392,19 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                 spacing: 8,
                 runSpacing: 8,
                 children: [
+                  if(comicDetailController.currentEps.value!=0 || comicDetailController.currentIndex.value!=0)
+                    ChoiceChip(
+                      label: Text("continue_page".trParams({
+                        "eps": comicDetailController.comic.value.eps[comicDetailController.currentEps.value],
+                        "page": comicDetailController.currentIndex.value.toString()
+                      })),
+                      selected: false,
+                      onSelected: (bool value) {
+                        comicDetailController.setPage(comicDetailController.currentEps.value, comicDetailController.currentIndex.value);
+                        Go.to(PicaReadPage(id: comicDetailController.comic.value.id));
+                      },
+                      backgroundColor: bgColor2,
+                    ),
                   for (int index = 0;
                       index < comicDetailController.comic.value.eps.length;
                       index++)
