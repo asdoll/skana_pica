@@ -50,6 +50,9 @@ jobs:
       - name: Analyze project source
         run: dart analyze || true
 
+      - name: build manner
+        run: dart run build_runner build
+
       # Build apk.
       - name: Build APK
         run: flutter build apk --release
