@@ -62,5 +62,8 @@ class ImagesCacheManager extends CacheManager with ImageCacheManager {
 ImagesCacheManager imagesCacheManager = ImagesCacheManager();
 
 ImageProvider imageProvider(String url) {
+  if(url==defaultAvatarUrl) {
+    return AssetImage("assets/images/avatar/default.png");
+  }
   return CachedNetworkImageProvider(url, cacheManager: imagesCacheManager);
 }

@@ -5,6 +5,7 @@ import 'package:skana_pica/pages/mainscreen.dart';
 import 'package:skana_pica/pages/setting/manga.dart';
 import 'package:skana_pica/pages/setting/theme.dart';
 import 'package:skana_pica/util/leaders.dart';
+import 'package:skana_pica/util/tool.dart';
 import 'package:skana_pica/util/widget_utils.dart';
 
 class SettingPage extends StatefulWidget {
@@ -62,19 +63,44 @@ class _SettingPageState extends State<SettingPage> {
                 items: [
                   DropdownMenuItem(
                     value: "0",
-                    child: Text("Left".tr),
+                    child: Text("Main Page".tr),
                   ),
                   DropdownMenuItem(
                     value: "1",
-                    child: Text("Middle".tr),
+                    child: Text("Search Page".tr),
                   ),
                   DropdownMenuItem(
                     value: "2",
-                    child: Text("Right".tr),
+                    child: Text("Me Page".tr),
                   ),
                 ],
                 onChanged: (String? value) {
                   settingController.changeDefaultPage(value!);
+                },
+              ),
+            )),
+        ListTile(
+            leading: Icon(Icons.screen_lock_rotation_rounded),
+            title: Text('Main orientation'.tr),
+            trailing: Obx(
+              () => DropdownButton(
+                value: settingController.defaultPage.value,
+                items: [
+                  DropdownMenuItem(
+                    value: "0",
+                    child: Text("Auto".tr),
+                  ),
+                  DropdownMenuItem(
+                    value: "1",
+                    child: Text("Portrait".tr),
+                  ),
+                  DropdownMenuItem(
+                    value: "2",
+                    child: Text("Landscape".tr),
+                  ),
+                ],
+                onChanged: (String? value) {
+                  settingController.changeMainOrientation(value!);
                 },
               ),
             )),
@@ -85,10 +111,18 @@ class _SettingPageState extends State<SettingPage> {
 
 class SettingController extends GetxController {
   RxString defaultPage = appdata.general[5].obs;
+  RxString mainOrientation = appdata.general[6].obs;
 
   void changeDefaultPage(String index) {
     defaultPage.value = index;
     appdata.general[5] = index;
     appdata.updateSettings("general");
+  }
+
+  void changeMainOrientation(String index) {
+    mainOrientation.value = index;
+    appdata.general[6] = index;
+    appdata.updateSettings("general");
+    resetOrientation();
   }
 }

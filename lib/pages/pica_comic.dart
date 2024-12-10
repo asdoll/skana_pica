@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
+import 'package:skana_pica/api/managers/image_cache_manager.dart';
 import 'package:skana_pica/controller/comicstore.dart';
 import 'package:skana_pica/pages/pica_comments.dart';
 import 'package:skana_pica/pages/pica_list_comics.dart';
@@ -107,6 +108,7 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                             height: 4,
                           ),
                           InkWell(
+                            onLongPress: () => blockDialog(context, comicDetailController.comic.value.author),
                             onTap: () {
                               Go.to(
                                   PicaCatComicsPage(
@@ -132,6 +134,7 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                             height: 4,
                           ),
                           InkWell(
+                            onLongPress: () => blockDialog(context, comicDetailController.comic.value.chineseTeam),
                             onTap: () {
                               Go.to(
                                   PicaResultsPage(
@@ -312,7 +315,7 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                       ),
                       CircleAvatar(
                         radius: 30,
-                        backgroundImage: NetworkImage(comicDetailController
+                        backgroundImage: imageProvider(comicDetailController
                             .comic.value.creator.avatarUrl),
                       ),
                       SizedBox(

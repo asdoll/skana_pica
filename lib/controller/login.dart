@@ -1,8 +1,8 @@
-import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
+import 'package:skana_pica/util/leaders.dart';
 
 class LoginController extends GetxController {
   var isLoading = false.obs;
@@ -20,7 +20,7 @@ class LoginController extends GetxController {
         isLoading.value = false;
         isLogin.value = false;
         error.value = handleError(value.errorMessageWithoutNull);
-        BotToast.showText(text: "Login failed".tr);
+        toast( "Login failed".tr);
         return false;
       } else {
         picacg.data['token'] = value.data;
@@ -30,7 +30,7 @@ class LoginController extends GetxController {
         isLoading.value = false;
         isLogin.value = true;
         error.value = "";
-        BotToast.showText(text: "Login success".tr);
+        toast( "Login success".tr);
         Get.back();
         return true;
       }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:skana_pica/config/setting.dart';
+import 'package:skana_pica/pages/mainscreen.dart';
 import 'package:skana_pica/util/log.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 
@@ -31,7 +33,11 @@ class ThemeManager {
   }
 
   static ThemeData get themeData =>
-      currentDarkMode ==0 ? FlexThemeData.light(scheme: FlexScheme.mandyRed):FlexThemeData.dark(scheme: FlexScheme.mandyRed);
+      currentDarkMode == 0 ? FlexThemeData.light(scheme: FlexScheme.values[themeColor]):FlexThemeData.dark(scheme: FlexScheme.values[themeColor]);
+  
+  static ThemeData themeDataByIndex(int index) {
+    return currentDarkMode == 0 ? FlexThemeData.light(scheme: FlexScheme.values[index]):FlexThemeData.dark(scheme: FlexScheme.values[index]);
+  }
 
   ThemeManager._init() {
     theme.value = themeData;
@@ -48,42 +54,18 @@ class ThemeManager {
 
   void updateValue(ThemeData t) {
     theme.value = t;
+    changeBottumBarColor(t);
     log.d(theme.value);
+  }
+
+  void changeBottumBarColor(ThemeData t) {
+    MainScreenIndex mainScreenIndex = Get.put(MainScreenIndex());
+    mainScreenIndex.changeColor(t);
   }
 
   static textBrightness(Brightness b) {
     return b == Brightness.light ? Brightness.dark : Brightness.light;
   }
-
-  static final themesName = [
-    'green',
-    'blue',
-    'yellow',
-    'black',
-    'red',
-    'orange',
-    'purple',
-    'pink',
-    'cyan',
-    'lightgreen',
-    'sky',
-    'lightsky',
-    'lightpurple',
-    'rose',
-    'magenta',
-  ];
-
-  static final themeName = [
-    "zinc",
-    "slate",
-    "red",
-    "rose",
-    "orange",
-    "green",
-    "blue",
-    "yellow",
-    "violet",
-  ];
 
   void toggleDarkMode() {
     switch (currentDarkMode) {
@@ -112,6 +94,10 @@ class ThemeManager {
 
   void updateTheme() {
     updateValue(themeData);
+  }
+
+  void previewTheme(int index) {
+    updateValue(themeDataByIndex(index));
   }
 }
 

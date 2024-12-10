@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get/get.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -12,6 +12,7 @@ import 'package:skana_pica/api/managers/image_cache_manager.dart';
 import 'package:skana_pica/api/models/objectbox_models.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/favourite.dart';
+import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/log.dart';
 
 class ComicStore extends GetxController {
@@ -38,13 +39,13 @@ class ComicStore extends GetxController {
 
   RxBool autoPageTurning = false.obs;
 
-  RxInt autoPageTurningInterval = 5.obs;
+  RxInt autoPageTurningInterval = int.parse(appdata.read[6]).obs;
 
-  RxInt orientation = 0.obs;
+  RxInt orientation = int.parse(appdata.read[5]).obs;
 
   RxBool barVisible = false.obs;
 
-  RxInt animationDuration = 200.obs;
+  RxInt animationDuration = int.parse(appdata.read[7]).obs;
 
   PageController? autoPagingPageController;
 
@@ -59,7 +60,7 @@ class ComicStore extends GetxController {
     isLoading.value = true;
     picaClient.getComicInfo(id).then((value) {
       if (value.error) {
-        BotToast.showText(text: "Failed to load data".tr);
+        toast("Failed to load data".tr);
         comic.value = PicaComicItem.error(id);
         isLoading.value = false;
         comic.refresh();
@@ -76,6 +77,7 @@ class ComicStore extends GetxController {
       }
       comic.refresh();
       isLoading.value = false;
+      M.o.addHistoryWithCheck(value.data);
       fetchVisitHistory().then((e) {
         fetchEps(value.data);
         fetchComments();
@@ -111,7 +113,7 @@ class ComicStore extends GetxController {
   void toggleLike() {
     picaClient.likeOrUnlikeComic(comic.value.id).then((value) {
       if (!value) {
-        BotToast.showText(text: "Network Error".tr);
+        toast("Network Error".tr);
         return;
       }
       comic.value.isLiked = !comic.value.isLiked;
@@ -122,7 +124,7 @@ class ComicStore extends GetxController {
   void toggleFavorite() {
     picaClient.favouriteOrUnfavouriteComic(comic.value.id).then((value) {
       if (!value) {
-        BotToast.showText(text: "Network Error".tr);
+        toast("Network Error".tr);
         return;
       }
       if (comic.value.isFavourite) {
@@ -344,14 +346,14 @@ class ComicStore extends GetxController {
     imageLayout.value = layout;
     appdata.read[1] = layout.toString();
     appdata.updateSettings("read");
-    BotToast.showText(text: "Re-enter to take effect".tr);
+    toast("Re-enter to take effect".tr);
   }
 
   void setLimitImageWidth(bool limit) {
     limitImageWidth.value = limit;
     appdata.read[0] = limit ? "1" : "0";
     appdata.updateSettings("read");
-    BotToast.showText(text: "Re-enter to take effect".tr);
+    toast("Re-enter to take effect".tr);
   }
 
   void setTapThreshold(int threshold) {
@@ -380,6 +382,21 @@ class ComicStore extends GetxController {
     orientation.value = (orientation.value + 1) % 3;
     appdata.read[5] = orientation.toString();
     appdata.updateSettings("read");
+    orientationChanged();
+  }
+
+  void orientationChanged() {
+    if (orientation.value == 0) {
+      SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    } else if (orientation.value == 1) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+    } else {
+      SystemChrome.setPreferredOrientations(
+          [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
+    }
   }
 
   void setBarVisible() {
@@ -388,8 +405,8 @@ class ComicStore extends GetxController {
 
   void setAnimationDuration(int duration) {
     animationDuration.value = duration;
-    appdata.pica[7] = duration.toString();
-    appdata.updateSettings("pica");
+    appdata.read[7] = duration.toString();
+    appdata.updateSettings("read");
   }
 
   void autoPageTurningStart(

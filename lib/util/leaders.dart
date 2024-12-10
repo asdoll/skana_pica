@@ -1,3 +1,5 @@
+import 'package:bot_toast/bot_toast.dart';
+import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/main.dart';
@@ -41,6 +43,24 @@ class Go {
   }
 }
 
+void toast(String message) {
+  BotToast.showCustomText(
+      onlyOne: true,
+      duration: const Duration(seconds: 2),
+      toastBuilder: (cancel) {
+        return Card(
+          color: Get.theme.colorScheme.tertiary,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              message,
+              style: TextStyle(color: Get.theme.colorScheme.onTertiary),
+            ),
+          ),
+        );
+      });
+}
+
 class Leader {
   static Future<void> pushUntilHome(BuildContext context) async {
     Navigator.of(context).pushAndRemoveUntil(
@@ -52,6 +72,9 @@ class Leader {
   }
 
   static final rootNavigatorKey = GlobalKey<NavigatorState>();
+
+  static final mainScreenEasyRefreshController = EasyRefreshController(
+      controlFinishLoad: true, controlFinishRefresh: true);
 
   static pop(BuildContext context) {
     Navigator.of(context).pop();

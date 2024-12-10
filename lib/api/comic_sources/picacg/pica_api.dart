@@ -1,12 +1,12 @@
 import 'dart:convert';
-import 'package:bot_toast/bot_toast.dart';
 import 'package:dio/dio.dart';
-import 'package:get/get.dart' as Get;
+import 'package:get/get.dart' as g;
 import 'package:skana_pica/api/api_dio.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
 import 'package:skana_pica/api/models/res.dart';
 import 'package:skana_pica/config/setting.dart';
+import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/log.dart';
 import 'package:uuid/uuid.dart';
 import 'package:crypto/crypto.dart';
@@ -14,6 +14,7 @@ import 'package:crypto/crypto.dart';
 var apiKey = "C69BAF41DA5ABD1FFEDC6D2FEA56B";
 
 const defaultAvatarUrl = "DEFAULT AVATAR URL";
+const errorLoadingUrl = "ERROR LOADING URL";
 
 String _createNonce() {
   var uuid = const Uuid();
@@ -235,7 +236,7 @@ class PicaClient {
   }
 
   ///获取用户信息
-  Future<Res<PicaProfile>> getProfile([bool log = true]) async {
+  Future<Res<PicaProfile>> getProfile([bool bLog = true]) async {
     var response = await get("$apiUrl/users/profile");
     if (response.error) {
       return Res(null, errorMessage: response.errorMessage);
@@ -331,7 +332,7 @@ class PicaClient {
           punchIn().then((b) {
             if (b) {
               appdata.lastPunchedTime = DateTime.now();
-              BotToast.showText(text: "Check-in successful".tr);
+              toast("Check-in successful".tr);
               return const Res(true);
             }
             return Res(false, errorMessage: "Failed to punch in");
@@ -381,6 +382,34 @@ class PicaClient {
         }
       }
       return Res(comics, subData: pages);
+    } catch (e, s) {
+      log.e("Data Analyse", error: "$s\n$s");
+      return Res(null, errorMessage: e.toString());
+    }
+  }
+
+Future<Res<PicaComicItemBrief>> getBriefComicInfo(String id) async {
+    var response = await get("$apiUrl/comics/$id");
+    if (response.error) {
+      return Res(null, errorMessage: response.errorMessage);
+    }
+    var res = response.data;
+    try {
+      var tags = <String>[];
+      tags.addAll(List<String>.from(res["data"]["comic"]["categories"] ?? []));
+      var si = PicaComicItemBrief(
+          res["data"]["comic"]["title"] ?? "Unknown",
+          res["data"]["comic"]["author"] ?? "Unknown",
+          res["data"]["comic"]["likesCount"] ?? 0,
+          res["data"]["comic"]["thumb"]["fileServer"] +
+              "/static/" +
+              res["data"]["comic"]["thumb"]["path"],
+          res["data"]["comic"]["_id"],
+          tags,
+          pages: res["data"]["comic"]["pagesCount"],
+          epsCount: res["data"]["comic"]["epsCount"],
+          finished: res["data"]["comic"]["finished"]);
+      return Res(si);
     } catch (e, s) {
       log.e("Data Analyse", error: "$s\n$s");
       return Res(null, errorMessage: e.toString());
@@ -453,8 +482,7 @@ class PicaClient {
           res["data"]["comic"]["updated_at"],
           epsRes.data,
           recommendationRes.data,
-          res["data"]["comic"]["finished"]
-          );
+          res["data"]["comic"]["finished"]);
       return Res(ci);
     } catch (e, s) {
       log.e("Data Analyse", error: "$s\n$s");
@@ -627,24 +655,23 @@ class PicaClient {
           tags.addAll(
               List<String>.from(res["data"]["comics"][i]["categories"] ?? []));
           var si = PicaComicItemBrief(
-              res["data"]["comics"][i]["title"] ?? "Unknown",
-              res["data"]["comics"][i]["author"] ?? "Unknown",
-              res["data"]["comics"][i]["totalLikes"] ?? 0,
-              res["data"]["comics"][i]["thumb"]["fileServer"] +
-                  "/static/" +
-                  res["data"]["comics"][i]["thumb"]["path"],
-              res["data"]["comics"][i]["_id"],
-              tags,
-              epsCount: res["data"]["comics"]["docs"][i]["epsCount"],
-              pages: res["data"]["comics"][i]["pagesCount"],
-              finished: res["data"]["comics"]["docs"][i]["finished"]);
+            res["data"]["comics"][i]["title"] ?? "Unknown",
+            res["data"]["comics"][i]["author"] ?? "Unknown",
+            res["data"]["comics"][i]["totalLikes"] ?? 0,
+            res["data"]["comics"][i]["thumb"]["fileServer"] +
+                "/static/" +
+                res["data"]["comics"][i]["thumb"]["path"],
+            res["data"]["comics"][i]["_id"],
+            tags,
+            pages: res["data"]["comics"][i]["pagesCount"],
+          );
           comics.add(si);
         } finally {}
       }
     } else {
       return Res.fromErrorRes(response);
     }
-    return Res(comics);
+    return Res(comics, subData: 1);
   }
 
   Future<bool> likeOrUnlikeComic(String id) async {
@@ -682,18 +709,15 @@ class PicaClient {
         tags.addAll(
             List<String>.from(res["data"]["comics"][i]["categories"] ?? []));
         var si = PicaComicItemBrief(
-          res["data"]["comics"][i]["title"] ?? "Unknown",
-          res["data"]["comics"][i]["author"] ?? "Unknown",
-          res["data"]["comics"][i]["totalLikes"] ?? 0,
-          res["data"]["comics"][i]["thumb"]["fileServer"] +
-              "/static/" +
-              res["data"]["comics"][i]["thumb"]["path"],
-          res["data"]["comics"][i]["_id"],
-          tags,
-          epsCount: res["data"]["comics"]["docs"][i]["epsCount"],
-          pages: res["data"]["comics"][i]["pagesCount"],
-          finished: res["data"]["comics"]["docs"][i]["finished"]
-        );
+            res["data"]["comics"][i]["title"] ?? "Unknown",
+            res["data"]["comics"][i]["author"] ?? "Unknown",
+            res["data"]["comics"][i]["totalLikes"] ?? 0,
+            res["data"]["comics"][i]["thumb"]["fileServer"] +
+                "/static/" +
+                res["data"]["comics"][i]["thumb"]["path"],
+            res["data"]["comics"][i]["_id"],
+            tags,
+            pages: res["data"]["comics"][i]["pagesCount"]);
         comics.add(si);
       } finally {}
     }
@@ -873,7 +897,7 @@ class PicaClient {
                 res["data"]["comics"][i]["thumb"]["path"],
             res["data"]["comics"][i]["_id"],
             tags,
-          pages: res["data"]["comics"][i]["pagesCount"],
+            pages: res["data"]["comics"][i]["pagesCount"],
           );
           comics.add(si);
         } finally {}
@@ -896,18 +920,18 @@ class PicaClient {
       for (int i = 0; i < res["data"]["collections"][0]["comics"].length; i++) {
         try {
           var si = PicaComicItemBrief(
-            res["data"]["collections"][0]["comics"][i]["title"] ?? "Unknown",
-            res["data"]["collections"][0]["comics"][i]["author"] ?? "Unknown",
-            res["data"]["collections"][0]["comics"][i]["totalLikes"] ?? 0,
-            res["data"]["collections"][0]["comics"][i]["thumb"]["fileServer"] +
-                "/static/" +
-                res["data"]["collections"][0]["comics"][i]["thumb"]["path"],
-            res["data"]["collections"][0]["comics"][i]["_id"],
-            [],
-            epsCount: res["data"]["collections"]["docs"][i]["epsCount"],
-            pages: res["data"]["collections"][0]["comics"][i]["pagesCount"],
-            finished: res["data"]["collections"]["docs"][i]["finished"]
-          );
+              res["data"]["collections"][0]["comics"][i]["title"] ?? "Unknown",
+              res["data"]["collections"][0]["comics"][i]["author"] ?? "Unknown",
+              res["data"]["collections"][0]["comics"][i]["totalLikes"] ?? 0,
+              res["data"]["collections"][0]["comics"][i]["thumb"]
+                      ["fileServer"] +
+                  "/static/" +
+                  res["data"]["collections"][0]["comics"][i]["thumb"]["path"],
+              res["data"]["collections"][0]["comics"][i]["_id"],
+              [],
+              epsCount: res["data"]["collections"]["docs"][i]["epsCount"],
+              pages: res["data"]["collections"][0]["comics"][i]["pagesCount"],
+              finished: res["data"]["collections"]["docs"][i]["finished"]);
           comics[0].add(si);
         } catch (e) {
           //出现错误跳过
@@ -918,18 +942,18 @@ class PicaClient {
       for (int i = 0; i < res["data"]["collections"][1]["comics"].length; i++) {
         try {
           var si = PicaComicItemBrief(
-            res["data"]["collections"][1]["comics"][i]["title"] ?? "Unknown",
-            res["data"]["collections"][1]["comics"][i]["author"] ?? "Unknown",
-            res["data"]["collections"][1]["comics"][i]["totalLikes"] ?? 0,
-            res["data"]["collections"][1]["comics"][i]["thumb"]["fileServer"] +
-                "/static/" +
-                res["data"]["collections"][1]["comics"][i]["thumb"]["path"],
-            res["data"]["collections"][1]["comics"][i]["_id"],
-            [],
-            epsCount: res["data"]["collections"]["docs"][i]["epsCount"],
-            pages: res["data"]["collections"][1]["comics"][i]["pagesCount"],
-            finished: res["data"]["collections"]["docs"][i]["finished"]
-          );
+              res["data"]["collections"][1]["comics"][i]["title"] ?? "Unknown",
+              res["data"]["collections"][1]["comics"][i]["author"] ?? "Unknown",
+              res["data"]["collections"][1]["comics"][i]["totalLikes"] ?? 0,
+              res["data"]["collections"][1]["comics"][i]["thumb"]
+                      ["fileServer"] +
+                  "/static/" +
+                  res["data"]["collections"][1]["comics"][i]["thumb"]["path"],
+              res["data"]["collections"][1]["comics"][i]["_id"],
+              [],
+              epsCount: res["data"]["collections"]["docs"][i]["epsCount"],
+              pages: res["data"]["collections"][1]["comics"][i]["pagesCount"],
+              finished: res["data"]["collections"]["docs"][i]["finished"]);
           comics[1].add(si);
         } finally {}
       }
@@ -1024,6 +1048,22 @@ class PicaClient {
   Future<Res<List<PicaComicItemBrief>>> getCategoryComics(
       String keyWord, int page, String sort,
       [String type = "c"]) async {
+    if (keyWord == "latest") {
+      return getLatest(page);
+    }
+
+    if (keyWord == "random") {
+      return getRandomComics();
+    }
+
+    if (keyWord == "leaderboard") {
+      return getLeaderboard(type);
+    }
+
+    if (keyWord == "bookmarks") {
+      return getFavorites(page, sort == "da");
+    }
+
     var response = await get(
         '$apiUrl/comics?page=$page&$type=${Uri.encodeComponent(keyWord)}&s=$sort');
     if (response.error) {
@@ -1077,23 +1117,23 @@ class PicaClient {
             res["data"]["comics"]["docs"][i]["categories"] ?? []));
 
         var si = PicaComicItemBrief(
-          res["data"]["comics"]["docs"][i]["title"] ?? "Unknown",
-          res["data"]["comics"]["docs"][i]["author"] ?? "Unknown",
-          int.parse(res["data"]["comics"]["docs"][i]["likesCount"].toString()),
-          res["data"]["comics"]["docs"][i]["thumb"]["fileServer"] +
-              "/static/" +
-              res["data"]["comics"]["docs"][i]["thumb"]["path"],
-          res["data"]["comics"]["docs"][i]["_id"],
-          tags,
-          epsCount: res["data"]["comics"]["docs"][i]["epsCount"],
-          pages: res["data"]["comics"]["docs"][i]["pagesCount"],
-          finished: res["data"]["comics"]["docs"][i]["finished"]
-        );
+            res["data"]["comics"]["docs"][i]["title"] ?? "Unknown",
+            res["data"]["comics"]["docs"][i]["author"] ?? "Unknown",
+            int.parse(
+                res["data"]["comics"]["docs"][i]["likesCount"].toString()),
+            res["data"]["comics"]["docs"][i]["thumb"]["fileServer"] +
+                "/static/" +
+                res["data"]["comics"]["docs"][i]["thumb"]["path"],
+            res["data"]["comics"]["docs"][i]["_id"],
+            tags,
+            epsCount: res["data"]["comics"]["docs"][i]["epsCount"],
+            pages: res["data"]["comics"]["docs"][i]["pagesCount"],
+            finished: res["data"]["comics"]["docs"][i]["finished"]);
         comics.add(si);
       } catch (e) {
         continue;
       }
     }
-    return Res(comics);
+    return Res(comics, subData: res["data"]["comics"]["pages"]);
   }
 }

@@ -1,3 +1,4 @@
+import 'package:flex_color_scheme/flex_color_scheme.dart' show FlexColor;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/config/base.dart';
@@ -5,6 +6,7 @@ import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/pages/me_page.dart';
 import 'package:skana_pica/pages/setting/setting_page.dart';
 import 'package:skana_pica/util/theme.dart';
+import 'package:icon_decoration/icon_decoration.dart';
 
 class AppearancePage extends StatefulWidget {
   static const route = "${SettingPage.route}/appearance";
@@ -38,16 +40,58 @@ class _AppearancePageState extends State<AppearancePage> {
             children: [
               ListTile(
                 leading: Icon(Icons.palette),
-                trailing: DropdownButton<int>(
-                  value: appearanceController.theme.value,
-                  items: _buildThemeList(context),
-                  onChanged: (value) {
-                    if (value != null) {
-                      appearanceController.changeTheme(value);
-                    }
-                  },
-                ),
+                trailing:
+                    Icon(Icons.square_rounded, color: FlexColor.schemesList[appearanceController.theme.value].light.primary),
                 title: Text('Color Theme'.tr),
+                onTap: () {
+                  Get.defaultDialog(
+                    titlePadding: EdgeInsets.only(top: 20),
+                    title: "Color Theme".tr,
+                    content: Container(
+                      height: Get.height / 1.5,
+                      width: Get.width / 1.2,
+                      child: CustomScrollView(
+                        slivers: [
+                          SliverGrid.builder(
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 6,
+                              crossAxisSpacing: 4.0,
+                              mainAxisSpacing: 4.0,
+                            ),
+                            itemCount: FlexColor.schemesList.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              return InkWell(
+                                onTap: () {
+                                  appearanceController.previewTheme(index);
+                                  appearanceController.changeTheme();
+                                  Get.back();
+                                },
+                                child: DecoratedIcon(
+                                  icon: Icon(Icons.square_rounded,
+                                      size: (Get.width / 1.2 - 40) / 6,
+                                      color: FlexColor
+                                          .schemesList[index].light.primary),
+                                  decoration:
+                                      IconDecoration(border: IconBorder()),
+                                ),
+                              );
+                            },
+                          )
+                        ],
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          appearanceController.restoreTheme();
+                          Get.back();
+                        },
+                        child: Text('Close'.tr),
+                      ),
+                    ],
+                  );
+                },
               ),
               ListTile(
                 leading: Icon(Icons.dark_mode_rounded),
@@ -60,7 +104,7 @@ class _AppearancePageState extends State<AppearancePage> {
                   ],
                   onChanged: (value) {
                     if (value != null) {
-                      appearanceController.changeColor(value);
+                      appearanceController.changeBrightness(value);
                       darkModeController.setSystemMode(value);
                       darkModeController.fallback();
                     }
@@ -91,17 +135,6 @@ class _AppearancePageState extends State<AppearancePage> {
           );
         }));
   }
-
-  List<DropdownMenuItem<int>> _buildThemeList(context) {
-    List<DropdownMenuItem<int>> list = [];
-    for (int i = 0; i < ThemeManager.themeName.length; i++) {
-      list.add(DropdownMenuItem(
-        value: i,
-        child: Text(ThemeManager.themeName[i].tr),
-      ));
-    }
-    return list;
-  }
 }
 
 class AppearanceController extends GetxController {
@@ -109,13 +142,22 @@ class AppearanceController extends GetxController {
   var darkMode = appdata.darkMode.obs;
   var language = appdata.general[2].obs;
 
-  void changeTheme(int index) {
-    appdata.theme = index;
+  void changeTheme() {
+    appdata.theme = theme.value;
     ThemeManager.instance.updateTheme();
-    theme.value = index;
   }
 
-  void changeColor(int first) {
+  void previewTheme(int index) {
+    theme.value = index;
+    ThemeManager.instance.previewTheme(index);
+  }
+
+  void restoreTheme() {
+    theme.value = appdata.theme;
+    ThemeManager.instance.updateTheme();
+  }
+
+  void changeBrightness(int first) {
     appdata.darkMode = first;
     darkMode.value = first;
   }

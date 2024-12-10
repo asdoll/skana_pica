@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/comiclist.dart';
+import 'package:skana_pica/controller/favourite.dart';
+import 'package:skana_pica/pages/leaderboard.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
 import 'package:skana_pica/widgets/pica_comic_card.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 class PicaComicsPage extends StatefulWidget {
   final String keyword;
@@ -13,6 +16,7 @@ class PicaComicsPage extends StatefulWidget {
   final bool isMain;
   final bool? addToHistory;
   final String? sort;
+  final EasyRefreshController? easyRefreshController;
 
   const PicaComicsPage(
       {super.key,
@@ -20,7 +24,8 @@ class PicaComicsPage extends StatefulWidget {
       required this.keyword,
       required this.type,
       this.addToHistory,
-      this.sort});
+      this.sort,
+      this.easyRefreshController});
 
   @override
   State<PicaComicsPage> createState() => _PicaComicsPageState();
@@ -32,23 +37,26 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
     String tag = "${widget.type}_${widget.keyword}";
     ComicListController controller;
     TextEditingController pageJumpController = TextEditingController();
-    EasyRefreshController easyRefreshController = EasyRefreshController(
-      controlFinishRefresh: true,
-      controlFinishLoad: true,
-    );
+    EasyRefreshController easyRefreshController =
+        widget.easyRefreshController ??
+            EasyRefreshController(
+              controlFinishRefresh: true,
+              controlFinishLoad: true,
+            );
     ScrollController scrollController = ScrollController();
     try {
       controller = Get.find<ComicListController>(tag: tag);
     } catch (e) {
       controller = Get.put(ComicListController(), tag: tag);
     }
+    controller.type.value = widget.type;
     bool author = widget.type == "author";
     return Obx(
       () => Column(
         children: [
           if (appdata.pica[6] == "0")
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ChoiceChip(
                   selectedColor: Get.theme.primaryColor,
@@ -65,6 +73,9 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                     }
                   },
                 ),
+                SizedBox(
+                  width: 8,
+                ),
                 ChoiceChip(
                   selectedColor: Get.theme.primaryColor,
                   label: Text('Old to New'.tr, style: Get.textTheme.bodySmall),
@@ -79,34 +90,46 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                     }
                   },
                 ),
-                ChoiceChip(
-                  selectedColor: Get.theme.primaryColor,
-                  label: Text('Most Likes'.tr, style: Get.textTheme.bodySmall),
-                  selected: controller.sort.value == "ld",
-                  onSelected: (bool selected) {
-                    if (selected) {
-                      controller.init(widget.keyword,
-                          isAuthor: author,
-                          sort: "ld",
-                          addToHistory: widget.addToHistory ?? false,
-                          isSearch: widget.type == "search");
-                    }
-                  },
-                ),
-                ChoiceChip(
-                  selectedColor: Get.theme.primaryColor,
-                  label: Text('Most Viewed'.tr, style: Get.textTheme.bodySmall),
-                  selected: controller.sort.value == "vd",
-                  onSelected: (bool selected) {
-                    if (selected) {
-                      controller.init(widget.keyword,
-                          isAuthor: author,
-                          sort: "vd",
-                          addToHistory: widget.addToHistory ?? false,
-                          isSearch: widget.type == "search");
-                    }
-                  },
-                ),
+                if (widget.keyword != "bookmarks")
+                  SizedBox(
+                    width: 8,
+                  ),
+                if (widget.keyword != "bookmarks")
+                  ChoiceChip(
+                    selectedColor: Get.theme.primaryColor,
+                    label:
+                        Text('Most Likes'.tr, style: Get.textTheme.bodySmall),
+                    selected: controller.sort.value == "ld",
+                    onSelected: (bool selected) {
+                      if (selected) {
+                        controller.init(widget.keyword,
+                            isAuthor: author,
+                            sort: "ld",
+                            addToHistory: widget.addToHistory ?? false,
+                            isSearch: widget.type == "search");
+                      }
+                    },
+                  ),
+                if (widget.keyword != "bookmarks")
+                  SizedBox(
+                    width: 8,
+                  ),
+                if (widget.keyword != "bookmarks")
+                  ChoiceChip(
+                    selectedColor: Get.theme.primaryColor,
+                    label:
+                        Text('Most Viewed'.tr, style: Get.textTheme.bodySmall),
+                    selected: controller.sort.value == "vd",
+                    onSelected: (bool selected) {
+                      if (selected) {
+                        controller.init(widget.keyword,
+                            isAuthor: author,
+                            sort: "vd",
+                            addToHistory: widget.addToHistory ?? false,
+                            isSearch: widget.type == "search");
+                      }
+                    },
+                  ),
               ],
             ),
           if (appdata.pica[6] == "1")
@@ -126,9 +149,12 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                   items: [
                     DropdownMenuItem(value: "dd", child: Text('New to Old'.tr)),
                     DropdownMenuItem(value: "da", child: Text('Old to New'.tr)),
-                    DropdownMenuItem(value: "ld", child: Text('Most Likes'.tr)),
-                    DropdownMenuItem(
-                        value: "vd", child: Text('Most Viewed'.tr)),
+                    if (widget.keyword != "bookmarks")
+                      DropdownMenuItem(
+                          value: "ld", child: Text('Most Likes'.tr)),
+                    if (widget.keyword != "bookmarks")
+                      DropdownMenuItem(
+                          value: "vd", child: Text('Most Viewed'.tr)),
                   ],
                 ),
                 TextButton(
@@ -265,12 +291,16 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                     },
               onRefresh: () async {
                 bool res;
-                if (controller.keyword.isEmpty) {
+                if (controller.keyword.isEmpty ||
+                    controller.keyword == "leaderboard") {
                   res = controller.init(widget.keyword,
                       isAuthor: author,
                       sort: widget.sort ?? "",
                       addToHistory: widget.addToHistory ?? false,
-                      isSearch: widget.type == "search");
+                      isSearch: widget.type == "search",
+                      type: controller.keyword == "leaderboard"
+                          ? leaderboardController.type.value
+                          : widget.type);
                 } else {
                   res = controller
                       .reload((appdata.pica[6] == "1") ? false : true);
@@ -289,26 +319,31 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                     ? controller.comics.length + 1
                     : controller.comics.length,
                 itemBuilder: (context, index) {
-                  if (index == controller.comics.length &&
-                      (controller.page.value < controller.total.value) &&
-                      !controller.isLoading.value) {
-                    return Center(
-                      child: IconButton(
-                          onPressed: () {
-                            widget.isMain
-                                ? globalScrollController.animateTo(0,
-                                    duration: const Duration(microseconds: 200),
-                                    curve: Curves.ease)
-                                : scrollController.animateTo(0,
-                                    duration: const Duration(microseconds: 200),
-                                    curve: Curves.ease);
-                            controller.pageFetch(controller.page.value + 1);
-                          },
-                          icon: Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            size: 40,
-                          )),
-                    );
+                  if (index == controller.comics.length) {
+                    if ((controller.page.value < controller.total.value) &&
+                        !controller.isLoading.value) {
+                      return Center(
+                        child: IconButton(
+                            onPressed: () {
+                              widget.isMain
+                                  ? globalScrollController.animateTo(0,
+                                      duration:
+                                          const Duration(microseconds: 200),
+                                      curve: Curves.ease)
+                                  : scrollController.animateTo(0,
+                                      duration:
+                                          const Duration(microseconds: 200),
+                                      curve: Curves.ease);
+                              controller.pageFetch(controller.page.value + 1);
+                            },
+                            icon: Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              size: 40,
+                            )),
+                      );
+                    } else {
+                      return Container();
+                    }
                   }
                   if (controller.comics.isEmpty) {
                     return Container(
@@ -322,8 +357,31 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                           ),
                         ));
                   }
+                  if (widget.keyword == "bookmarks" && widget.type == "me") {
+                    return Slidable(
+                      endActionPane:
+                          ActionPane(motion: const ScrollMotion(), extentRatio: 0.2,children: [
+                        SlidableAction(
+                          backgroundColor: Colors.red,
+                          icon: Icons.delete,
+                          borderRadius: BorderRadius.circular(8),
+                          onPressed: (context) {
+                            favorController.favorCall(controller.comics[index].id);
+                            controller.comics.removeAt(index);
+                            controller.comics.refresh();
+                          },
+                        ),
+                      ]),
+                      child: PicaComicCard(
+                        controller.comics[index],
+                        isBookmarkPage: widget.keyword == "bookmarks",
+                      ),
+                    );
+                  }
+
                   return PicaComicCard(
                     controller.comics[index],
+                    isBookmarkPage: widget.keyword == "bookmarks",
                   );
                 },
               ),

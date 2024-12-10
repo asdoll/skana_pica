@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:skana_pica/controller/blocker.dart';
 import 'package:skana_pica/pages/pica_list_comics.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/widget_utils.dart';
@@ -37,6 +39,11 @@ class _PicaTagState extends State<PicaTag> {
             break;
         }
       },
+      onLongPress: () {
+        if (widget.type == 'tag' || widget.type == 'category') {
+          blockDialog(context, widget.text);
+        }
+      },
       child: Container(
         padding: const EdgeInsets.all(4.0),
         decoration: BoxDecoration(
@@ -48,4 +55,28 @@ class _PicaTagState extends State<PicaTag> {
       ),
     );
   }
+}
+
+void blockDialog(BuildContext context, String keyword) {
+  showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('${"Block keyword".tr}"$keyword"?'),
+          actions: [
+            TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Cancel'.tr)),
+            TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  blocker.addKeyword(keyword);
+                  toast('${"Block keyword".tr}"$keyword"');
+                },
+                child: Text('Ok'.tr)),
+          ],
+        );
+      });
 }

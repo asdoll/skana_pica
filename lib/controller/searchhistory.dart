@@ -22,7 +22,8 @@ class SearchHistoryController extends GetxController {
 
   void addHistory(String keyword) {
     if (searchHistory.contains(keyword)) {
-      return;
+      searchHistory.remove(keyword);
+      appdata.searchHistory.remove(keyword);
     }
     searchHistory.add(keyword);
     appdata.searchHistory.add(keyword);

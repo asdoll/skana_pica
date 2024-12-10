@@ -1,10 +1,10 @@
-import 'package:bot_toast/bot_toast.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/comicstore.dart';
 import 'package:skana_pica/controller/comment.dart';
+import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/log.dart';
 
 late FavorController favorController;
@@ -13,6 +13,7 @@ class FavorController extends GetxController {
   RxList<String> favorComics = <String>[].obs;
   RxBool isLoading = false.obs;
   RxString lastId = "".obs;
+  String sort = appdata.pica[4] == "da" ? "da" : "dd";
 
   void addFavor(String id) {
     if (favorComics.contains(id)) {
@@ -44,7 +45,7 @@ class FavorController extends GetxController {
         isLoading.value = false;
         return;
       }
-      BotToast.showText(text: "Network Error".tr);
+      toast("Network Error".tr);
       isLoading.value = false;
     });
   }
@@ -120,7 +121,7 @@ class BookmarksController extends GetxController {
         isLoading.value = false;
         return;
       }
-      BotToast.showText(text: "Network Error".tr);
+      toast("Network Error".tr);
       isLoading.value = false;
     });
   }
@@ -168,7 +169,7 @@ class LikeController extends GetxController {
     isLoading.value = true;
     picaClient.likeOrUnlikeComic(id).then((value) {
       if (!value) {
-        BotToast.showText(text: "Network Error".tr);
+        toast("Network Error".tr);
         isLoading.value = false;
         return false;
       }
@@ -185,7 +186,7 @@ class LikeController extends GetxController {
     isLoading.value = true;
     picaClient.likeOrUnlikeComment(id).then((value) {
       if (!value) {
-        BotToast.showText(text: "Network Error".tr);
+        toast("Network Error".tr);
         isLoading.value = false;
         return false;
       }
@@ -200,7 +201,8 @@ class LikeController extends GetxController {
       }
       if (commentId != null) {
         try {
-          CommentController controller = Get.find<CommentController>(tag: commentId);
+          CommentController controller =
+              Get.find<CommentController>(tag: commentId);
           controller.fetch();
         } catch (e) {
           log.e(e);

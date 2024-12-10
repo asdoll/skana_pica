@@ -1,8 +1,8 @@
-import 'package:bot_toast/bot_toast.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/controller/comicstore.dart';
+import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/log.dart';
 
 class CommentController extends GetxController {
@@ -56,7 +56,7 @@ class ReplyController extends GetxController {
     picaClient.comment(id, content, !isComic).then((value) {
       isLoading.value = false;
       if (!value) {
-        BotToast.showText(text: "Failed to reply".tr);
+        toast( "Failed to reply".tr);
         return;
       }
       if (isComic) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/controller/categories.dart';
 import 'package:skana_pica/controller/searchhistory.dart';
+import 'package:skana_pica/pages/leaderboard.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
 import 'package:skana_pica/pages/pica_list_comics.dart';
 import 'package:skana_pica/pages/pica_results.dart';
@@ -18,21 +19,17 @@ class PicaSearchPage extends StatefulWidget {
 
 class _PicaSearchPageState extends State<PicaSearchPage> {
   late SearchController controller;
-  late CategoriesController categoriesController;
   bool showDelete = false;
 
   @override
   void initState() {
     super.initState();
     controller = SearchController();
-    categoriesController = Get.put(CategoriesController());
-    categoriesController.fetchCategories();
   }
 
   @override
   void dispose() {
     controller.dispose();
-    Get.delete<CategoriesController>();
     super.dispose();
   }
 
@@ -41,6 +38,7 @@ class _PicaSearchPageState extends State<PicaSearchPage> {
     return Scaffold(
         appBar: AppBar(
           titleSpacing: 8,
+          toolbarHeight: kToolbarHeight + 16,
           title: SearchBar(
             shape: WidgetStateProperty.all(RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16.0))),
@@ -69,11 +67,15 @@ class _PicaSearchPageState extends State<PicaSearchPage> {
         ),
         body: Obx(
           () => CustomScrollView(
+            controller: globalScrollController,
             slivers: [
               SliverPadding(padding: const EdgeInsets.only(top: 8.0)),
               SliverToBoxAdapter(
                 child: (searchHistoryController.searchHistory.isNotEmpty)
-                    ? Text("Search History".tr).paddingAll(12.0)
+                    ? Text(
+                        "Search History".tr,
+                        style: TextStyle(fontSize: 16),
+                      ).paddingAll(12.0)
                     : Container(),
               ),
               SliverToBoxAdapter(
@@ -82,21 +84,15 @@ class _PicaSearchPageState extends State<PicaSearchPage> {
                         runSpacing: 0.0,
                         spacing: 5.0,
                         children: searchHistoryController.searchHistory
-                            .map((e) => Padding(
-                                padding: const EdgeInsets.all(4.0),
-                                child: GestureDetector(
-                                  onTap: () {
-                                    controller.text = e;
-                                    onSubmitted(e);
-                                  },
-                                  child: Chip(
-                                    label: Text(e),
-                                    deleteIcon: const Icon(Icons.clear),
-                                    onDeleted: () {
-                                      searchHistoryController.removeHistory(e);
-                                    },
-                                  ),
-                                )))
+                            .map(
+                              (e) => Chip(
+                                label: Text(e),
+                                deleteIcon: const Icon(Icons.clear),
+                                onDeleted: () {
+                                  searchHistoryController.removeHistory(e);
+                                },
+                              ),
+                            )
                             .toList(),
                       ).paddingSymmetric(horizontal: 8.0)
                     : Container(),
@@ -160,7 +156,10 @@ class _PicaSearchPageState extends State<PicaSearchPage> {
                         )
                       : Container()),
               SliverToBoxAdapter(
-                child: Text("Categories".tr).paddingAll(12.0),
+                child: Text(
+                  "Categories".tr,
+                  style: TextStyle(fontSize: 16),
+                ).paddingAll(12.0),
               ),
               SliverPadding(
                 padding: const EdgeInsets.all(8.0),
@@ -170,12 +169,88 @@ class _PicaSearchPageState extends State<PicaSearchPage> {
                     crossAxisSpacing: 8.0,
                     mainAxisSpacing: 8.0,
                   ),
-                  itemCount: categoriesController.categories.length,
+                  itemCount: categoriesController.categories.length + 3,
                   itemBuilder: (context, index) {
+                    if (index < 3) {
+                      return InkWell(
+                        onTap: () {
+                          if (index == 0) {
+                            Go.to(
+                                PicaCatComicsPage(id: "random", type: "fixed"),
+                                preventDuplicates: false);
+                          } else if (index == 1) {
+                            Go.to(
+                                PicaCatComicsPage(id: "latest", type: "fixed"),
+                                preventDuplicates: false);
+                          } else {
+                            Go.to(LeaderboardPage(), preventDuplicates: false);
+                          }
+                        },
+                        child: Card(
+                          clipBehavior: Clip.antiAlias,
+                          shape: const RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(8.0))),
+                          child: Stack(
+                            children: <Widget>[
+                              Image.asset(
+                                categoriesController.getCoverImg(
+                                    fixedCategories[index].toLowerCase()),
+                                fit: BoxFit.cover,
+                                width: 300,
+                                height: 300,
+                              ),
+                              Opacity(
+                                opacity: Get.isDarkMode ? 0.4 : 0,
+                                child: Container(
+                                  decoration:
+                                      BoxDecoration(color: Colors.black),
+                                ),
+                              ),
+                              if (!Get.isDarkMode)
+                                Positioned(
+                                  bottom: 0,
+                                  child: Container(
+                                    width: 300,
+                                    height: 60,
+                                    decoration: const BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: <Color>[
+                                          Colors.transparent,
+                                          Colors.black87,
+                                        ],
+                                        tileMode: TileMode.mirror,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              Align(
+                                alignment: Alignment.bottomCenter,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(2.0),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: <Widget>[
+                                      Text(
+                                        fixedCategories[index].tr,
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(color: Colors.white),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
                     return InkWell(
                       onTap: () => Go.to(
                           PicaCatComicsPage(
-                              id: categoriesController.categories[index],
+                              id: categoriesController.categories[index - 3],
                               type: "category"),
                           preventDuplicates: false),
                       onLongPress: () {
@@ -183,8 +258,10 @@ class _PicaSearchPageState extends State<PicaSearchPage> {
                             context: context,
                             builder: (context) {
                               return AlertDialog(
-                                title: Text("block_cate".trParams(
-                                    {"cate": categoriesController.categories[index]})),
+                                title: Text("block_cate".trParams({
+                                  "cate":
+                                      categoriesController.categories[index - 3]
+                                })),
                                 actions: [
                                   TextButton(
                                       onPressed: () {
@@ -193,9 +270,9 @@ class _PicaSearchPageState extends State<PicaSearchPage> {
                                       child: Text("Cancel".tr)),
                                   TextButton(
                                       onPressed: () {
-                                        categoriesController
-                                            .blockCategory(categoriesController
-                                                .categories[index]);
+                                        categoriesController.blockCategory(
+                                            categoriesController
+                                                .categories[index - 3]);
                                         Navigator.of(context).pop();
                                       },
                                       child: Text("Ok".tr)),
@@ -212,29 +289,49 @@ class _PicaSearchPageState extends State<PicaSearchPage> {
                           children: <Widget>[
                             Image.asset(
                               categoriesController.getCoverImg(
-                                  categoriesController.categories[index]),
+                                  categoriesController.categories[index - 3]),
                               fit: BoxFit.cover,
                               width: 300,
                               height: 300,
                             ),
                             Opacity(
-                              opacity: 0.4,
+                              opacity: Get.isDarkMode ? 0.4 : 0,
                               child: Container(
                                 decoration: BoxDecoration(color: Colors.black),
                               ),
                             ),
+                            if (!Get.isDarkMode)
+                              Positioned(
+                                bottom: 0,
+                                child: Container(
+                                  width: 300,
+                                  height: 60,
+                                  decoration: const BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: <Color>[
+                                        Colors.transparent,
+                                        Colors.black87,
+                                      ],
+                                      tileMode: TileMode.mirror,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             Align(
                               alignment: Alignment.bottomCenter,
                               child: Padding(
                                 padding: const EdgeInsets.all(2.0),
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
-                                  children: <Widget>[
+                                  children: [
                                     Text(
-                                      categoriesController.categories[index],
+                                      categoriesController
+                                          .categories[index - 3],
                                       textAlign: TextAlign.center,
                                       style: TextStyle(color: Colors.white),
-                                    ),
+                                    )
                                   ],
                                 ),
                               ),

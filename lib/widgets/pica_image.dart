@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:get/get.dart';
+import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/managers/image_cache_manager.dart'
     show imagesCacheManager;
 
@@ -64,6 +66,29 @@ class _PicaImageState extends State<PicaImage> {
 
   @override
   Widget build(BuildContext context) {
+    if (url == defaultAvatarUrl) {
+      return Image.asset("assets/images/avatar/default.png",
+          width: width, height: height, fit: fit);
+    }
+    if (url == errorLoadingUrl) {
+      return Stack(
+        children: [
+          Container(
+            width: width,
+            height: height,
+            color: Get.theme.colorScheme.surface.withOpacity(0.5),
+          ),
+          Center(
+            child: TextButton(
+              onPressed: () {
+                setState(() {});
+              },
+              child: Icon(Icons.error_outline_sharp),
+            ),
+          ),
+        ],
+      );
+    }
     return CachedNetworkImage(
         placeholder: widget.useProgressIndicator
             ? null

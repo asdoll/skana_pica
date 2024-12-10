@@ -12,7 +12,8 @@ import 'package:skana_pica/widgets/tag_finished.dart';
 class PicaComicCard extends StatefulWidget {
   final PicaComicItemBrief comic;
   final bool isBookmarkPage;
-  const PicaComicCard(this.comic, {super.key, this.isBookmarkPage = false});
+  const PicaComicCard(this.comic,
+      {super.key, this.isBookmarkPage = false});
 
   @override
   State<PicaComicCard> createState() => _PicaComicCardState();
@@ -136,7 +137,7 @@ class _PicaComicCardState extends State<PicaComicCard> {
                           Wrap(
                             crossAxisAlignment: WrapCrossAlignment.center,
                             spacing: 2, // gap between adjacent chips
-                            runSpacing: 0,
+                            runSpacing: 2,
                             children: [
                               if (comic.tags.isEmpty) Container(),
                               for (var f in comic.tags)
@@ -155,20 +156,20 @@ class _PicaComicCardState extends State<PicaComicCard> {
                   ],
                 ),
               ),
-              Obx(() {
-                if (!widget.isBookmarkPage &&
-                    favorController.favorComics.contains(widget.comic.id)) {
-                  return Positioned(
-                      bottom: 8,
-                      right: 8,
-                      child: Icon(
-                        Icons.bookmark_added_rounded,
-                        color: Get.theme.primaryColor.withOpacity(0.3),
-                        size: Get.width / 8,
-                      ));
-                }
-                return Container();
-              })
+              if (!widget.isBookmarkPage)
+                Obx(() {
+                  if (favorController.favorComics.contains(widget.comic.id)) {
+                    return Positioned(
+                        bottom: 8,
+                        right: 8,
+                        child: Icon(
+                          Icons.bookmark_added_rounded,
+                          color: Get.theme.primaryColor.withOpacity(0.3),
+                          size: Get.width / 8,
+                        ));
+                  }
+                  return Container();
+                })
             ],
           )),
     );

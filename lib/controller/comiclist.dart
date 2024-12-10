@@ -1,8 +1,9 @@
-import 'package:bot_toast/bot_toast.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/config/setting.dart';
+import 'package:skana_pica/controller/blocker.dart';
+import 'package:skana_pica/util/leaders.dart';
 
 class ComicListController extends GetxController {
   RxList<PicaComicItemBrief> comics = <PicaComicItemBrief>[].obs;
@@ -14,6 +15,7 @@ class ComicListController extends GetxController {
   RxString sort = "".obs;
   bool isSearch = false;
   bool addToHistory = true;
+  RxString type = "".obs;
 
   bool fetch() {
     if (isLoading.value) {
@@ -27,11 +29,11 @@ class ComicListController extends GetxController {
           .then((value) {
         if (value.error) {
           isLoading.value = false;
-          BotToast.showText(text: "Failed to load data".tr);
+          toast("Failed to load data".tr);
           return false;
         }
         total.value = value.subData;
-        comics.addAll(value.data);
+        addWithFilter(value.data);
         isLoading.value = false;
       });
       comics.refresh();
@@ -39,19 +41,46 @@ class ComicListController extends GetxController {
     }
     picaClient
         .getCategoryComics(
-            keyword, page.value, sort.value, isAuthor ? "a" : "c")
+            keyword,
+            page.value,
+            sort.value,
+            isAuthor
+                ? "a"
+                : keyword == "leaderboard"
+                    ? type.value
+                    : "c")
         .then((value) {
       if (value.error) {
         isLoading.value = false;
-        BotToast.showText(text: "Failed to load data".tr);
+        toast("Failed to load data".tr);
         return false;
       }
       total.value = value.subData;
-      comics.addAll(value.data);
+      addWithFilter(value.data);
       isLoading.value = false;
     });
     comics.refresh();
     return true;
+  }
+
+  void addWithFilter(List<PicaComicItemBrief> list) {
+    list.removeWhere((element) => blocked(element));
+    comics.addAll(list);
+    comics.refresh();
+  }
+
+  bool blocked(PicaComicItemBrief comic) {
+    if (blocker.blockedKeywords.contains(comic.author)) return true;
+    for (var tag in comic.tags) {
+      if (blocker.blockedKeywords.contains(tag)) return true;
+    }
+    for (var tag in comic.tags) {
+      if (blocker.blockedCategories.contains(tag)) return true;
+    }
+    for (var kw in blocker.blockedKeywords) {
+      if (comic.title.contains(kw)) return true;
+    }
+    return false;
   }
 
   bool onLoad() {
@@ -63,13 +92,19 @@ class ComicListController extends GetxController {
   }
 
   bool init(String keyword,
-      {String sort = "", bool isAuthor = false, int page = 1, bool addToHistory = false, bool isSearch = false}) {
+      {String sort = "",
+      bool isAuthor = false,
+      int page = 1,
+      bool addToHistory = false,
+      bool isSearch = false,
+      String type = ""}) {
     this.keyword = keyword;
     this.isAuthor = isAuthor;
     this.addToHistory = addToHistory;
     this.isSearch = isSearch;
     sort.isEmpty ? this.sort.value = appdata.pica[4] : this.sort.value = sort;
     this.page.value = page;
+    this.type.value = type;
     comics.clear();
     return fetch();
   }

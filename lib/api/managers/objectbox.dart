@@ -8,7 +8,6 @@ import 'package:skana_pica/objectbox.g.dart';
 class ObjectBox {
   late final Store _store;
 
-
   late final Box<PicaHistoryItem> _historyBox;
   late final Box<VisitHistory> _visitHistoryBox;
 
@@ -19,8 +18,8 @@ class ObjectBox {
 
   static Future<ObjectBox> create() async {
     final store = await openStore(
-        directory:
-            p.join((await getApplicationDocumentsDirectory()).path, "skana_pica_history"),
+        directory: p.join((await getApplicationDocumentsDirectory()).path,
+            "skana_pica_history"),
         macosApplicationGroup: "skana.pica.history");
     return ObjectBox._create(store);
   }
@@ -29,7 +28,8 @@ class ObjectBox {
     _historyBox.put(item);
   }
 
-  Future<void> addVisitHistory(VisitHistory history,{PutMode mode = PutMode.put}) async {
+  Future<void> addVisitHistory(VisitHistory history,
+      {PutMode mode = PutMode.put}) async {
     _visitHistoryBox.put(history, mode: mode);
   }
 
@@ -37,8 +37,26 @@ class ObjectBox {
     _historyBox.put(PicaHistoryItem.withItem(item, id: id));
   }
 
+  Future<PicaHistoryItem> addHistoryWithCheck(PicaComicItem item) async {
+    PicaHistoryItem hItem = PicaHistoryItem.withItem(item);
+    final history = _historyBox
+        .query(PicaHistoryItem_.comicid.equals(hItem.comicid))
+        .build()
+        .findFirst();
+    if (history == null) {
+      _historyBox.put(hItem);
+      return hItem;
+    } else {
+      _historyBox.put(hItem..id = history.id);
+      return history;
+    }
+  }
+
   Future<void> addVisit(String comicId, int eps, int index) async {
-    final history = _visitHistoryBox.query(VisitHistory_.comicid.equals(comicId)).build().findFirst();
+    final history = _visitHistoryBox
+        .query(VisitHistory_.comicid.equals(comicId))
+        .build()
+        .findFirst();
     if (history != null) {
       history.lastEps = eps;
       history.lastIndex = index;
@@ -54,25 +72,53 @@ class ObjectBox {
   }
 
   Future<List<VisitHistory>> getVisitHistory() async {
-    return _visitHistoryBox.query().order(VisitHistory_.timestamp, flags: Order.descending).build().find();
+    return _visitHistoryBox
+        .query()
+        .order(VisitHistory_.timestamp, flags: Order.descending)
+        .build()
+        .find();
   }
 
-  Future<PicaCategoryItem?> getComicHistory(String comicId) async {
-    final history = _historyBox.query(PicaHistoryItem_.comicid.equals(comicId)).build().findFirst();
+  Future<int> getVisitHistoryCount() async {
+    return _visitHistoryBox.count();
+  }
+
+  Future<List<VisitHistory>> getVisitHistoryByOffset(
+      int offset, int limit) async {
+    return (_visitHistoryBox
+            .query()
+            .order(VisitHistory_.timestamp, flags: Order.descending)
+            .build()
+          ..offset = offset
+          ..limit = limit)
+        .find();
+  }
+
+  Future<PicaComicItem?> getComicHistory(String comicId) async {
+    final history = _historyBox
+        .query(PicaHistoryItem_.comicid.equals(comicId))
+        .build()
+        .findFirst();
     if (history != null) {
-      return PicaCategoryItem(history.title, history.thumbUrl);
+      return history.toComicItem();
     }
     return null;
   }
 
   Future<VisitHistory?> getVisitHistoryByComic(String comicId) async {
-    return _visitHistoryBox.query(VisitHistory_.comicid.equals(comicId)).build().findFirst();
+    return _visitHistoryBox
+        .query(VisitHistory_.comicid.equals(comicId))
+        .build()
+        .findFirst();
   }
 
   Future<void> removeHistoryItem(int id) => _historyBox.removeAsync(id);
 
   Future<void> removeHistoryItemByComic(String comicId) {
-    final history = _historyBox.query(PicaHistoryItem_.comicid.equals(comicId)).build().find();
+    final history = _historyBox
+        .query(PicaHistoryItem_.comicid.equals(comicId))
+        .build()
+        .find();
     if (history.isNotEmpty) {
       return _historyBox.removeManyAsync(history.map((e) => e.id).toList());
     }
@@ -80,11 +126,14 @@ class ObjectBox {
   }
 
   Future<void> removeVisitHistory(String comicId) {
-    final history = _visitHistoryBox.query(VisitHistory_.comicid.equals(comicId)).build().find();
+    final history = _visitHistoryBox
+        .query(VisitHistory_.comicid.equals(comicId))
+        .build()
+        .find();
     if (history.isNotEmpty) {
-      return _visitHistoryBox.removeManyAsync(history.map((e) => e.id).toList());
+      return _visitHistoryBox
+          .removeManyAsync(history.map((e) => e.id).toList());
     }
     return Future.value();
   }
-
 }

@@ -9,6 +9,8 @@ import 'package:skana_pica/api/managers/history_manager.dart';
 import 'package:skana_pica/api/models/base_comic.dart';
 import 'package:skana_pica/config/base.dart';
 import 'package:skana_pica/config/setting.dart';
+import 'package:skana_pica/controller/blocker.dart';
+import 'package:skana_pica/controller/categories.dart';
 import 'package:skana_pica/controller/favourite.dart';
 import 'package:skana_pica/controller/searchhistory.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
@@ -35,10 +37,15 @@ Future<void> main() async {
     await Base.init();
     await appdata.init();
     await ComicSource.init();
+    //init global controllers
     favorController = Get.put(FavorController(), permanent: true);
     await favorController.fetch();
     searchHistoryController = Get.put(SearchHistoryController(), permanent: true);
     searchHistoryController.init();
+    blocker = Get.put(Blocker(), permanent: true);
+    blocker.init();
+    categoriesController = Get.put(CategoriesController(), permanent: true);
+    categoriesController.init();
     await M.init();
     runApp(const MyApp());
   }, (e, s) {

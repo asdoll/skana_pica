@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
 import 'package:skana_pica/config/setting.dart';
+import 'package:skana_pica/controller/blocker.dart';
+import 'package:skana_pica/controller/categories.dart';
+import 'package:skana_pica/pages/mainscreen.dart';
 import 'package:skana_pica/pages/setting/setting_page.dart';
 import 'package:skana_pica/util/widget_utils.dart';
+import 'package:smooth_highlight/smooth_highlight.dart';
 
 class MangaSettingPage extends StatefulWidget {
   static const route = "${SettingPage.route}/manga";
-  const MangaSettingPage({super.key});
+  final bool fromMain;
+  const MangaSettingPage({super.key, this.fromMain = false});
 
   @override
   State<MangaSettingPage> createState() => _MangaSettingPageState();
@@ -35,7 +40,12 @@ class _MangaSettingPageState extends State<MangaSettingPage> {
         title: Text("Manga Settings".tr),
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
-          onPressed: () => Get.back(),
+          onPressed: () {
+            if (widget.fromMain) {
+              mainScreenIndex.index.value = 0;
+            }
+            Get.back();
+          },
         ),
       ),
       body: Column(
@@ -47,6 +57,9 @@ class _MangaSettingPageState extends State<MangaSettingPage> {
   }
 
   Widget _buildPica(BuildContext context) {
+    if(widget.fromMain) {
+      mangaSettingsController.setMainTrigger();
+    }
     return Obx(
       () => ListTileTheme(
         contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -166,14 +179,14 @@ class _MangaSettingPageState extends State<MangaSettingPage> {
             ),
             ListTile(
               leading: Icon(Icons.block),
-              title: Text("Displayed Categories".tr),
+              title: Text("Blocked Categories".tr),
               subtitle: Text("Also applies to all filters".tr),
               onTap: () {
                 showDialog(
                   context: context,
                   builder: (context) {
                     return Obx(() => AlertDialog(
-                          title: Text("Displayed Categories".tr),
+                          title: Text("Blocked Categories".tr),
                           content: Scrollbar(
                             thumbVisibility: true,
                             child: SingleChildScrollView(
@@ -184,12 +197,10 @@ class _MangaSettingPageState extends State<MangaSettingPage> {
                                           label: Text(
                                             e,
                                           ),
-                                          selected: mangaSettingsController
-                                              .blockedCategories
+                                          selected: blocker.blockedCategories
                                               .contains(e),
                                           onSelected: (value) {
-                                            mangaSettingsController
-                                                .toggleBlockedCategory(e);
+                                            blocker.toggleBlockedCategory(e);
                                           },
                                         ))
                                     .toList(),
@@ -209,6 +220,306 @@ class _MangaSettingPageState extends State<MangaSettingPage> {
                 );
               },
             ),
+            ListTile(
+              leading: Icon(Icons.block),
+              title: Text("Blocked Keywords".tr),
+              subtitle: Text("Also applies to all filters".tr),
+              onTap: () {
+                TextEditingController textEditingController =
+                    TextEditingController();
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: Text("Blocked Keywords".tr),
+                      content: Scrollbar(
+                        thumbVisibility: true,
+                        child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Column(
+                              children: [
+                                Obx(
+                                  () => Wrap(
+                                    children: blocker.blockedKeywords
+                                        .map<Widget>(
+                                          (e) => Chip(
+                                            label: Text(e),
+                                            deleteIcon: const Icon(Icons.clear),
+                                            onDeleted: () {
+                                              blocker.removeKeyword(e);
+                                            },
+                                          ),
+                                        )
+                                        .toList(),
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextField(
+                                        controller: textEditingController,
+                                        onSubmitted: (value) {
+                                          blocker.addKeyword(value);
+                                          Get.back();
+                                        },
+                                      ),
+                                    ),
+                                    SizedBox(width: 8),
+                                    IconButton(
+                                      icon: Icon(
+                                          Icons.add_circle_outline_outlined),
+                                      onPressed: () {
+                                        blocker.addKeyword(
+                                            textEditingController.text);
+                                        textEditingController.clear();
+                                      },
+                                    )
+                                  ],
+                                )
+                              ],
+                            )),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Get.back();
+                          },
+                          child: Text("Close".tr),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+            ValueChangeHighlight(
+              value: mangaSettingsController.mainTrigger.value,
+              duration: const Duration(seconds: 1),
+              color: Get.theme.colorScheme.secondary,
+              child: ListTile(
+                leading: Icon(Icons.switch_access_shortcut_rounded),
+                title: Text("Main Page Categories/Tags".tr),
+                subtitle: Text("Set what to show on main page".tr),
+                onTap: () {
+                  TextEditingController textEditingController =
+                      TextEditingController();
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: Text("Display on Main Page".tr),
+                        content: Scrollbar(
+                          thumbVisibility: true,
+                          child: SingleChildScrollView(
+                              scrollDirection: Axis.vertical,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(height: 8),
+                                  Obx(
+                                    () => Wrap(
+                                      children: categoriesController
+                                          .mainPageTags
+                                          .map<Widget>(
+                                            (e) => Chip(
+                                              label: fixedCategories.contains(e)
+                                                  ? Text(e.toString().tr)
+                                                  : Text(e),
+                                              deleteIcon:
+                                                  const Icon(Icons.clear),
+                                              onDeleted: () {
+                                                categoriesController
+                                                    .removeMainPageTag(e);
+                                              },
+                                            ),
+                                          )
+                                          .toList(),
+                                    ),
+                                  ),
+                                  TextButton(
+                                      onPressed: () {
+                                        showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              return AlertDialog(
+                                                title: Text("Add Category".tr),
+                                                content: Scrollbar(
+                                                  thumbVisibility: true,
+                                                  child: SingleChildScrollView(
+                                                      scrollDirection:
+                                                          Axis.vertical,
+                                                      child: Obx(
+                                                        () => Wrap(
+                                                          children: [
+                                                            ...fixedCategories
+                                                                .map<Widget>(
+                                                                    (e) =>
+                                                                        FilterChip(
+                                                                          label: Text(e
+                                                                              .toString()
+                                                                              .tr),
+                                                                          selected: categoriesController
+                                                                              .mainPageTags
+                                                                              .contains(e),
+                                                                          onSelected:
+                                                                              (value) {
+                                                                            categoriesController.toggleMainPageTag(e);
+                                                                          },
+                                                                        )),
+                                                            ...picacg.categories
+                                                                .map<Widget>(
+                                                                    (e) =>
+                                                                        FilterChip(
+                                                                          label:
+                                                                              Text(e),
+                                                                          selected: categoriesController
+                                                                              .mainPageTags
+                                                                              .contains(e),
+                                                                          onSelected:
+                                                                              (value) {
+                                                                            categoriesController.toggleMainPageTag(e);
+                                                                          },
+                                                                        )),
+                                                          ],
+                                                        ),
+                                                      )),
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                      onPressed: () {
+                                                        Get.back();
+                                                      },
+                                                      child: Text("Ok".tr))
+                                                ],
+                                              );
+                                            });
+                                      },
+                                      child: Text("Click to add category".tr)),
+                                  SizedBox(height: 8),
+                                  TextButton(
+                                      onPressed: () {
+                                        showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              return AlertDialog(
+                                                title: Text(
+                                                    "Long Press and Drag to re-order"
+                                                        .tr),
+                                                content: Obx(
+                                                  () => SizedBox(
+                                                    width: Get.width * 0.8,
+                                                    child: ReorderableListView(
+                                                        children: <Widget>[
+                                                          for (int index = 0;
+                                                              index <
+                                                                  categoriesController
+                                                                      .mainPageTags
+                                                                      .length;
+                                                              index += 1)
+                                                            ListTile(
+                                                              key:
+                                                                  Key('$index'),
+                                                              title: fixedCategories.contains(
+                                                                      categoriesController
+                                                                              .mainPageTags[
+                                                                          index])
+                                                                  ? Text(categoriesController
+                                                                      .mainPageTags[
+                                                                          index]
+                                                                      .toString()
+                                                                      .tr)
+                                                                  : Text(categoriesController
+                                                                          .mainPageTags[
+                                                                      index]),
+                                                            ),
+                                                        ],
+                                                        onReorder:
+                                                            (int oldIndex,
+                                                                int newIndex) {
+                                                          if (oldIndex <
+                                                              newIndex) {
+                                                            newIndex -= 1;
+                                                          }
+                                                          List tmp =
+                                                              categoriesController
+                                                                  .mainPageTags
+                                                                  .toList();
+                                                          final String item =
+                                                              tmp.removeAt(
+                                                                  oldIndex);
+                                                          tmp.insert(
+                                                              newIndex, item);
+                                                          for (int i = 0;
+                                                              i < tmp.length;
+                                                              i++) {
+                                                            categoriesController
+                                                                    .mainPageTags[
+                                                                i] = tmp[i];
+                                                          }
+                                                          categoriesController
+                                                              .saveMainPageTags();
+                                                        }),
+                                                  ),
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                      onPressed: () {
+                                                        Get.back();
+                                                      },
+                                                      child: Text("Ok".tr))
+                                                ],
+                                              );
+                                            });
+                                      },
+                                      child: Text("Click to reorder tags".tr)),
+                                  SizedBox(height: 8),
+                                  Text("Add Tag".tr),
+                                  SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: TextField(
+                                          controller: textEditingController,
+                                          onSubmitted: (value) {
+                                            categoriesController
+                                                .addMainPageTag(value);
+                                          },
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      IconButton(
+                                        icon: Icon(
+                                            Icons.add_circle_outline_outlined),
+                                        onPressed: () {
+                                          categoriesController.addMainPageTag(
+                                              textEditingController.text);
+                                          textEditingController.clear();
+                                        },
+                                      )
+                                    ],
+                                  )
+                                ],
+                              )),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              if (textEditingController.text.isNotEmpty) {
+                                categoriesController
+                                    .addMainPageTag(textEditingController.text);
+                              }
+                              Get.back();
+                            },
+                            child: Text("Ok".tr),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -222,9 +533,10 @@ class MangaSettingsController extends GetxController {
   final picaSearchMode = appdata.picaSearchMode.obs;
   final picaPageViewMode = appdata.pica[6].obs;
   final autoCheckIn = (appdata.pica[2] == "1").obs;
-  final preloadNumPages = appdata.pica[7].obs;
+  final preloadNumPages =
+      (int.parse(appdata.pica[7]) > 6 ? '5' : appdata.pica[7]).obs;
   final preloadDetailsPage = (appdata.pica[8] == "1").obs;
-  final blockedCategories = appdata.blockedCategory.obs;
+  final mainTrigger = false.obs;
 
   void setPicaStream(int value) {
     picaStream.value = value;
@@ -268,13 +580,9 @@ class MangaSettingsController extends GetxController {
     appdata.updateSettings("pica");
   }
 
-  void toggleBlockedCategory(String category) {
-    if (blockedCategories.contains(category)) {
-      blockedCategories.remove(category);
-    } else {
-      blockedCategories.add(category);
-    }
-    blockedCategories.refresh();
-    appdata.blockedCategory = blockedCategories.toList();
+  void setMainTrigger() {
+    Future.delayed(const Duration(milliseconds: 500), () {
+      mainTrigger.value = true;
+    });
   }
 }

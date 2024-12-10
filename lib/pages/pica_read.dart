@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:photo_view/photo_view_gallery.dart';
@@ -9,6 +8,7 @@ import 'package:skana_pica/api/managers/image_cache_manager.dart';
 import 'package:skana_pica/controller/comicstore.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
 import 'package:skana_pica/pages/pica_comic.dart';
+import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/log.dart';
 import 'package:skana_pica/util/tool.dart';
 import 'package:skana_pica/widgets/custom_slider.dart';
@@ -47,6 +47,7 @@ class _PicaReadPageState extends State<PicaReadPage> {
     scrollController.dispose();
     pageController.dispose();
     super.dispose();
+    resetOrientation();
   }
 
   @override
@@ -65,7 +66,7 @@ class _PicaReadPageState extends State<PicaReadPage> {
             keepPage: true);
       }
     } catch (e) {
-      BotToast.showText(text: "Internal Error".tr);
+      toast( "Internal Error".tr);
       Get.until((route) => Get.currentRoute == Mains.route);
       pageController = PageController(initialPage: 1);
       return const SizedBox();
@@ -74,6 +75,7 @@ class _PicaReadPageState extends State<PicaReadPage> {
     comicStore.autoPagingPageController = pageController;
     comicStore.autoPagingScrollController = itemScrollController;
     comicStore.autoPageTurning.value = false;
+    comicStore.orientationChanged();
 
     return Scaffold(
       body: Obx(
@@ -166,8 +168,8 @@ class _PicaReadPageState extends State<PicaReadPage> {
                                   comicStore.orientation.value == 0
                                       ? Icons.screen_rotation
                                       : comicStore.orientation.value == 1
-                                          ? Icons.screen_lock_landscape
-                                          : Icons.screen_lock_portrait,
+                                          ? Icons.screen_lock_portrait
+                                          : Icons.screen_lock_landscape,
                                 ),
                                 onPressed: () {
                                   comicStore.setOrientation();
@@ -371,7 +373,7 @@ class _PicaReadPageState extends State<PicaReadPage> {
                       Padding(
                         padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                         child: Tooltip(
-                          message: "Read Setting".tr,
+                          message: "Read Settings".tr,
                           child: IconButton(
                             iconSize: 25,
                             icon: const Icon(Icons.settings),
@@ -423,11 +425,11 @@ class _PicaReadPageState extends State<PicaReadPage> {
                         ),
                         DropdownMenuItem(
                           value: 3,
-                          child: Text("Top to Down".tr),
+                          child: Text("Top to Bottom".tr),
                         ),
                         DropdownMenuItem(
                           value: 4,
-                          child: Text("Top to Down(Scroll view)".tr),
+                          child: Text("Top to Bottom(Scroll view)".tr),
                         ),
                         DropdownMenuItem(
                           value: 5,
@@ -486,8 +488,8 @@ class _PicaReadPageState extends State<PicaReadPage> {
                 ListTile(
                   title: Text("Image Layout".tr),
                   subtitle: Text(comicStore.imageLayout.value == 0
-                      ? "Contained"
-                      : "Covered"),
+                      ? "Contained".tr
+                      : "Covered".tr),
                   trailing: Switch(
                     value: comicStore.imageLayout.value == 1,
                     onChanged: (value) {
@@ -498,8 +500,8 @@ class _PicaReadPageState extends State<PicaReadPage> {
                 ListTile(
                   title: Text("Limit Image Width".tr),
                   subtitle: Text(comicStore.limitImageWidth.value
-                      ? "Enabled"
-                      : "Disabled"),
+                      ? "Enabled".tr
+                      : "Disabled".tr),
                   trailing: Switch(
                     value: comicStore.limitImageWidth.value,
                     onChanged: (value) {

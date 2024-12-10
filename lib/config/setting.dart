@@ -64,6 +64,7 @@ class Appdata {
     "0", //3 hosts
     "0", //4 代理设置, 0代表使用系统代理
     "0", //5 mainscreen default tab
+    "1", //6 default orientation, 0-auto, 1-portrait, 2-landscape
   ];
 
   List<String> pica = [
@@ -76,6 +77,7 @@ class Appdata {
     "0", //6 page view(1) or unlimited scroll(0)
     "3", //7 preload pages
     "1", //8 preload when enter details page
+    "Leaderboard;Latest;test;test2", //9 main screen display cates
   ];
 
   List<String> read = [
@@ -149,6 +151,10 @@ class Appdata {
   Future<void> writeData() async {
     await updateSettings("");
     writeHistory();
+    await setBlockingKeyword();
+  }
+
+  Future<void> setBlockingKeyword() async {
     await s.setStringList("blockingKeyword", blockingKeyword);
   }
 

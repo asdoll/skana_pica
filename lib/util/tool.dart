@@ -1,11 +1,13 @@
 import 'dart:io';
 
-import 'package:bot_toast/bot_toast.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:skana_pica/api/managers/image_cache_manager.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:skana_pica/config/setting.dart';
+import 'package:skana_pica/util/leaders.dart';
 
 extension ListExtension<T> on List<T> {
   /// Remove all blank value and return the list.
@@ -146,7 +148,7 @@ String getExtensionName(String url) {
 void saveImage(String url) async {
   if (Platform.isIOS && (await Permission.photosAddOnly.status.isDenied)) {
     if (await Permission.storage.request().isDenied) {
-      BotToast.showText(text: "Permission denied".tr);
+      toast( "Permission denied".tr);
       return;
     }
   }
@@ -158,7 +160,7 @@ void saveImage(String url) async {
     }
     await ImageGallerySaverPlus.saveImage(await file.readAsBytes(),
         quality: 100, name: fileName);
-    BotToast.showText(text: "$fileName ${"Saved".tr}");
+    toast( "$fileName ${"Saved".tr}");
   }
 }
 
@@ -172,3 +174,18 @@ void shareImage(String url) async {
     Share.shareXFiles([XFile(file.path)]);
   }
 }
+
+  void resetOrientation() {
+
+    if (appdata.general[6] == '0') {
+      SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    } else if (appdata.general[6] == '1') {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+    } else {
+      SystemChrome.setPreferredOrientations(
+          [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
+    }
+  }

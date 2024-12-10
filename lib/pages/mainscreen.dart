@@ -1,9 +1,13 @@
+import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/config/setting.dart';
+import 'package:skana_pica/models/bottom_bar_matu.dart';
 import 'package:skana_pica/pages/home_page.dart';
 import 'package:skana_pica/pages/me_page.dart';
 import 'package:skana_pica/pages/pica_search.dart';
+import 'package:skana_pica/util/leaders.dart';
+import 'package:skana_pica/util/tool.dart';
 
 final ScrollController globalScrollController = ScrollController();
 
@@ -19,61 +23,101 @@ class Mains extends StatefulWidget {
 class _MainsState extends State<Mains> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
-    MainScreenIndex mainScreenIndex = Get.put(MainScreenIndex());
+    resetOrientation();
     return Scaffold(
-        body: Obx(() {
-          switch (mainScreenIndex.index.value) {
-            case 0:
-              return HomePage();
-            case 1:
-              return PicaSearchPage();
-            case 2:
-              return MePage();
-            default:
-              return HomePage();
-          }
-        }),
-        bottomNavigationBar: Obx(
-          () => GestureDetector(
-              child: BottomNavigationBar(
-            currentIndex: mainScreenIndex.index.value,
-            onTap: (index) => mainScreenIndex.changeIndex(index),
-            type: BottomNavigationBarType.fixed,
-            selectedItemColor: Get.theme.primaryColor,
-            items: [
-              BottomNavigationBarItem(
-                icon: Icon(
-                  Icons.motion_photos_on_outlined,
-                  size: 30,
+        body: Obx(() => PageTransitionSwitcher(
+              transitionBuilder: (
+                Widget child,
+                Animation<double> primaryAnimation,
+                Animation<double> secondaryAnimation,
+              ) {
+                return SlideTransition(
+                  position: Tween<Offset>(
+                    begin: Offset.zero,
+                    end: const Offset(1.5, 0.0),
+                  ).animate(secondaryAnimation),
+                  child: FadeTransition(
+                    opacity: Tween<double>(
+                      begin: 0.0,
+                      end: 1.0,
+                    ).animate(primaryAnimation),
+                    child: child,
+                  ),
+                );
+              },
+              duration: Duration(milliseconds: 200),
+              child: mainScreenIndex.index.value == 0
+                  ? HomePage()
+                  : mainScreenIndex.index.value == 1
+                      ? PicaSearchPage()
+                      : MePage(),
+            )),
+        bottomNavigationBar: Obx(() => BottomBarDoubleBullet(
+              selectedIndex: mainScreenIndex.index.value,
+              onSelect: (index) {
+                mainScreenIndex.changeIndex(index, goTop: true);
+              },
+              color: mainScreenIndex.color.value,
+              backgroundColor: mainScreenIndex.backgroundColor.value,
+              height: 65,
+              items: [
+                BottomBarItem(
+                  iconBuilder: (color) => mainScreenIndex.index.value != 0
+                      ? Icon(
+                          Icons.motion_photos_on_outlined,
+                          size: 30,
+                        )
+                      : GestureDetector(
+                          onDoubleTap: () {
+                            Leader.mainScreenEasyRefreshController.callRefresh();
+                          },
+                          child: Icon(
+                            Icons.motion_photos_on,
+                            color: color,
+                            size: 30,
+                          )),
                 ),
-                activeIcon: Icon(Icons.motion_photos_on, size: 35),
-                label: "",
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.auto_awesome_outlined, size: 30),
-                activeIcon: Icon(Icons.auto_awesome, size: 35),
-                label: "",
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.pest_control_rodent_outlined, size: 30),
-                activeIcon: Icon(Icons.pest_control_rodent, size: 35),
-                label: "",
-              ),
-            ],
-          )),
-        ));
+                BottomBarItem(
+                  iconBuilder: (color) => mainScreenIndex.index.value != 1
+                      ? Icon(Icons.auto_awesome_outlined, size: 30)
+                      : Icon(Icons.auto_awesome, color: color, size: 30),
+                ),
+                BottomBarItem(
+                  iconBuilder: (color) => mainScreenIndex.index.value != 2
+                      ? Icon(Icons.pest_control_rodent_outlined, size: 30)
+                      : Icon(Icons.pest_control_rodent, color: color, size: 30),
+                ),
+              ],
+            )));
   }
 }
 
 class MainScreenIndex extends GetxController {
   RxInt index = (int.tryParse(appdata.general[5]) ?? 0).obs;
-  void changeIndex(int i) {
-    if (index.value == i && i == 0) goToTop();
+  Rx<Color> color = Get.theme.primaryColor.obs;
+  Rx<Color> backgroundColor = Get.theme.scaffoldBackgroundColor.obs;
+
+  void changeIndex(int i, {bool goTop = false}) {
+    if (index.value == i && goTop) {
+      goToTop();
+      return;
+    }
     index.value = i;
   }
 
+  void changeColor(ThemeData t) {
+    color.value = t.primaryColor;
+    backgroundColor.value = t.scaffoldBackgroundColor;
+    color.refresh();
+    backgroundColor.refresh();
+  }
+
   void goToTop() {
-    globalScrollController.animateTo(0,
-        duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+    if (globalScrollController.hasClients) {
+      globalScrollController.animateTo(0,
+          duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
+    }
   }
 }
+
+MainScreenIndex mainScreenIndex = Get.put(MainScreenIndex());

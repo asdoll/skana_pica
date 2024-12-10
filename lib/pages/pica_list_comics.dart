@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
 import 'package:skana_pica/widgets/pica_comic_list.dart';
 
@@ -21,7 +22,13 @@ class _PicaCatComicsPageState extends State<PicaCatComicsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.id),
+        title: Text(widget.id == "random"
+            ? "Random".tr
+            : widget.id == "latest"
+                ? "Latest".tr
+                : widget.id == "bookmarks"
+                    ? "Bookmarks".tr
+                    : widget.id),
       ),
       body: PicaComicsPage(
           keyword: widget.id, type: widget.type, isMain: widget.isMain),
