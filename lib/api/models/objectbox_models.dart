@@ -138,3 +138,38 @@ class DownloadItem {
       required this.status,
       required this.timestamp});
 }
+
+@Entity()
+class DownloadTask {
+  @Id()
+  int id;
+  int timestamp;
+
+  final comic = ToOne<PicaHistoryItem>();
+  @Backlink('task')
+  final taskEps = ToMany<DownloadEps>();
+
+  DownloadTask(this.timestamp, {this.id = 0});
+}
+
+@Entity()
+class DownloadEps {
+  @Id()
+  int id;
+  int eps;
+  List<String> url;
+  List<int> progress;
+  final task = ToOne<DownloadTask>();
+  DownloadEps(this.eps,this.url,this.progress,{this.id = 0});
+}
+
+bool isTaskFinished(DownloadTask task) {
+  for (var eps in task.taskEps) {
+    for (var p in eps.progress) {
+      if (p==0) {
+        return false;
+      }
+    }
+  }
+  return true;
+}

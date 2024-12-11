@@ -2,6 +2,7 @@ import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/config/setting.dart';
+import 'package:skana_pica/controller/history.dart';
 import 'package:skana_pica/models/bottom_bar_matu.dart';
 import 'package:skana_pica/pages/home_page.dart';
 import 'package:skana_pica/pages/me_page.dart';
@@ -101,6 +102,9 @@ class MainScreenIndex extends GetxController {
     if (index.value == i && goTop) {
       goToTop();
       return;
+    }
+    if(index.value != i){
+      visitHistoryController.clear();
     }
     index.value = i;
   }

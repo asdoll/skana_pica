@@ -53,17 +53,37 @@ class ImagesCacheManager extends CacheManager with ImageCacheManager {
   ImagesCacheManager()
       : super(Config(
           key,
+          stalePeriod: Duration(days: 30),
           repo: JsonCacheInfoRepository(databaseName: key),
           fileSystem: IOFileSystem(key),
           fileService: DioFileService(),
         ));
 }
 
+class DownloadCacheManage extends CacheManager with ImageCacheManager {
+  static const key = 'PicaDownloadImage';
+  DownloadCacheManage()
+      : super(Config(
+          key,
+          repo: JsonCacheInfoRepository(databaseName: key),
+          fileSystem: IOFileSystem(key),
+          fileService: DioFileService(),
+        ));
+}
+
+DownloadCacheManage downloadCacheManager = DownloadCacheManage();
+
 ImagesCacheManager imagesCacheManager = ImagesCacheManager();
 
 ImageProvider imageProvider(String url) {
   if(url==defaultAvatarUrl) {
     return AssetImage("assets/images/avatar/default.png");
+  }
+  if(url==errorLoadingUrl) {
+    return AssetImage("assets/images/error.png");
+  }
+  if(url.isEmpty) {
+    return AssetImage("assets/images/0.png");
   }
   return CachedNetworkImageProvider(url, cacheManager: imagesCacheManager);
 }

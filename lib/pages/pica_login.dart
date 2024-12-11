@@ -54,6 +54,7 @@ class _PicaLoginPageState extends State<PicaLoginPage> {
                         SizedBox(height: 16),
                         TextField(
                           decoration: InputDecoration(
+                            border: OutlineInputBorder(),
                             labelText: "Account".tr,
                           ),
                           controller: accountController,
@@ -61,6 +62,7 @@ class _PicaLoginPageState extends State<PicaLoginPage> {
                         SizedBox(height: 8),
                         TextField(
                           decoration: InputDecoration(
+                            border: OutlineInputBorder(),
                             labelText: "Password".tr,
                           ),
                           controller: passwordController,
@@ -71,7 +73,7 @@ class _PicaLoginPageState extends State<PicaLoginPage> {
                         ElevatedButton(
                           onPressed: () {
                             loginController.picalogin(accountController.text,
-                                passwordController.text, context);
+                                passwordController.text);
                           },
                           child: Text("Login".tr),
                         ),

@@ -1032,6 +1032,8 @@ Future<Res<PicaComicItemBrief>> getBriefComicInfo(String id) async {
           data: {"new_password": newPassword, "old_password": oldPassword},
           options: options);
       if (res.statusCode == 200) {
+        picacg.data['password'] = newPassword;
+        reLogin();
         return const Res(true);
       } else {
         return const Res(false);

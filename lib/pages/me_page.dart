@@ -6,6 +6,7 @@ import 'package:skana_pica/api/managers/image_cache_manager.dart';
 import 'package:skana_pica/controller/profile.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
 import 'package:skana_pica/pages/pica_favor.dart';
+import 'package:skana_pica/pages/pica_history.dart';
 import 'package:skana_pica/pages/setting/setting_page.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/theme.dart';
@@ -21,20 +22,12 @@ class MePage extends StatefulWidget {
 }
 
 class _MePageState extends State<MePage> {
-  late ProfileController profileController;
   final _cardHeight = 200.0;
 
   @override
   void initState() {
     super.initState();
-    profileController = Get.put(ProfileController());
     profileController.fetch();
-  }
-
-  @override
-  void dispose() {
-    Get.delete<ProfileController>();
-    super.dispose();
   }
 
   @override
@@ -77,6 +70,16 @@ class _MePageState extends State<MePage> {
               child: Card(
                 child: ListTile(
                   title: Text("My Bookmarks".tr).paddingOnly(left: 16),
+                ),
+              ),
+            ),
+            InkWell(
+              onTap: () {
+                Go.to(PicaHistoryPage());
+              },
+              child: Card(
+                child: ListTile(
+                  title: Text("My History".tr).paddingOnly(left: 16),
                 ),
               ),
             ),
@@ -129,11 +132,16 @@ class _MePageState extends State<MePage> {
                 Container(height: 5),
                 Text(
                   profileController.profile.value.name,
+                  style: Get.theme.textTheme.bodyLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 Text(
                   "(Lv. ${profileController.profile.value.level}) (${profileController.profile.value.title})",
+                  style: Get.theme.textTheme.bodyMedium?.copyWith(
+                      color: Get.theme.colorScheme.primary,
+                      fontWeight: FontWeight.w600),
                 ),
-                Container(height: 8),
+                Container(height: 5),
                 GestureDetector(
                   onTap: () async {
                     showDialog(
@@ -142,9 +150,13 @@ class _MePageState extends State<MePage> {
                           TextEditingController controller =
                               TextEditingController();
                           return AlertDialog(
-                            title: Text("Slogan"),
+                            title: Text("Slogan".tr),
                             content: TextField(
                               controller: controller,
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                hintText: "Slogan".tr,
+                              ),
                             ),
                             actions: [
                               TextButton(

@@ -2,10 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:skana_pica/api/managers/image_cache_manager.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:skana_pica/api/models/objectbox_models.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/util/leaders.dart';
 
@@ -148,7 +150,7 @@ String getExtensionName(String url) {
 void saveImage(String url) async {
   if (Platform.isIOS && (await Permission.photosAddOnly.status.isDenied)) {
     if (await Permission.storage.request().isDenied) {
-      toast( "Permission denied".tr);
+      toast("Permission denied".tr);
       return;
     }
   }
@@ -160,7 +162,7 @@ void saveImage(String url) async {
     }
     await ImageGallerySaverPlus.saveImage(await file.readAsBytes(),
         quality: 100, name: fileName);
-    toast( "$fileName ${"Saved".tr}");
+    toast("$fileName ${"Saved".tr}");
   }
 }
 
@@ -175,17 +177,35 @@ void shareImage(String url) async {
   }
 }
 
-  void resetOrientation() {
-
-    if (appdata.general[6] == '0') {
-      SystemChrome.setPreferredOrientations(DeviceOrientation.values);
-    } else if (appdata.general[6] == '1') {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-      ]);
-    } else {
-      SystemChrome.setPreferredOrientations(
-          [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
-    }
+void resetOrientation() {
+  if (appdata.general[6] == '0') {
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+  } else if (appdata.general[6] == '1') {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  } else {
+    SystemChrome.setPreferredOrientations(
+        [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
   }
+}
+
+String getLastRead(VisitHistory? history) {
+  if (history == null) {
+    return "";
+  }
+  return "E${history.lastEps + 1}/P${history.lastIndex + 1}";
+}
+
+String getLastTime(VisitHistory? history) {
+  if (history == null) {
+    return "";
+  }
+  int? time = int.tryParse(history.timestamp);
+  if (time == null) {
+    return "";
+  }
+  DateTime Date = DateTime.fromMillisecondsSinceEpoch(time);
+  return DateFormat.yMMMd(Get.locale.toString()).add_Hm().format(Date);
+}

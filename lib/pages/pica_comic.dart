@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/api/managers/image_cache_manager.dart';
+import 'package:skana_pica/api/models/objectbox_models.dart';
 import 'package:skana_pica/controller/comicstore.dart';
 import 'package:skana_pica/pages/pica_comments.dart';
 import 'package:skana_pica/pages/pica_list_comics.dart';
@@ -24,8 +25,8 @@ import 'package:skana_pica/widgets/tag_finished.dart';
 class PicacgComicPage extends StatefulWidget {
   static const route = "/pica_comic";
   final PicaComicItemBrief comic;
-
-  const PicacgComicPage(this.comic, {super.key});
+  final DownloadTask? task;
+  const PicacgComicPage(this.comic, {this.task, super.key});
 
   @override
   State<StatefulWidget> createState() => _PicacgComicPageState();
@@ -33,20 +34,18 @@ class PicacgComicPage extends StatefulWidget {
 
 class _PicacgComicPageState extends State<PicacgComicPage>
     with TickerProviderStateMixin {
-  PicaComicItemBrief get comic => widget.comic;
-
   late ComicStore comicDetailController;
 
   @override
   void initState() {
     super.initState();
-    comicDetailController = Get.put(ComicStore(), tag: comic.id);
-    comicDetailController.fetch(comic.id);
+    comicDetailController = Get.put(ComicStore(), tag: widget.comic.id);
+    comicDetailController.fetch(widget.comic.id);
   }
 
   @override
   void dispose() {
-    Get.delete<ComicStore>(tag: comic.id);
+    Get.delete<ComicStore>(tag: widget.comic.id);
     super.dispose();
   }
 
@@ -65,7 +64,7 @@ class _PicacgComicPageState extends State<PicacgComicPage>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(comic.title),
+        title: Text(widget.comic.title),
       ),
       body: Obx(() {
         if (comicDetailController.isLoading.value) {
@@ -84,7 +83,7 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                       width: 8,
                     ),
                     PicaImage(
-                      comic.cover,
+                      comicDetailController.comic.value.cover,
                       width: Get.width / 3,
                       height: Get.width / 3 * 1.5,
                       fit: BoxFit.cover,
@@ -108,7 +107,8 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                             height: 4,
                           ),
                           InkWell(
-                            onLongPress: () => blockDialog(context, comicDetailController.comic.value.author),
+                            onLongPress: () => blockDialog(context,
+                                comicDetailController.comic.value.author),
                             onTap: () {
                               Go.to(
                                   PicaCatComicsPage(
@@ -134,7 +134,8 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                             height: 4,
                           ),
                           InkWell(
-                            onLongPress: () => blockDialog(context, comicDetailController.comic.value.chineseTeam),
+                            onLongPress: () => blockDialog(context,
+                                comicDetailController.comic.value.chineseTeam),
                             onTap: () {
                               Go.to(
                                   PicaResultsPage(
@@ -200,8 +201,9 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                           SizedBox(
                             height: 4,
                           ),
-                          Row(children: [
-                            Icon(
+                          Row(
+                            children: [
+                              Icon(
                                 Icons.sticky_note_2_outlined,
                                 size: 12,
                                 color: Theme.of(context)
@@ -224,7 +226,8 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                                 TagFinished()
                               else
                                 Container(),
-                          ],),
+                            ],
+                          ),
                           SizedBox(
                             height: 8,
                           ),
@@ -330,7 +333,7 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           Text(
-                            "${DateFormat.yMd().add_jm().format(DateTime.parse(comicDetailController.comic.value.time))} ${"Updated".tr}",
+                            "${DateFormat.yMd(Get.locale.toString()).add_jm().format(DateTime.parse(comicDetailController.comic.value.time))} ${"Updated".tr}",
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ],
@@ -395,16 +398,22 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  if(comicDetailController.currentEps.value!=0 || comicDetailController.currentIndex.value!=0)
+                  if (comicDetailController.currentEps.value != 0 ||
+                      comicDetailController.currentIndex.value != 0)
                     ChoiceChip(
                       label: Text("continue_page".trParams({
-                        "eps": comicDetailController.comic.value.eps[comicDetailController.currentEps.value],
-                        "page": comicDetailController.currentIndex.value.toString()
+                        "eps": comicDetailController.comic.value
+                            .eps[comicDetailController.currentEps.value],
+                        "page":
+                            comicDetailController.currentIndex.value.toString()
                       })),
                       selected: false,
                       onSelected: (bool value) {
-                        comicDetailController.setPage(comicDetailController.currentEps.value, comicDetailController.currentIndex.value);
-                        Go.to(PicaReadPage(id: comicDetailController.comic.value.id));
+                        comicDetailController.setPage(
+                            comicDetailController.currentEps.value,
+                            comicDetailController.currentIndex.value);
+                        Go.to(PicaReadPage(
+                            id: comicDetailController.comic.value.id));
                       },
                       backgroundColor: bgColor2,
                     ),
@@ -416,7 +425,8 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                       selected: false,
                       onSelected: (bool value) {
                         comicDetailController.setPage(index, 0);
-                        Go.to(PicaReadPage(id: comicDetailController.comic.value.id));
+                        Go.to(PicaReadPage(
+                            id: comicDetailController.comic.value.id));
                       },
                     ),
                 ],
@@ -430,20 +440,22 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                 PicaCommentTile(
                     comment:
                         comicDetailController.comments.value.comments[index],
-                    comicId: comic.id),
+                    comicId: comicDetailController.comic.value.id),
             if (tabNumController.tabNum.value == 1 &&
                 comicDetailController.comments.value.total == 0)
               Center(child: Text("No Comments".tr)).paddingAll(20),
             if (tabNumController.tabNum.value == 1 &&
                 comicDetailController.comments.value.total > 5)
               InkWell(
-                onTap: () => Go.to(PicaCommentsPage(comic.id)),
+                onTap: () => Go.to(
+                    PicaCommentsPage(comicDetailController.comic.value.id)),
                 child: Center(
                   child: Text("Load More".tr),
                 ).paddingAll(20),
               ),
             if (tabNumController.tabNum.value == 1)
-              PicaCommentBar(comic.id, isComic: true),
+              PicaCommentBar(comicDetailController.comic.value.id,
+                  isComic: true),
             if (tabNumController.tabNum.value == 2)
               for (int index = 0;
                   index <

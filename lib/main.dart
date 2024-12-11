@@ -11,7 +11,10 @@ import 'package:skana_pica/config/base.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/blocker.dart';
 import 'package:skana_pica/controller/categories.dart';
+import 'package:skana_pica/controller/downloadstore.dart';
 import 'package:skana_pica/controller/favourite.dart';
+import 'package:skana_pica/controller/history.dart';
+import 'package:skana_pica/controller/profile.dart';
 import 'package:skana_pica/controller/searchhistory.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
 import 'package:skana_pica/pages/me_page.dart';
@@ -37,16 +40,22 @@ Future<void> main() async {
     await Base.init();
     await appdata.init();
     await ComicSource.init();
+    await M.init();
     //init global controllers
     favorController = Get.put(FavorController(), permanent: true);
     await favorController.fetch();
-    searchHistoryController = Get.put(SearchHistoryController(), permanent: true);
+    searchHistoryController =
+        Get.put(SearchHistoryController(), permanent: true);
     searchHistoryController.init();
     blocker = Get.put(Blocker(), permanent: true);
     blocker.init();
     categoriesController = Get.put(CategoriesController(), permanent: true);
     categoriesController.init();
-    await M.init();
+    profileController = Get.put(ProfileController(), permanent: true);
+    profileController.fetch();
+    visitHistoryController = Get.put(VisitHistoryController(), permanent: true);
+    downloadStore = Get.put(DownloadStore(), permanent: true);
+    downloadStore.restore();
     runApp(const MyApp());
   }, (e, s) {
     log.e("Uncaught Error", error: "$e\n$s");
@@ -86,10 +95,10 @@ class _MyAppState extends State<MyApp> {
           builder: BotToastInit(),
           home: AnnotatedRegion<SystemUiOverlayStyle>(
             value: SystemUiOverlayStyle(
-                systemNavigationBarColor: Colors.transparent,
-                systemNavigationBarDividerColor: Colors.transparent,
-                statusBarColor: Colors.transparent,
-                ),
+              systemNavigationBarColor: Colors.transparent,
+              systemNavigationBarDividerColor: Colors.transparent,
+              statusBarColor: Colors.transparent,
+            ),
             child: Mains(),
           ),
           initialRoute: Mains.route,
@@ -99,10 +108,17 @@ class _MyAppState extends State<MyApp> {
             GetPage(name: SettingPage.route, page: () => SettingPage()),
             GetPage(name: MePage.route, page: () => MePage()),
             GetPage(name: PicaSearchPage.route, page: () => PicaSearchPage()),
-            GetPage(name: PicaResultsPage.route, page: () => PicaResultsPage(keyword: Get.parameters['keyword']!)),
-            GetPage(name: PicaCatComicsPage.route, page: () => PicaCatComicsPage(id:Get.parameters['id']!, type:Get.parameters['type']!)),
+            GetPage(
+                name: PicaResultsPage.route,
+                page: () =>
+                    PicaResultsPage(keyword: Get.parameters['keyword']!)),
+            GetPage(
+                name: PicaCatComicsPage.route,
+                page: () => PicaCatComicsPage(
+                    id: Get.parameters['id']!, type: Get.parameters['type']!)),
             GetPage(name: AppearancePage.route, page: () => AppearancePage()),
-            GetPage(name: MangaSettingPage.route, page: () => MangaSettingPage()),
+            GetPage(
+                name: MangaSettingPage.route, page: () => MangaSettingPage()),
           ],
           translationsKeys: Messages().keys,
         );

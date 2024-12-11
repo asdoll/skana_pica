@@ -9,9 +9,9 @@ import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/api/managers/history_manager.dart';
 import 'package:skana_pica/api/managers/image_cache_manager.dart';
-import 'package:skana_pica/api/models/objectbox_models.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/favourite.dart';
+import 'package:skana_pica/controller/history.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/log.dart';
 
@@ -51,8 +51,6 @@ class ComicStore extends GetxController {
 
   ItemScrollController? autoPagingScrollController;
 
-  VisitHistory? history;
-
   void fetch(String id) async {
     if (isLoading.value) {
       return;
@@ -83,31 +81,15 @@ class ComicStore extends GetxController {
         fetchComments();
         fastPreLoad();
         currentEps.listen((value) {
-          history!.lastEps = value;
-          M.o.addVisitHistory(history!);
+          visitHistoryController.updateVisitHistory(
+              comic.value.id, value, currentIndex.value);
         });
         currentIndex.listen((value) {
-          history!.lastIndex = value;
-          M.o.addVisitHistory(history!);
+          visitHistoryController.updateVisitHistory(
+              comic.value.id, currentEps.value, value);
         });
       });
     });
-  }
-
-  Future<void> fetchVisitHistory() async {
-    history = await M.o.getVisitHistoryByComic(comic.value.id);
-    if (history != null) {
-      log.t("Visit history loaded: ${history!.lastEps}/${history!.lastIndex}");
-      currentEps.value = history!.lastEps;
-      currentIndex.value = history!.lastIndex;
-    } else {
-      history = VisitHistory(
-          comicid: comic.value.id,
-          lastEps: currentEps.value,
-          lastIndex: currentIndex.value,
-          timestamp: DateTime.now().millisecondsSinceEpoch.toString());
-      M.o.addVisitHistory(history!);
-    }
   }
 
   void toggleLike() {
@@ -119,6 +101,14 @@ class ComicStore extends GetxController {
       comic.value.isLiked = !comic.value.isLiked;
       comic.refresh();
     });
+  }
+
+  Future<void> fetchVisitHistory() async {
+    var history =
+        await visitHistoryController.fetchVisitHistory(comic.value.id);
+    if (history == null) return;
+    currentEps.value = history.lastEps;
+    currentIndex.value = history.lastIndex;
   }
 
   void toggleFavorite() {

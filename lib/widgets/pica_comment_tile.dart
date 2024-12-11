@@ -53,7 +53,7 @@ class PicaCommentTile extends StatelessWidget {
                         style: Get.theme.textTheme.bodyMedium
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
-                      Text(DateFormat.yMMMd()
+                      Text(DateFormat.yMMMd(Get.locale.toString())
                           .format(DateTime.parse(comment.time))),
                     ],
                   )

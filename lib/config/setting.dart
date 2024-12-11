@@ -101,6 +101,11 @@ class Appdata {
     return false;
   }
 
+  Future<void> logout() async {
+    cookies.clear();
+    await secureStorage.deleteAll();
+  }
+
   Future<void> readSettings() async {
     List<String> g = s.getStringList("general") ?? [];
     log.d("read settings: $g");

@@ -3,7 +3,10 @@ import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/blocker.dart';
+import 'package:skana_pica/controller/history.dart';
 import 'package:skana_pica/util/leaders.dart';
+
+get errorUrl => errorLoadingUrl;
 
 class ComicListController extends GetxController {
   RxList<PicaComicItemBrief> comics = <PicaComicItemBrief>[].obs;
@@ -65,8 +68,15 @@ class ComicListController extends GetxController {
 
   void addWithFilter(List<PicaComicItemBrief> list) {
     list.removeWhere((element) => blocked(element));
+    addHistory(list);
     comics.addAll(list);
     comics.refresh();
+  }
+
+  void addHistory(List<PicaComicItemBrief> list) {
+    for (var item in list) {
+      visitHistoryController.fetchVisitHistory(item.id);
+    }
   }
 
   bool blocked(PicaComicItemBrief comic) {

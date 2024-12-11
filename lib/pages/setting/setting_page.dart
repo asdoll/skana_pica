@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
+import 'package:skana_pica/pages/setting/account.dart';
 import 'package:skana_pica/pages/setting/manga.dart';
 import 'package:skana_pica/pages/setting/theme.dart';
 import 'package:skana_pica/util/leaders.dart';
@@ -38,7 +39,9 @@ class _SettingPageState extends State<SettingPage> {
         ListTile(
           leading: Icon(Icons.person),
           title: Text('Account'.tr),
-          onTap: () {},
+          onTap: () {
+            Go.to(AccountPage());
+          },
         ),
         ListTile(
           leading: Icon(Icons.palette),

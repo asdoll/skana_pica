@@ -59,13 +59,6 @@ class PicaCategoryItem {
   PicaCategoryItem(this.title, this.path);
 }
 
-class InitData {
-  String imageServer;
-  String fileServer;
-  var categories = <PicaCategoryItem>[];
-  InitData(this.imageServer, this.fileServer);
-}
-
 class PicaEpsImages {
   String eps;
   List<String> imageUrl;
@@ -87,6 +80,10 @@ class PicaComicItemBrief extends BaseComic {
   int? pages;
   int? epsCount;
   bool? finished;
+  @override
+  String description = "";
+  @override
+  String subTitle = "";
 
   PicaComicItemBrief(
       this.title, this.author, this.likes, this.path, this.id, this.tags,
@@ -96,7 +93,7 @@ class PicaComicItemBrief extends BaseComic {
 
   factory PicaComicItemBrief.fromJson(Map<String, dynamic> json) =>
       _$PicaComicItemBriefFromJson(json);
-  
+
   PicaComicItemBrief.error()
       : title = "",
         author = "",
@@ -107,12 +104,6 @@ class PicaComicItemBrief extends BaseComic {
 
   @override
   String get cover => path;
-
-  @override
-  String get description => "$likes pages";
-
-  @override
-  String get subTitle => author;
 }
 
 const errorId = "ERROR";

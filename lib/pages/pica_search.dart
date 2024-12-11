@@ -159,7 +159,7 @@ class _PicaSearchPageState extends State<PicaSearchPage> {
                 child: Text(
                   "Categories".tr,
                   style: TextStyle(fontSize: 16),
-                ).paddingAll(12.0),
+                ).paddingSymmetric(horizontal: 12.0, vertical: 8.0),
               ),
               SliverPadding(
                 padding: const EdgeInsets.all(8.0),

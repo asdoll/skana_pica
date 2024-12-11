@@ -11,9 +11,13 @@ class ObjectBox {
   late final Box<PicaHistoryItem> _historyBox;
   late final Box<VisitHistory> _visitHistoryBox;
 
+  late final Box<DownloadTask> _downloadTaskBox;
+
+
   ObjectBox._create(this._store) {
     _historyBox = Box<PicaHistoryItem>(_store);
     _visitHistoryBox = Box<VisitHistory>(_store);
+    _downloadTaskBox = Box<DownloadTask>(_store);
   }
 
   static Future<ObjectBox> create() async {
@@ -125,6 +129,9 @@ class ObjectBox {
     return Future.value();
   }
 
+  int removeAllHistory() => _visitHistoryBox.removeAll();
+  int removeAllHistoryItem() => _historyBox.removeAll();
+
   Future<void> removeVisitHistory(String comicId) {
     final history = _visitHistoryBox
         .query(VisitHistory_.comicid.equals(comicId))
@@ -135,5 +142,46 @@ class ObjectBox {
           .removeManyAsync(history.map((e) => e.id).toList());
     }
     return Future.value();
+  }
+
+  Future<DownloadTask?> getDownloadTask(int id) async {
+    return _downloadTaskBox.get(id);
+  }
+
+  Future<void> addDownloadTask(DownloadTask task) async {
+    _downloadTaskBox.put(task);
+  }
+
+  Future<void> removeDownloadTask(int id) async {
+    _downloadTaskBox.remove(id);
+  }
+
+  Future<void> clearDownloadTask() async {
+    _downloadTaskBox.removeAll();
+  }
+
+  Future<int> getDownloadTaskCount() async {
+    return _downloadTaskBox.count();
+  }
+
+  Future<List<DownloadTask>> getDownloadTaskListWithOffset(
+      int offset, int limit) async {
+    return (_downloadTaskBox
+            .query()
+            .order(DownloadTask_.id, flags: Order.descending)
+            .build()
+          ..offset = offset
+          ..limit = limit)
+        .find();
+  }
+
+  Future<List<DownloadTask>> restoreDownload() async {
+    var list = _downloadTaskBox
+        .query()
+        .order(DownloadTask_.id, flags: Order.descending)
+        .build()
+        .find();
+    list.removeWhere((element) => isTaskFinished(element));
+    return list;
   }
 }

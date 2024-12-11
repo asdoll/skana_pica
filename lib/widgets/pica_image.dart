@@ -89,6 +89,9 @@ class _PicaImageState extends State<PicaImage> {
         ],
       );
     }
+    if(url.isEmpty) {
+      return placeWidget ?? Container(height: height);
+    }
     return CachedNetworkImage(
         placeholder: widget.useProgressIndicator
             ? null
