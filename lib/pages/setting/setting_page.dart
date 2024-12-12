@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
 import 'package:skana_pica/pages/setting/account.dart';
+import 'package:skana_pica/pages/setting/cache.dart';
 import 'package:skana_pica/pages/setting/manga.dart';
 import 'package:skana_pica/pages/setting/theme.dart';
 import 'package:skana_pica/util/leaders.dart';
@@ -58,6 +59,13 @@ class _SettingPageState extends State<SettingPage> {
           },
         ),
         ListTile(
+          leading: Icon(Icons.cached),
+          title: Text('Cache & Restore'.tr),
+          onTap: () {
+            Go.to(CacheSetting());
+          },
+        ),
+        ListTile(
             leading: Icon(Icons.switch_access_shortcut_rounded),
             title: Text('Home Page'.tr),
             trailing: Obx(
@@ -87,7 +95,7 @@ class _SettingPageState extends State<SettingPage> {
             title: Text('Main orientation'.tr),
             trailing: Obx(
               () => DropdownButton(
-                value: settingController.defaultPage.value,
+                value: settingController.mainOrientation.value,
                 items: [
                   DropdownMenuItem(
                     value: "0",

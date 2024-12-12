@@ -3,7 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/managers/image_cache_manager.dart'
-    show imagesCacheManager;
+    show downloadCacheManager, imagesCacheManager;
 
 class PicaImage extends StatefulWidget {
   final String url;
@@ -15,6 +15,7 @@ class PicaImage extends StatefulWidget {
   final double? width;
   final String? host;
   final bool useProgressIndicator;
+  final bool downloaded;
 
   PicaImage(this.url,
       {this.placeWidget,
@@ -24,7 +25,8 @@ class PicaImage extends StatefulWidget {
       this.height,
       this.host,
       this.width,
-      this.useProgressIndicator = false});
+      this.useProgressIndicator = false,
+      this.downloaded = false});
 
   @override
   State<PicaImage> createState() => _PicaImageState();
@@ -123,7 +125,7 @@ class _PicaImageState extends State<PicaImage> {
         // memCacheWidth: width?.toInt(),
         // memCacheHeight: height?.toInt(),
         imageUrl: url,
-        cacheManager: imagesCacheManager,
+        cacheManager: widget.downloaded? downloadCacheManager : imagesCacheManager,
         height: height,
         width: width,
         fit: fit ?? BoxFit.fitWidth);

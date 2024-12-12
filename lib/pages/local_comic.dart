@@ -1,49 +1,44 @@
-import 'dart:math';
-
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/api/managers/image_cache_manager.dart';
+import 'package:skana_pica/api/models/objectbox_models.dart';
 import 'package:skana_pica/controller/comicstore.dart';
-import 'package:skana_pica/pages/pica_comments.dart';
+import 'package:skana_pica/controller/local_comicstore.dart';
+import 'package:skana_pica/pages/local_read.dart';
 import 'package:skana_pica/pages/pica_list_comics.dart';
-import 'package:skana_pica/pages/pica_read.dart';
 import 'package:skana_pica/pages/pica_results.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/widget_utils.dart';
-import 'package:skana_pica/widgets/pica_comic_card.dart';
-import 'package:skana_pica/widgets/pica_comment_bar.dart';
-import 'package:skana_pica/widgets/pica_comment_tile.dart';
 import 'package:skana_pica/widgets/pica_image.dart';
-import 'package:skana_pica/widgets/pica_like.dart';
 import 'package:skana_pica/widgets/pica_tagchip.dart';
 import 'package:skana_pica/widgets/tag_finished.dart';
 
-class PicacgComicPage extends StatefulWidget {
+class LocalComicPage extends StatefulWidget {
   static const route = "/pica_comic";
-  final PicaComicItemBrief comic;
-  const PicacgComicPage(this.comic, {super.key});
+  final DownloadTask task;
+  const LocalComicPage(this.task, {super.key});
 
   @override
-  State<StatefulWidget> createState() => _PicacgComicPageState();
+  State<StatefulWidget> createState() => _LocalComicPageState();
 }
 
-class _PicacgComicPageState extends State<PicacgComicPage>
+class _LocalComicPageState extends State<LocalComicPage>
     with TickerProviderStateMixin {
-  late ComicStore comicDetailController;
+  late LocalComicStore locaComicController;
 
   @override
   void initState() {
     super.initState();
-    comicDetailController = Get.put(ComicStore(), tag: widget.comic.id);
-    comicDetailController.fetch(widget.comic.id);
+    locaComicController =
+        Get.put(LocalComicStore(), tag: widget.task.id.toString());
+    locaComicController.fetch(widget.task);
   }
 
   @override
   void dispose() {
-    Get.delete<ComicStore>(tag: widget.comic.id);
+    Get.delete<ComicStore>(tag: widget.task.id.toString());
     super.dispose();
   }
 
@@ -62,12 +57,9 @@ class _PicacgComicPageState extends State<PicacgComicPage>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.comic.title),
+        title: Obx(() => Text(locaComicController.comic.value.title)),
       ),
       body: Obx(() {
-        if (comicDetailController.isLoading.value) {
-          return Center(child: CircularProgressIndicator());
-        }
         return ListView(
           children: [
             Column(
@@ -81,10 +73,11 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                       width: 8,
                     ),
                     PicaImage(
-                      comicDetailController.comic.value.cover,
+                      locaComicController.comic.value.thumbUrl,
                       width: Get.width / 3,
                       height: Get.width / 3 * 1.5,
                       fit: BoxFit.cover,
+                      downloaded: true,
                     ).rounded(8.0),
                     SizedBox(
                       width: 16,
@@ -98,7 +91,7 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                             height: 4,
                           ),
                           Text(
-                            comicDetailController.comic.value.title,
+                            locaComicController.comic.value.title,
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           SizedBox(
@@ -106,17 +99,17 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                           ),
                           InkWell(
                             onLongPress: () => blockDialog(context,
-                                comicDetailController.comic.value.author),
+                                locaComicController.comic.value.author),
                             onTap: () {
                               Go.to(
                                   PicaCatComicsPage(
-                                      id: comicDetailController
+                                      id: locaComicController
                                           .comic.value.author,
                                       type: "author"),
                                   preventDuplicates: false);
                             },
                             child: Text(
-                              comicDetailController.comic.value.author,
+                              locaComicController.comic.value.author,
                               maxLines: 1,
                               style: Theme.of(context)
                                   .textTheme
@@ -133,18 +126,18 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                           ),
                           InkWell(
                             onLongPress: () => blockDialog(context,
-                                comicDetailController.comic.value.chineseTeam),
+                                locaComicController.comic.value.chineseTeam),
                             onTap: () {
                               Go.to(
                                   PicaResultsPage(
-                                    keyword: comicDetailController
+                                    keyword: locaComicController
                                         .comic.value.chineseTeam,
                                     addToHistory: false,
                                   ),
                                   preventDuplicates: false);
                             },
                             child: Text(
-                              comicDetailController.comic.value.chineseTeam,
+                              locaComicController.comic.value.chineseTeam,
                               maxLines: 1,
                               style: Theme.of(context)
                                   .textTheme
@@ -170,7 +163,7 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                                 width: 2,
                               ),
                               Text(
-                                comicDetailController.comic.value.likes
+                                locaComicController.comic.value.likes
                                     .toString(),
                                 style: Theme.of(context).textTheme.labelLarge,
                               ),
@@ -187,7 +180,7 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                                 width: 2,
                               ),
                               Text(
-                                comicDetailController.comic.value.totalViews
+                                locaComicController.comic.value.totalViews
                                     .toString(),
                                 style: Theme.of(context).textTheme.labelLarge,
                               ),
@@ -213,55 +206,19 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                                 width: 2,
                               ),
                               Text(
-                                '${comicDetailController.comic.value.epsCount}E/${comicDetailController.comic.value.pagesCount}P',
+                                '${locaComicController.comic.value.epsCount}E/${locaComicController.comic.value.pagesCount}P',
                                 style: Theme.of(context).textTheme.labelLarge,
                               ),
                               const SizedBox(
                                 width: 8,
                               ),
-                              if (comicDetailController.comic.value.finished ==
+                              if (locaComicController.comic.value.finished ==
                                   true)
                                 TagFinished()
                               else
                                 Container(),
                             ],
                           ),
-                          SizedBox(
-                            height: 8,
-                          ),
-                          Row(
-                            children: [
-                              PicaLikeButton(
-                                  comicDetailController.comic.value.id,
-                                  isLike: comicDetailController
-                                      .comic.value.isLiked),
-                              SizedBox(
-                                width: 8,
-                              ),
-                              PicaFavorButton(
-                                  comicDetailController.comic.value.id),
-                              SizedBox(
-                                width: 8,
-                              ),
-                              IconButton(
-                                  icon: Icon(Icons.download_rounded,
-                                      size: iconSize),
-                                  onPressed: () {
-                                    showModalBottomSheet(
-                                        context: context,
-                                        builder: (context) {
-                                          return SizedBox(
-                                            height: 300,
-                                            child: CustomScrollView(
-                                              slivers: [
-                                                
-                                              ],
-                                            )
-                                          );
-                                        });
-                                  }),
-                            ],
-                          )
                         ],
                       ),
                     ),
@@ -287,7 +244,7 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                       style: tagStyle,
                       backgroundColor: bgColor.lighten(10),
                     ),
-                    ...comicDetailController.comic.value.categories
+                    ...locaComicController.comic.value.categories
                         .map((e) => PicaTag(
                               text: e,
                               type: 'category',
@@ -309,13 +266,12 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                       style: tagStyle,
                       backgroundColor: bgColor2.lighten(10),
                     ),
-                    ...comicDetailController.comic.value.tags
-                        .map((e) => PicaTag(
-                              text: e,
-                              type: 'tag',
-                              style: tagStyle,
-                              backgroundColor: bgColor2,
-                            ))
+                    ...locaComicController.comic.value.tags.map((e) => PicaTag(
+                          text: e,
+                          type: 'tag',
+                          style: tagStyle,
+                          backgroundColor: bgColor2,
+                        ))
                   ],
                 ).paddingHorizontal(16),
                 SizedBox(
@@ -331,8 +287,8 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                       ),
                       CircleAvatar(
                         radius: 30,
-                        backgroundImage: imageProvider(comicDetailController
-                            .comic.value.creator.avatarUrl),
+                        backgroundImage: localProvider(
+                            locaComicController.comic.value.creatorAvatarUrl),
                       ),
                       SizedBox(
                         width: 8,
@@ -341,12 +297,12 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            comicDetailController.comic.value.creator.name,
+                            locaComicController.comic.value.creatorName,
                             style: Get.theme.textTheme.bodyLarge
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           Text(
-                            "${DateFormat.yMd(Get.locale.toString()).add_jm().format(DateTime.parse(comicDetailController.comic.value.time))} ${"Updated".tr}",
+                            "${DateFormat.yMd(Get.locale.toString()).add_jm().format(DateTime.parse(locaComicController.comic.value.time))} ${"Updated".tr}",
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ],
@@ -366,7 +322,7 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                 ),
                 Text(
                   "Description: ".tr +
-                      comicDetailController.comic.value.description,
+                      locaComicController.comic.value.description,
                   style: Theme.of(context).textTheme.titleMedium,
                 ).paddingHorizontal(16),
                 SizedBox(
@@ -375,110 +331,44 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                 Divider(),
               ],
             ),
-            TabBar(
-              labelStyle: Get.theme.textTheme.bodyLarge,
-              controller: tabController,
-              tabs: [
-                Tab(
-                  height: kToolbarHeight / 1.5,
-                  text:
-                      "${"Episodes".tr}(${comicDetailController.comic.value.epsCount})",
-                ),
-                Tab(
-                  height: kToolbarHeight / 1.5,
-                  text: "Comments".tr +
-                      (comicDetailController.comments.value.total > 0
-                          ? "(${comicDetailController.comments.value.total})"
-                          : ""),
-                ),
-                Tab(
-                  height: kToolbarHeight / 1.5,
-                  text: "Related".tr,
-                ),
+            Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                if (locaComicController.dldEps.value != 0 ||
+                    locaComicController.currentIndex.value != 0)
+                  ChoiceChip(
+                    label: Text("continue_page".trParams({
+                      "eps": locaComicController.comic.value
+                          .eps[locaComicController.dldEps.value],
+                      "page": locaComicController.currentIndex.value.toString()
+                    })),
+                    selected: false,
+                    onSelected: (bool value) {
+                      locaComicController.setPage(
+                          locaComicController.dldEps.value,
+                          locaComicController.currentIndex.value);
+                      Go.to(
+                          LocalReadPage(id: locaComicController.task.value.id));
+                    },
+                    backgroundColor: bgColor2,
+                  ),
+                for (int index = 0;
+                    index < locaComicController.eps.length;
+                    index++)
+                  ChoiceChip(
+                    label: Text(locaComicController.comic.value.eps[locaComicController.eps[index].eps]),
+                    selected: false,
+                    onSelected: (bool value) {
+                      locaComicController.setPage(index, 0);
+                      Go.to(
+                          LocalReadPage(id: locaComicController.task.value.id));
+                    },
+                  ),
               ],
-            ),
-            SizedBox(
-              height: 8,
-              child: TabBarView(
-                controller: tabController,
-                children: [Container(), Container(), Container()],
-              ),
-            ),
-            if (tabNumController.tabNum.value == 0)
-              Wrap(
-                alignment: WrapAlignment.center,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  if (comicDetailController.currentEps.value != 0 ||
-                      comicDetailController.currentIndex.value != 0)
-                    ChoiceChip(
-                      label: Text("continue_page".trParams({
-                        "eps": comicDetailController.comic.value
-                            .eps[comicDetailController.currentEps.value],
-                        "page":
-                            comicDetailController.currentIndex.value.toString()
-                      })),
-                      selected: false,
-                      onSelected: (bool value) {
-                        comicDetailController.setPage(
-                            comicDetailController.currentEps.value,
-                            comicDetailController.currentIndex.value);
-                        Go.to(PicaReadPage(
-                            id: comicDetailController.comic.value.id));
-                      },
-                      backgroundColor: bgColor2,
-                    ),
-                  for (int index = 0;
-                      index < comicDetailController.comic.value.eps.length;
-                      index++)
-                    ChoiceChip(
-                      label: Text(comicDetailController.comic.value.eps[index]),
-                      selected: false,
-                      onSelected: (bool value) {
-                        comicDetailController.setPage(index, 0);
-                        Go.to(PicaReadPage(
-                            id: comicDetailController.comic.value.id));
-                      },
-                    ),
-                ],
-              ).paddingAll(16),
-            if (tabNumController.tabNum.value == 1)
-              for (int index = 0;
-                  index <
-                      min(comicDetailController.comments.value.comments.length,
-                          5);
-                  index++)
-                PicaCommentTile(
-                    comment:
-                        comicDetailController.comments.value.comments[index],
-                    comicId: comicDetailController.comic.value.id),
-            if (tabNumController.tabNum.value == 1 &&
-                comicDetailController.comments.value.total == 0)
-              Center(child: Text("No Comments".tr)).paddingAll(20),
-            if (tabNumController.tabNum.value == 1 &&
-                comicDetailController.comments.value.total > 5)
-              InkWell(
-                onTap: () => Go.to(
-                    PicaCommentsPage(comicDetailController.comic.value.id)),
-                child: Center(
-                  child: Text("Load More".tr),
-                ).paddingAll(20),
-              ),
-            if (tabNumController.tabNum.value == 1)
-              PicaCommentBar(comicDetailController.comic.value.id,
-                  isComic: true),
-            if (tabNumController.tabNum.value == 2)
-              for (int index = 0;
-                  index <
-                      comicDetailController.comic.value.recommendation.length;
-                  index++)
-                PicaComicCard(
-                    comicDetailController.comic.value.recommendation[index]),
-            if (tabNumController.tabNum.value == 2 &&
-                comicDetailController.comic.value.recommendation.isEmpty)
-              Center(child: Text("No Related".tr)).paddingAll(20),
+            ).paddingAll(16),
           ],
         );
       }),

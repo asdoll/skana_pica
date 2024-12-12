@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/history.dart';
+import 'package:skana_pica/controller/profile.dart';
 import 'package:skana_pica/models/bottom_bar_matu.dart';
 import 'package:skana_pica/pages/home_page.dart';
 import 'package:skana_pica/pages/me_page.dart';
 import 'package:skana_pica/pages/pica_search.dart';
+import 'package:skana_pica/pages/start_page.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/tool.dart';
 
@@ -25,6 +27,14 @@ class _MainsState extends State<Mains> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     resetOrientation();
+    return Obx(() => profileController.isFirstLaunch.value
+        ? Scaffold(
+            body: StartPage()
+          )
+        : buildNormal(context));
+  }
+
+  Widget buildNormal(BuildContext context) {
     return Scaffold(
         body: Obx(() => PageTransitionSwitcher(
               transitionBuilder: (
@@ -70,7 +80,8 @@ class _MainsState extends State<Mains> with TickerProviderStateMixin {
                         )
                       : GestureDetector(
                           onDoubleTap: () {
-                            Leader.mainScreenEasyRefreshController.callRefresh();
+                            Leader.mainScreenEasyRefreshController
+                                .callRefresh();
                           },
                           child: Icon(
                             Icons.motion_photos_on,
@@ -103,7 +114,7 @@ class MainScreenIndex extends GetxController {
       goToTop();
       return;
     }
-    if(index.value != i){
+    if (index.value != i) {
       visitHistoryController.clear();
     }
     index.value = i;

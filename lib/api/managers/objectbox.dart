@@ -184,4 +184,10 @@ class ObjectBox {
     list.removeWhere((element) => isTaskFinished(element));
     return list;
   }
+
+  void clearDB(){
+    _historyBox.removeAll();
+    _visitHistoryBox.removeAll();
+    _downloadTaskBox.removeAll();
+  }
 }

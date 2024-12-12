@@ -1,22 +1,20 @@
-
-import 'dart:io';
-
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
-import 'package:skana_pica/config/base.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:skana_pica/api/managers/history_manager.dart';
+import 'package:skana_pica/controller/blocker.dart';
+import 'package:skana_pica/controller/categories.dart';
+import 'package:skana_pica/controller/favourite.dart';
+import 'package:skana_pica/controller/profile.dart';
+import 'package:skana_pica/controller/searchhistory.dart';
 import 'package:skana_pica/util/log.dart';
 
 class Appdata {
   ///搜索历史
   List<String> searchHistory = [];
-  Set<String> favoriteTags = {};
 
   ///屏蔽的关键词
   List<String> blockingKeyword = [];
-
-  ///历史记录管理器, 可以通过factory构造函数访问, 也可以通过这里访问
-  //var history = HistoryManager();
 
   late SharedPreferences s;
 
@@ -59,12 +57,13 @@ class Appdata {
 
   List<String> general = [
     "0", //0 dark mode 0/1/2 (system/disabled/enable)
-    "0", //1 theme color
+    "8", //1 theme color
     "", //2 language empty=system
     "0", //3 hosts
     "0", //4 代理设置, 0代表使用系统代理
     "0", //5 mainscreen default tab
     "1", //6 default orientation, 0-auto, 1-portrait, 2-landscape
+    "30", //7 cache period
   ];
 
   List<String> pica = [
@@ -77,19 +76,23 @@ class Appdata {
     "0", //6 page view(1) or unlimited scroll(0)
     "3", //7 preload pages
     "1", //8 preload when enter details page
-    "Leaderboard;Latest;test;test2", //9 main screen display cates
+    "Leaderboard;Latest;Random;Bookmarks;", //9 main screen display cates
   ];
 
   List<String> read = [
     "0", //0 限制图片宽度
     "0", //1 阅读器图片布局方式, 0-contain, 1-cover
-    "5", //2 翻页方式: 1从左向右,2从右向左,3从上至下,4从上至下(连续),5 duo,6 duo reversed
+    "2", //2 翻页方式: 1从左向右,2从右向左,3从上至下,4从上至下(连续),5 duo,6 duo reversed
     "1", //3 阅读器背景色 1-dark, 0-light
     "25", //4 tap to next page threshold
     "0", //5 orientation, 0-auto, 1-portrait, 2-landscape
     "5", //6 autoPageTurningInterval
     "200", //7 animation duration
   ];
+
+  bool isFirstLaunch() {
+    return s.getBool("_is_first_launch") ?? true;
+  }
 
   Future<bool> firstLaunch() async {
     bool f = s.getBool("_is_first_launch") ?? true;
@@ -150,7 +153,6 @@ class Appdata {
 
   void writeHistory() async {
     await s.setStringList("search", searchHistory);
-    await s.setStringList("favoriteTags", favoriteTags.toList());
   }
 
   Future<void> writeData() async {
@@ -167,7 +169,6 @@ class Appdata {
     try {
       await readSettings();
       searchHistory = s.getStringList("search") ?? [];
-      favoriteTags = (s.getStringList("favoriteTags") ?? []).toSet();
       blockingKeyword = s.getStringList("blockingKeyword") ?? [];
       return true;
     } catch (e) {
@@ -192,8 +193,6 @@ class Appdata {
       blockingKeyword = Set<String>.from(
               ((json["blockingKeywords"] ?? []) + blockingKeyword) as List)
           .toList();
-      favoriteTags =
-          Set.from((json["favoriteTags"] ?? []) + List.from(favoriteTags));
       writeData();
       return true;
     } catch (e, s) {
@@ -201,6 +200,51 @@ class Appdata {
       readData();
       return false;
     }
+  }
+
+  void restore(String type) {
+    switch (type) {
+      case "general":
+        general = [
+          "0", //0 dark mode 0/1/2 (system/disabled/enable)
+          "8", //1 theme color
+          "", //2 language empty=system
+          "0", //3 hosts
+          "0", //4 代理设置, 0代表使用系统代理
+          "0", //5 mainscreen default tab
+          "1", //6 default orientation, 0-auto, 1-portrait, 2-landscape
+          "30", //7 cache period
+        ];
+        break;
+      case "pica":
+        pica = [
+          "0", //0 Api请求地址, 为0时表示使用哔咔官方Api, 为1表示使用转发服务器
+          "original", //1 pica图片质量
+          "1", //2 启动时签到
+          "", //3 last punched time
+          "dd", //4 搜索模式
+          "", //5 blocked category
+          "0", //6 page view(1) or unlimited scroll(0)
+          "3", //7 preload pages
+          "1", //8 preload when enter details page
+          "Leaderboard;Latest;Random;Bookmarks;", //9 main screen display cates
+        ];
+        categoriesController.init();
+        break;
+      case "read":
+        read = [
+          "0", //0 限制图片宽度
+          "0", //1 阅读器图片布局方式, 0-contain, 1-cover
+          "2", //2 翻页方式: 1从左向右,2从右向左,3从上至下,4从上至下(连续),5 duo,6 duo reversed
+          "1", //3 阅读器背景色 1-dark, 0-light
+          "25", //4 tap to next page threshold
+          "0", //5 orientation, 0-auto, 1-portrait, 2-landscape
+          "5", //6 autoPageTurningInterval
+          "200", //7 animation duration
+        ];
+        break;
+    }
+    updateSettings(type);
   }
 
   /***
@@ -262,6 +306,8 @@ class Appdata {
     appdata.read[3] = value ? "1" : "0";
     appdata.updateSettings("read");
   }
+
+  int get cachePeriod => int.tryParse(appdata.general[7])??30;
 }
 
 var appdata = Appdata();
@@ -270,12 +316,18 @@ var appdata = Appdata();
 Future<void> clearAppdata() async {
   var s = await SharedPreferences.getInstance();
   await s.clear();
-  var settingsFile = File("${Base.dataPath}/settings");
-  if (await settingsFile.exists()) {
-    await settingsFile.delete();
-  }
   //appdata.history.clearHistory();
   appdata = Appdata();
   await appdata.init();
   await appdata.readData();
+  clearGlobalControllers();
+  M.o.clearDB();
+}
+
+void clearGlobalControllers() {
+  profileController.logout();
+  favorController.clear();
+  searchHistoryController.init();
+  blocker.init();
+  categoriesController.init();
 }

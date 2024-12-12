@@ -5,7 +5,8 @@ import 'package:skana_pica/pages/mainscreen.dart';
 
 class PicaLoginPage extends StatefulWidget {
   static const route = "${Mains.route}picalogin";
-  const PicaLoginPage({super.key});
+  final bool start;
+  const PicaLoginPage({super.key, this.start = false});
 
   @override
   State<StatefulWidget> createState() => _PicaLoginPageState();
@@ -20,7 +21,7 @@ class _PicaLoginPageState extends State<PicaLoginPage> {
     LoginController loginController = Get.put(LoginController());
     return Scaffold(
       appBar: AppBar(
-        title: Text("Pica Login".tr),
+        title: Text("Login".tr),
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
@@ -73,7 +74,7 @@ class _PicaLoginPageState extends State<PicaLoginPage> {
                         ElevatedButton(
                           onPressed: () {
                             loginController.picalogin(accountController.text,
-                                passwordController.text);
+                                passwordController.text, start: widget.start);
                           },
                           child: Text("Login".tr),
                         ),

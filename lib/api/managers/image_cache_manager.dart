@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:flutter_cache_manager/src/web/mime_converter.dart';
+import 'package:skana_pica/config/setting.dart';
 
 class DioFileService extends FileService {
   @override
@@ -53,7 +54,7 @@ class ImagesCacheManager extends CacheManager with ImageCacheManager {
   ImagesCacheManager()
       : super(Config(
           key,
-          stalePeriod: Duration(days: 30),
+          stalePeriod: Duration(days: appdata.cachePeriod),
           repo: JsonCacheInfoRepository(databaseName: key),
           fileSystem: IOFileSystem(key),
           fileService: DioFileService(),
@@ -86,4 +87,17 @@ ImageProvider imageProvider(String url) {
     return AssetImage("assets/images/0.png");
   }
   return CachedNetworkImageProvider(url, cacheManager: imagesCacheManager);
+}
+
+ImageProvider localProvider(String url) {
+    if(url==defaultAvatarUrl) {
+    return AssetImage("assets/images/avatar/default.png");
+  }
+  if(url==errorLoadingUrl) {
+    return AssetImage("assets/images/error.png");
+  }
+  if(url.isEmpty) {
+    return AssetImage("assets/images/0.png");
+  }
+  return CachedNetworkImageProvider(url, cacheManager: downloadCacheManager);
 }

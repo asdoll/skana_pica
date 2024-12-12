@@ -147,14 +147,16 @@ String getExtensionName(String url) {
   return '.jpg';
 }
 
-void saveImage(String url) async {
+void saveImage(String url, {bool fromDld = false}) async {
   if (Platform.isIOS && (await Permission.photosAddOnly.status.isDenied)) {
     if (await Permission.storage.request().isDenied) {
       toast("Permission denied".tr);
       return;
     }
   }
-  var file = await imagesCacheManager.getSingleFile(url);
+  var file = fromDld
+      ? await downloadCacheManager.getSingleFile(url)
+      : await imagesCacheManager.getSingleFile(url);
   if (file.existsSync()) {
     var fileName = url.split('/').last;
     if (!fileName.contains('.')) {
@@ -166,8 +168,10 @@ void saveImage(String url) async {
   }
 }
 
-void shareImage(String url) async {
-  var file = await imagesCacheManager.getSingleFile(url);
+void shareImage(String url, {bool fromDld = false}) async {
+  var file = fromDld
+      ? await downloadCacheManager.getSingleFile(url)
+      : await imagesCacheManager.getSingleFile(url);
   if (file.existsSync()) {
     var fileName = url.split('/').last;
     if (!fileName.contains('.')) {

@@ -1063,7 +1063,7 @@ Future<Res<PicaComicItemBrief>> getBriefComicInfo(String id) async {
     }
 
     if (keyWord == "bookmarks") {
-      return getFavorites(page, sort == "da");
+      return getFavorites(page, sort != "da");
     }
 
     var response = await get(

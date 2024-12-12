@@ -3,6 +3,7 @@ import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/api/managers/history_manager.dart';
 import 'package:skana_pica/api/managers/image_cache_manager.dart';
 import 'package:skana_pica/api/models/objectbox_models.dart';
+import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/util/leaders.dart';
 
 late DownloadStore downloadStore;
@@ -16,7 +17,7 @@ class DownloadStore extends GetxController {
 
   Future<void> restore() async {
     tasks.clear();
-    var list = await M.o.restoreDownload();
+    var list = await M.o.getDownloadTaskListWithOffset(0, 0);
     for (var task in list) {
       tasks.add(task);
       restoreProgress(task);
@@ -39,6 +40,12 @@ class DownloadStore extends GetxController {
   }
 
   Future<void> removeTask(int id) async {
+    DownloadTask task = tasks.firstWhere((element) => element.id == id);
+    for (int i = 0; i < task.taskEps.length; i++) {
+      for (int j = 0; j < task.taskEps[i].url.length; j++) {
+        await downloadCacheManager.removeFile(task.taskEps[i].url[j]);
+      }
+    }
     tasks.removeWhere((element) => element.id == id);
     progress.remove(id);
     total.remove(id);
@@ -47,13 +54,13 @@ class DownloadStore extends GetxController {
   }
 
   void stopTask(int id) {
+    stop[id] = true;
+    stop.refresh();
     for (var task in tasks) {
       if (task.id == id) {
         removeTask(id);
       }
     }
-    stop[id] = true;
-    stop.refresh();
   }
 
   void mergeTask(int index, DownloadTask task) {
@@ -98,6 +105,10 @@ class DownloadStore extends GetxController {
     return task;
   }
 
+  void continueTask(int id){
+    download(tasks.firstWhere((element) => element.id == id));
+  }
+
   void restoreProgress(DownloadTask task) {
     int restoredProgress = 0;
     int total = 0;
@@ -106,8 +117,8 @@ class DownloadStore extends GetxController {
         if (task.taskEps[i].progress[j] == 1) {
           restoredProgress++;
         }
-        total++;
       }
+      total += task.taskEps[i].url.length;
     }
     progress[task.id] = restoredProgress;
     progress.refresh();
@@ -118,10 +129,14 @@ class DownloadStore extends GetxController {
   void download(DownloadTask task) {
     bool isError = false;
     toast('${"Download".tr} "${task.comic.target!.title}"');
+    {
+      downloadCacheManager.getSingleFile(task.comic.target!.thumbUrl);
+      downloadCacheManager.getSingleFile(task.comic.target!.creatorAvatarUrl);
+    }
     for (int i = 0; i < task.taskEps.length; i++) {
       for (int j = 0; j < task.taskEps[i].url.length; j++) {
         if (stop[task.id] == true) {
-          stop[task.id] = false;
+          stop.remove(task.id);
           return;
         }
         if (task.taskEps[i].progress[j] == 1) {
@@ -142,69 +157,26 @@ class DownloadStore extends GetxController {
       toast("Download Error".tr);
     }
   }
+
+  void clear() {
+    for (var task in tasks) {
+      stopTask(task.id);
+    }
+    Duration(milliseconds: 20).delay(() {
+      tasks.clear();
+      progress.clear();
+      total.clear();
+      stop.clear();
+      tasks.refresh();
+      progress.refresh();
+      total.refresh();
+      stop.refresh();
+    });
+  }
 }
 
-class DownloadController extends GetxController {
-  RxList<DownloadTask> tasks = <DownloadTask>[].obs;
-  RxBool isLoading = false.obs;
-  RxInt total = 0.obs;
-
+class DownloadPageController extends GetxController {
   int perPage = 20;
   RxInt page = 0.obs;
-  RxInt totalPage = 0.obs;
-  RxBool isList = false.obs;
-
-  void fetch() {
-    if (isLoading.value) {
-      return;
-    }
-    isLoading.value = true;
-    M.o.getDownloadTaskCount().then((value) async {
-      total.value = value;
-      totalPage.value = (total.value / perPage).ceil();
-      page.value = 0;
-      tasks.clear();
-      var val = await M.o
-          .getDownloadTaskListWithOffset(page.value * perPage, perPage);
-      tasks.addAll(val);
-      tasks.refresh();
-    });
-    isLoading.value = false;
-  }
-
-  void toPage({int index = -1}) {
-    if (isLoading.value) {
-      return;
-    }
-    if (index >= totalPage.value) {
-      return;
-    }
-    if (index != -1) {
-      page.value = index;
-    } else {
-      if (page.value + 1 >= totalPage.value) {
-        return;
-      }
-      page++;
-    }
-    isLoading.value = true;
-    tasks.clear();
-    M.o
-        .getDownloadTaskListWithOffset(page.value * perPage, perPage)
-        .then((value) {
-      tasks.addAll(value);
-      tasks.refresh();
-    });
-    isLoading.value = false;
-  }
-
-  void removeTask(int id) {
-    if (downloadStore.progress[id] != null) {
-      downloadStore.removeTask(id);
-    } else {
-      M.o.removeDownloadTask(id);
-      tasks.removeWhere((element) => element.id == id);
-      tasks.refresh();
-    }
-  }
+  RxBool isList = (appdata.pica[6] == "1").obs;
 }

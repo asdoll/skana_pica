@@ -9,6 +9,7 @@ class PicaSource extends Source {
   Map<String, dynamic> data = {};
 
   void init() {
+    data.clear();
     if (appdata.cookies["picacg_account"] != null) {
       data['account'] = appdata.cookies["picacg_account"];
       data['password'] = appdata.cookies["picacg_password"];

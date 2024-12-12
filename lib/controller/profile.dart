@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
+import 'package:skana_pica/config/setting.dart';
+import 'package:skana_pica/controller/favourite.dart';
 import 'package:skana_pica/util/leaders.dart';
 
 late ProfileController profileController;
@@ -11,6 +13,7 @@ class ProfileController extends GetxController {
   Rx<PicaProfile> profile = PicaProfile.error().obs;
   RxBool loading = false.obs;
   RxBool isLogin = false.obs;
+  RxBool isFirstLaunch = appdata.isFirstLaunch().obs;
 
   void fetch() {
     isLogin.value = picacg.data['token'] != null && picacg.data['token'].isNotEmpty;
@@ -67,7 +70,14 @@ class ProfileController extends GetxController {
     picacg.data['password'] = null;
     isLogin.value = false;
     loading.value = false;
+    appdata.logout();
     profile.value = PicaProfile.error();
     profile.refresh();
+    favorController.clear();
+  }
+
+  void firstLaunchFinished() {
+    isFirstLaunch.value = false;
+    appdata.firstLaunch();
   }
 }

@@ -176,7 +176,10 @@ class _PicaComicCardState extends State<PicaComicCard> {
                                           Get.theme.colorScheme.secondary,
                                     ),
                                   ],
-                                )
+                                ),
+                                const SizedBox(
+                                  height: 4,
+                                ),
                             ],
                           ),
                         ),
@@ -186,7 +189,7 @@ class _PicaComicCardState extends State<PicaComicCard> {
                       ],
                     ),
                   ),
-                  if (widget.type != "comic" &&
+                  if (widget.type == "comic" &&
                       favorController.favorComics.contains(widget.comic.id))
                     Positioned(
                         bottom: 8,

@@ -47,7 +47,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       items: leaderboardController.items.map((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
-                          child: Text(value),
+                          child: Text(value.tr),
                         );
                       }).toList(),
                       onChanged: (String? value) {

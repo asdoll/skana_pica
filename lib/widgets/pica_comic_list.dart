@@ -58,7 +58,7 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
           ? ErrorLoading(text: "Not Logged In".tr)
           : Column(
               children: [
-                if (appdata.pica[6] == "0")
+                if (appdata.pica[6] == "0"&&widget.keyword != "leaderboard")
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -138,7 +138,7 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                         ),
                     ],
                   ),
-                if (appdata.pica[6] == "1")
+                if (appdata.pica[6] == "1"&&widget.keyword != "leaderboard")
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -392,6 +392,7 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                                     backgroundColor: Colors.red,
                                     icon: Icons.delete,
                                     borderRadius: BorderRadius.circular(8),
+                                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
                                     onPressed: (context) {
                                       favorController.favorCall(
                                           controller.comics[index].id);
@@ -409,7 +410,7 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
 
                         return PicaComicCard(
                           controller.comics[index],
-                          type: "bookmarks",
+                          type: widget.keyword == "bookmarks"? "bookmarks" : "comic",
                         );
                       },
                     ),

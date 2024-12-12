@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/controller/favourite.dart';
 
-double _iconSize = 30;
+double iconSize = 30;
 
 class PicaFavorButton extends StatefulWidget {
   final String id;
@@ -22,18 +22,18 @@ class _PicaFavorButtonState extends State<PicaFavorButton> {
           icon: favorController.isLoading.value &&
                   favorController.lastId.value == widget.id
               ? SizedBox(
-                  width: _iconSize,
-                  height: _iconSize,
+                  width: iconSize,
+                  height: iconSize,
                   child: CircularProgressIndicator())
               : favorController.favorComics.contains(widget.id)
                   ? Icon(
                       Icons.bookmark,
                       color: Colors.red,
-                      size: _iconSize,
+                      size: iconSize,
                     )
                   : Icon(
                       Icons.bookmark_border,
-                      size: _iconSize,
+                      size: iconSize,
                     ),
           onPressed: () {
             favorController.favorCall(widget.id);
@@ -68,7 +68,7 @@ class _PicaLikeButtonState extends State<PicaLikeButton> {
     LikeController likeController = Get.put(LikeController(),
         tag: widget.isComment ? "c${widget.id}" : widget.id);
     likeController.isLike.value = widget.isLike;
-    double size = widget.size ?? _iconSize;
+    double size = widget.size ?? iconSize;
     return Obx(() => IconButton(
           icon: likeController.isLoading.value
               ? SizedBox(
@@ -93,22 +93,5 @@ class _PicaLikeButtonState extends State<PicaLikeButton> {
             }
           },
         ));
-  }
-}
-
-class PicaDownloadButton extends StatefulWidget {
-  final String id;
-
-  const PicaDownloadButton(this.id, {super.key});
-
-  @override
-  State<PicaDownloadButton> createState() => _PicaDownloadButtonState();
-}
-
-class _PicaDownloadButtonState extends State<PicaDownloadButton> {
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-        icon: Icon(Icons.download_rounded, size: _iconSize), onPressed: () {});
   }
 }

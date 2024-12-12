@@ -53,7 +53,7 @@ class FavorController extends GetxController {
   Future<void> fetch() async {
     favorComics.clear();
     int pages = 1;
-    picaClient.getFavorites(1, appdata.pica[4] == "da").then((value) {
+    picaClient.getFavorites(1, appdata.pica[4] != "da").then((value) {
       if (value.error) {
         return;
       }
@@ -62,7 +62,7 @@ class FavorController extends GetxController {
         favorComics.add(e.id);
       }
       for (int i = 2; i <= pages; i++) {
-        picaClient.getFavorites(i, appdata.pica[4] == "da").then((value) {
+        picaClient.getFavorites(i, appdata.pica[4] != "da").then((value) {
           if (value.error) {
             return;
           }
@@ -80,6 +80,14 @@ class FavorController extends GetxController {
       favorComics.add(e.id);
     }
     favorComics.refresh();
+  }
+
+  void clear() {
+    favorComics.clear();
+    favorComics.refresh();
+    isLoading.value = false;
+    lastId.value = "";
+    sort = appdata.pica[4] == "da" ? "da" : "dd";
   }
 }
 
@@ -134,7 +142,7 @@ class BookmarksController extends GetxController {
     lastId.value = "bookmarks";
     bookmarks.clear();
     int pages = 1;
-    picaClient.getFavorites(1, appdata.pica[4] == "da").then((value) {
+    picaClient.getFavorites(1, appdata.pica[4] != "da").then((value) {
       if (value.error) {
         isLoading.value = false;
         return;
@@ -142,7 +150,7 @@ class BookmarksController extends GetxController {
       pages = value.subData ?? 1;
       bookmarks.addAll(value.data);
       for (int i = 2; i <= pages; i++) {
-        picaClient.getFavorites(i, appdata.pica[4] == "da").then((value) {
+        picaClient.getFavorites(i, appdata.pica[4] != "da").then((value) {
           if (value.error) {
             isLoading.value = false;
             return;
