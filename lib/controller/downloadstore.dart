@@ -5,6 +5,7 @@ import 'package:skana_pica/api/managers/image_cache_manager.dart';
 import 'package:skana_pica/api/models/objectbox_models.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/util/leaders.dart';
+import 'package:skana_pica/util/log.dart';
 
 late DownloadStore downloadStore;
 
@@ -17,26 +18,40 @@ class DownloadStore extends GetxController {
 
   Future<void> restore() async {
     tasks.clear();
-    var list = await M.o.getDownloadTaskListWithOffset(0, 0);
+    //log.i(await M.o.getDownloadTaskCount());
+    var list = await M.o.getDownloadTaskList();
     for (var task in list) {
       tasks.add(task);
+      //log.i(task.taskEps.map((e) => e.progress).toList());
       restoreProgress(task);
     }
     tasks.refresh();
+    //logAll();
+  }
+
+  void logAll() {
+    log.t("DownloadStore");
+    for (var task in tasks) {
+      log.t(task.id);
+    }
+    for (var p in progress.entries) {
+      log.t("progress ${p.key} ${p.value}");
+    }
   }
 
   Future<void> addTask(DownloadTask task) async {
     for (int i = 0; i < tasks.length; i++) {
       if (tasks[i].comic.target!.comicid == task.comic.target!.comicid) {
         mergeTask(i, task);
-        await M.o.addDownloadTask(task);
+        await M.o.addDownloadTask(tasks[i]);
         return;
       }
     }
+
+    await M.o.addDownloadTask(task);
     tasks.add(task);
     restoreProgress(task);
     tasks.refresh();
-    await M.o.addDownloadTask(task);
   }
 
   Future<void> removeTask(int id) async {
@@ -72,6 +87,7 @@ class DownloadStore extends GetxController {
         tasks[index].taskEps.add(task.taskEps[i]);
       }
     }
+    log.t("mergeTask ${task.id}");
     tasks[index].comic.target = task.comic.target;
     task = tasks[index];
     restoreProgress(task);
@@ -82,12 +98,12 @@ class DownloadStore extends GetxController {
     int index = tasks.indexWhere((element) => element.id == task.id);
     if (index != -1) {
       tasks[index] = task;
+      log.i("updateTask ${tasks[index].taskEps.map((e) => e.progress).toList()}");
       tasks.refresh();
-      await M.o.addDownloadTask(task);
+      M.o.updateTaskEps(task);
     }
     if (progress[task.id] == total[task.id]) {
-      removeTask(task.id);
-      toast('${"Download".tr} "${task.comic.target!.title}" ${"Finished".tr}');
+      toast('${"Download".tr} "${task.comic.target!.title}" ${"Done".tr}');
     }
   }
 
@@ -105,7 +121,7 @@ class DownloadStore extends GetxController {
     return task;
   }
 
-  void continueTask(int id){
+  void continueTask(int id) {
     download(tasks.firstWhere((element) => element.id == id));
   }
 
@@ -133,6 +149,7 @@ class DownloadStore extends GetxController {
       downloadCacheManager.getSingleFile(task.comic.target!.thumbUrl);
       downloadCacheManager.getSingleFile(task.comic.target!.creatorAvatarUrl);
     }
+    log.t(task.id);
     for (int i = 0; i < task.taskEps.length; i++) {
       for (int j = 0; j < task.taskEps[i].url.length; j++) {
         if (stop[task.id] == true) {
@@ -145,7 +162,11 @@ class DownloadStore extends GetxController {
         downloadCacheManager.getSingleFile(task.taskEps[i].url[j]).then(
             (value) {
           task.taskEps[i].progress[j] = 1;
-          progress[task.id] = progress[task.id]! + 1;
+          if(progress[task.id] == null){
+            progress[task.id] = 1;
+          } else {
+            progress[task.id] = progress[task.id]! + 1;
+          }
           progress.refresh();
           updateTask(task);
         }, onError: (e) {

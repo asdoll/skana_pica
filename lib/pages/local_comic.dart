@@ -7,6 +7,7 @@ import 'package:skana_pica/api/models/objectbox_models.dart';
 import 'package:skana_pica/controller/comicstore.dart';
 import 'package:skana_pica/controller/local_comicstore.dart';
 import 'package:skana_pica/pages/local_read.dart';
+import 'package:skana_pica/pages/pica_comic.dart';
 import 'package:skana_pica/pages/pica_list_comics.dart';
 import 'package:skana_pica/pages/pica_results.dart';
 import 'package:skana_pica/util/leaders.dart';
@@ -47,13 +48,6 @@ class _LocalComicPageState extends State<LocalComicPage>
     TextStyle? tagStyle = Theme.of(context).textTheme.bodyLarge;
     Color bgColor = Theme.of(context).colorScheme.primaryContainer;
     Color bgColor2 = Theme.of(context).colorScheme.primaryContainer;
-    TabController tabController = TabController(length: 3, vsync: this);
-    TabNumController tabNumController = Get.put(TabNumController());
-    tabController.addListener(() {
-      if (tabController.indexIsChanging) {
-        tabNumController.tabNum.value = tabController.index;
-      }
-    });
 
     return Scaffold(
       appBar: AppBar(
@@ -219,6 +213,14 @@ class _LocalComicPageState extends State<LocalComicPage>
                                 Container(),
                             ],
                           ),
+                          SizedBox(
+                            height: 4,
+                          ),
+                          Row(
+                            children: [
+                              ElevatedButton(onPressed: () => Go.to(PicacgComicPage(locaComicController.comic.value.toComicItem().toBrief())), child: Text("Comic Page".tr)),
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -374,8 +376,4 @@ class _LocalComicPageState extends State<LocalComicPage>
       }),
     );
   }
-}
-
-class TabNumController extends GetxController {
-  var tabNum = 0.obs;
 }

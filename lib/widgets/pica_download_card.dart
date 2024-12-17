@@ -117,7 +117,7 @@ class _DownloadComicCardState extends State<DownloadComicCard> {
                                         width: 2,
                                       ),
                                       Text(
-                                        '"${widget.task.comic.target!.epsCount}E/" ${widget.task.comic.target!.pagesCount}P',
+                                        '${widget.task.comic.target!.epsCount}E/ ${widget.task.comic.target!.pagesCount}P',
                                         style: Theme.of(context)
                                             .textTheme
                                             .labelLarge,

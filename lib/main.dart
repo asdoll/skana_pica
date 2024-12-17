@@ -16,6 +16,7 @@ import 'package:skana_pica/controller/favourite.dart';
 import 'package:skana_pica/controller/history.dart';
 import 'package:skana_pica/controller/profile.dart';
 import 'package:skana_pica/controller/searchhistory.dart';
+import 'package:skana_pica/controller/updater.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
 import 'package:skana_pica/pages/me_page.dart';
 import 'package:skana_pica/pages/pica_list_comics.dart';
@@ -56,6 +57,10 @@ Future<void> main() async {
     visitHistoryController = Get.put(VisitHistoryController(), permanent: true);
     downloadStore = Get.put(DownloadStore(), permanent: true);
     downloadStore.restore();
+    updater = Get.put(Updater(), permanent: true);
+    updater.init();
+    boardController = Get.put(BoardController(), permanent: true);
+    boardController.init();
     runApp(const MyApp());
   }, (e, s) {
     log.e("Uncaught Error", error: "$e\n$s");

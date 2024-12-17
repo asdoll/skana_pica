@@ -213,3 +213,14 @@ String getLastTime(VisitHistory? history) {
   DateTime Date = DateTime.fromMillisecondsSinceEpoch(time);
   return DateFormat.yMMMd(Get.locale.toString()).add_Hm().format(Date);
 }
+
+extension TimeExts on DateTime {
+  String toShortTime() {
+    try {
+      var formatter = DateFormat('yyyy-MM-dd HH:mm');
+      return formatter.format(toLocal());
+    } catch (e) {
+      return toString();
+    }
+  }
+}

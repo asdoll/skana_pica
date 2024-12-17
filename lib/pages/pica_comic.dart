@@ -250,13 +250,84 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                                     showModalBottomSheet(
                                         context: context,
                                         builder: (context) {
-                                          return SizedBox(
-                                            height: 300,
-                                            child: CustomScrollView(
-                                              slivers: [
-                                                
-                                              ],
-                                            )
+                                          return Obx(
+                                            () => SizedBox(
+                                              height: Get.height / 3,
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text("Download".tr,
+                                                          style: Get
+                                                              .theme
+                                                              .textTheme
+                                                              .titleLarge)
+                                                      .paddingAll(16),
+                                                  Expanded(child: Wrap(
+                                                    spacing: 8,
+                                                    runSpacing: 8,
+                                                    children: [
+                                                      for (int index = 0;
+                                                          index <
+                                                              comicDetailController
+                                                                  .epsList
+                                                                  .length;
+                                                          index++)
+                                                        ChoiceChip(
+                                                          label: Text(
+                                                              comicDetailController
+                                                                  .epsList[
+                                                                      index]
+                                                                  .eps),
+                                                          selected:
+                                                              comicDetailController
+                                                                          .selectDownload[
+                                                                      index] ==
+                                                                  true,
+                                                          onSelected:
+                                                              (bool value) {
+                                                            comicDetailController
+                                                                .selectDownloads(
+                                                                    index);
+                                                          },
+                                                        )
+                                                    ],
+                                                  ),
+                                                  ),
+                                                  Row(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      ElevatedButton(
+                                                          onPressed: () {
+                                                            comicDetailController
+                                                                .download();
+                                                            Get.back();
+                                                          },
+                                                          child: Text(
+                                                              "Download Selected"
+                                                                  .tr)),
+                                                      SizedBox( width: 16,),
+                                                      ElevatedButton(
+                                                          onPressed: () {
+                                                            comicDetailController
+                                                                .selectDownloadsAll();
+                                                            comicDetailController
+                                                                .download();
+                                                            Get.back();
+                                                          },
+                                                          child: Text(
+                                                              "Download All"
+                                                                  .tr)),
+                                                    ],
+                                                  ),
+                                                  SizedBox(
+                                                    height: 30,
+                                                  )
+                                                ],
+                                              ).paddingHorizontal(16),
+                                            ),
                                           );
                                         });
                                   }),

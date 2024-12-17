@@ -6,6 +6,7 @@ import 'package:skana_pica/pages/setting/account.dart';
 import 'package:skana_pica/pages/setting/cache.dart';
 import 'package:skana_pica/pages/setting/manga.dart';
 import 'package:skana_pica/pages/setting/theme.dart';
+import 'package:skana_pica/pages/setting/update.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/tool.dart';
 import 'package:skana_pica/util/widget_utils.dart';
@@ -115,6 +116,30 @@ class _SettingPageState extends State<SettingPage> {
                 },
               ),
             )),
+          ListTile(
+            leading: Icon(Icons.info),
+            title: Text('About'.tr),
+            onTap: () {
+              showAboutDialog(
+                context: context,
+                applicationIcon: Image.asset(
+                  "assets/images/0.png",
+                  width: 50,
+                  height: 50,
+                ),
+                applicationName: "Skana Pica",
+                applicationVersion: settingController.getVersion(),
+                applicationLegalese: "© 2024 Skana - Asdoll",
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.update),
+            title: Text('Update'.tr),
+            onTap: () {
+              Go.to(UpdatePage());
+            },
+          ),
       ],
     );
   }
@@ -135,5 +160,9 @@ class SettingController extends GetxController {
     appdata.general[6] = index;
     appdata.updateSettings("general");
     resetOrientation();
+  }
+
+  String getVersion() {
+    return appdata.getVersion();
   }
 }

@@ -129,50 +129,54 @@ class _PicaDownloadPageState extends State<PicaDownloadPage> {
                 ],
               ),
               SizedBox(height: 8),
-              ListView.builder(
-                  itemBuilder: (context, index) {
-                    return Slidable(
-                      startActionPane: ActionPane(
-                          motion: const ScrollMotion(),
-                          extentRatio: 0.2,
-                          children: [
-                            SlidableAction(
-                              backgroundColor: Colors.blue,
-                              icon: Icons.download,
-                              borderRadius: BorderRadius.circular(8),
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 4.0),
-                              onPressed: (context) {
-                                downloadStore.continueTask(downloadStore
-                                    .tasks[index + dc.page.value * dc.perPage]
-                                    .id);
-                              },
-                            ),
-                          ]),
-                      endActionPane: ActionPane(
-                          motion: const ScrollMotion(),
-                          extentRatio: 0.2,
-                          children: [
-                            SlidableAction(
-                              backgroundColor: Colors.red,
-                              icon: Icons.delete,
-                              borderRadius: BorderRadius.circular(8),
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 4.0),
-                              onPressed: (context) {
-                                downloadStore.stopTask(downloadStore
-                                    .tasks[index + dc.page.value * dc.perPage]
-                                    .id);
-                              },
-                            ),
-                          ]),
-                      child: DownloadComicCard(downloadStore
-                          .tasks[index + dc.page.value * dc.perPage]),
-                    );
-                  },
-                  itemCount: min(dc.perPage,
-                      downloadStore.tasks.length - dc.page.value * dc.perPage),
-                  controller: scrollController),
+              Expanded(
+                child: ListView.builder(
+                    itemBuilder: (context, index) {
+                      return Slidable(
+                        startActionPane: ActionPane(
+                            motion: const ScrollMotion(),
+                            extentRatio: 0.2,
+                            children: [
+                              SlidableAction(
+                                backgroundColor: Colors.blue,
+                                icon: Icons.download,
+                                borderRadius: BorderRadius.circular(8),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 4.0),
+                                onPressed: (context) {
+                                  downloadStore.continueTask(downloadStore
+                                      .tasks[index + dc.page.value * dc.perPage]
+                                      .id);
+                                },
+                              ),
+                            ]),
+                        endActionPane: ActionPane(
+                            motion: const ScrollMotion(),
+                            extentRatio: 0.2,
+                            children: [
+                              SlidableAction(
+                                backgroundColor: Colors.red,
+                                icon: Icons.delete,
+                                borderRadius: BorderRadius.circular(8),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 4.0),
+                                onPressed: (context) {
+                                  downloadStore.stopTask(downloadStore
+                                      .tasks[index + dc.page.value * dc.perPage]
+                                      .id);
+                                },
+                              ),
+                            ]),
+                        child: DownloadComicCard(downloadStore
+                            .tasks[index + dc.page.value * dc.perPage]),
+                      );
+                    },
+                    itemCount: min(
+                        dc.perPage,
+                        downloadStore.tasks.length -
+                            dc.page.value * dc.perPage),
+                    controller: scrollController),
+              ),
             ],
           )),
     );

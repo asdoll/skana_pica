@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:skana_pica/api/managers/image_cache_manager.dart';
 import 'package:skana_pica/controller/profile.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
+import 'package:skana_pica/pages/pica_download.dart';
 import 'package:skana_pica/pages/pica_favor.dart';
 import 'package:skana_pica/pages/pica_history.dart';
 import 'package:skana_pica/pages/setting/setting_page.dart';
@@ -83,6 +84,16 @@ class _MePageState extends State<MePage> {
                 ),
               ),
             ),
+            InkWell(
+              onTap: (){
+                Go.to(PicaDownloadPage());
+              },
+              child: Card(
+                child: ListTile(
+                  title: Text("My Downloads".tr).paddingOnly(left: 16),
+                ),
+              ),
+            )
           ],
         ));
   }

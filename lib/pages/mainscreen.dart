@@ -1,9 +1,12 @@
 import 'package:animations/animations.dart';
+import 'package:bot_toast/bot_toast.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/history.dart';
 import 'package:skana_pica/controller/profile.dart';
+import 'package:skana_pica/controller/updater.dart';
 import 'package:skana_pica/models/bottom_bar_matu.dart';
 import 'package:skana_pica/pages/home_page.dart';
 import 'package:skana_pica/pages/me_page.dart';
@@ -11,6 +14,7 @@ import 'package:skana_pica/pages/pica_search.dart';
 import 'package:skana_pica/pages/start_page.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/tool.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 final ScrollController globalScrollController = ScrollController();
 
@@ -28,13 +32,13 @@ class _MainsState extends State<Mains> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     resetOrientation();
     return Obx(() => profileController.isFirstLaunch.value
-        ? Scaffold(
-            body: StartPage()
-          )
+        ? Scaffold(body: StartPage())
         : buildNormal(context));
   }
 
   Widget buildNormal(BuildContext context) {
+    mainScreenIndex.notify();
+
     return Scaffold(
         body: Obx(() => PageTransitionSwitcher(
               transitionBuilder: (
@@ -109,6 +113,8 @@ class MainScreenIndex extends GetxController {
   Rx<Color> color = Get.theme.primaryColor.obs;
   Rx<Color> backgroundColor = Get.theme.scaffoldBackgroundColor.obs;
 
+  bool notified = false;
+
   void changeIndex(int i, {bool goTop = false}) {
     if (index.value == i && goTop) {
       goToTop();
@@ -131,6 +137,68 @@ class MainScreenIndex extends GetxController {
     if (globalScrollController.hasClients) {
       globalScrollController.animateTo(0,
           duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
+    }
+  }
+
+  void notify() {
+    if (!notified) {
+      notified = true;
+      if (updater.result.value == Result.yes) {
+        BotToast.showWidget(toastBuilder: (_) {
+          return AlertDialog(
+            title: Text("New version available".tr),
+            content: Text(updater.updateDescription.value),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  BotToast.cleanAll();
+                },
+                child: Text("Cancel".tr),
+              ),
+              TextButton(
+                onPressed: () {
+                  BotToast.cleanAll();
+                  launchUrlString(updater.updateUrl.value);
+                },
+                child: Text("Update".tr),
+              ),
+            ],
+          );
+        });
+      }
+      BoardInfo? info;
+      if (kDebugMode) {
+        info = boardController.boardList.firstOrNull;
+      } else {
+        info = boardController.boardList.firstWhere(
+            (element) => element.debug == true,
+            orElse: () => BoardInfo(
+                title: "PLACEHOLDER",
+                content: "",
+                startDate: "",
+                endDate: "",
+                debug: true));
+        if (info.debug ?? true) {
+          info = null;
+        }
+      }
+      boardController.boardList.clear();
+      if (info != null) {
+        BotToast.showWidget(toastBuilder: (_) {
+          return AlertDialog(
+            title: Text(info!.title),
+            content: Text(info.content),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  BotToast.cleanAll();
+                },
+                child: Text("Ok".tr),
+              ),
+            ],
+          );
+        });
+      }
     }
   }
 }

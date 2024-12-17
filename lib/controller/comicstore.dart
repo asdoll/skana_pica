@@ -10,6 +10,7 @@ import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/api/managers/history_manager.dart';
 import 'package:skana_pica/api/managers/image_cache_manager.dart';
 import 'package:skana_pica/config/setting.dart';
+import 'package:skana_pica/controller/downloadstore.dart';
 import 'package:skana_pica/controller/favourite.dart';
 import 'package:skana_pica/controller/history.dart';
 import 'package:skana_pica/util/leaders.dart';
@@ -50,6 +51,8 @@ class ComicStore extends GetxController {
   PageController? autoPagingPageController;
 
   ItemScrollController? autoPagingScrollController;
+
+  RxMap<int,bool> selectDownload = <int,bool>{}.obs;
 
   void fetch(String id) async {
     if (isLoading.value) {
@@ -433,5 +436,30 @@ class ComicStore extends GetxController {
 
   void autoPageTurningStop() {
     autoPageTurning.value = false;
+  }
+
+  void selectDownloads(int index) {
+    if(selectDownload.containsKey(index)){
+      selectDownload.remove(index);
+    }else{
+      selectDownload[index] = true;
+    }
+    selectDownload.refresh();
+  }
+
+  void selectDownloadsAll() {
+    if(selectDownload.length == epsList.length){
+      selectDownload.clear();
+    }else{
+      for(int i = 0; i < epsList.length; i++){
+        selectDownload[i] = true;
+      }
+    }
+    selectDownload.refresh();
+  }
+
+  void download() {
+    List<int> selected = selectDownload.keys.toList();
+    downloadStore.download(downloadStore.createTask(comic.value, selected, epsList));
   }
 }

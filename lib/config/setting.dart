@@ -2,6 +2,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skana_pica/api/managers/history_manager.dart';
+import 'package:skana_pica/config/base.dart';
 import 'package:skana_pica/controller/blocker.dart';
 import 'package:skana_pica/controller/categories.dart';
 import 'package:skana_pica/controller/favourite.dart';
@@ -64,6 +65,7 @@ class Appdata {
     "0", //5 mainscreen default tab
     "1", //6 default orientation, 0-auto, 1-portrait, 2-landscape
     "30", //7 cache period
+    "1", //8 auto check update
   ];
 
   List<String> pica = [
@@ -111,21 +113,21 @@ class Appdata {
 
   Future<void> readSettings() async {
     List<String> g = s.getStringList("general") ?? [];
-    log.d("read settings: $g");
+    log.t("read settings: $g");
     if (g.isNotEmpty) {
       for (int i = 0; i < g.length && i < general.length; i++) {
         general[i] = g[i];
       }
     }
     List<String> p = s.getStringList("pica") ?? [];
-    log.d("read pica settings: $p");
+    log.t("read pica settings: $p");
     if (p.isNotEmpty) {
       for (int i = 0; i < p.length && i < pica.length; i++) {
         pica[i] = p[i];
       }
     }
     List<String> r = s.getStringList("read") ?? [];
-    log.d("read read settings: $r");
+    log.t("read read settings: $r");
     if (r.isNotEmpty) {
       for (int i = 0; i < r.length && i < read.length; i++) {
         read[i] = r[i];
@@ -308,6 +310,15 @@ class Appdata {
   }
 
   int get cachePeriod => int.tryParse(appdata.general[7])??30;
+
+  String getVersion() {return Base.version;}
+
+  bool get autoCheckUpdate => appdata.general[8] == "1";
+
+  set autoCheckUpdate(bool value) {
+    appdata.general[8] = value ? "1" : "0";
+    appdata.updateSettings("general");
+  }
 }
 
 var appdata = Appdata();

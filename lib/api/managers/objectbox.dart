@@ -175,6 +175,14 @@ class ObjectBox {
         .find();
   }
 
+  Future<List<DownloadTask>> getDownloadTaskList() async {
+    return _downloadTaskBox
+        .query()
+        .order(DownloadTask_.id, flags: Order.descending)
+        .build()
+        .find();
+  }
+
   Future<List<DownloadTask>> restoreDownload() async {
     var list = _downloadTaskBox
         .query()
@@ -183,6 +191,10 @@ class ObjectBox {
         .find();
     list.removeWhere((element) => isTaskFinished(element));
     return list;
+  }
+
+  Future<void> updateTaskEps(DownloadTask task) async {
+    _store.box<DownloadEps>().putMany(task.taskEps);
   }
 
   void clearDB(){
