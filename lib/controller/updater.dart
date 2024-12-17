@@ -1,9 +1,15 @@
+import 'dart:convert';
+
+import 'package:bot_toast/bot_toast.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Response;
 import 'package:skana_pica/config/base.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/log.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 enum Result { yes, no, timeout }
 
@@ -106,16 +112,82 @@ late BoardController boardController;
 class BoardController extends GetxController {
   RxList<BoardInfo> boardList = <BoardInfo>[].obs;
 
+  bool notified = false;
+
   void init() {
     getBoardList();
+
+    Duration(seconds: 5).delay(() {
+      if (!notified) {
+        notified = true;
+        if (updater.result.value == Result.yes) {
+          BotToast.showWidget(toastBuilder: (_) {
+            return AlertDialog(
+              title: Text("New version available".tr),
+              content: Text(updater.updateDescription.value),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    BotToast.cleanAll();
+                  },
+                  child: Text("Cancel".tr),
+                ),
+                TextButton(
+                  onPressed: () {
+                    BotToast.cleanAll();
+                    launchUrlString(updater.updateUrl.value);
+                  },
+                  child: Text("Update".tr),
+                ),
+              ],
+            );
+          });
+        }
+        BoardInfo? info;
+        if (kDebugMode) {
+          info = boardController.boardList.firstOrNull;
+        } else {
+          info = boardController.boardList.firstWhere(
+              (element) => element.debug == true,
+              orElse: () => BoardInfo(
+                  title: "PLACEHOLDER",
+                  content: "",
+                  startDate: "",
+                  endDate: "",
+                  debug: true));
+          if (info.debug ?? true) {
+            info = null;
+          }
+        }
+        boardController.boardList.clear();
+        if (info != null) {
+          BotToast.showWidget(toastBuilder: (_) {
+            return AlertDialog(
+              title: Text(info!.title),
+              content: Text(info.content),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    BotToast.cleanAll();
+                  },
+                  child: Text("Ok".tr),
+                ),
+              ],
+            );
+          });
+        }
+      }
+    });
   }
 
   Future<void> getBoardList() async {
     try {
       Response response = await Dio().get(
-          'https://raw.githubusercontent.com/asdoll/skana_pica/main/board.json');
-      List<dynamic> list = response.data;
-      boardList.value = list.map((e) => BoardInfo.fromJson(e)).toList();
+          'https://raw.githubusercontent.com/asdoll/skana_pica/refs/heads/main/board.json');
+      final list = (jsonDecode(response.data) as List)
+          .map((e) => BoardInfo.fromJson(e))
+          .toList();
+      boardList.value = list;
     } catch (e) {
       log.w(e);
     }
