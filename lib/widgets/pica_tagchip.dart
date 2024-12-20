@@ -30,6 +30,9 @@ class _PicaTagState extends State<PicaTag> {
       onTap: () {
         switch (type) {
           case 'tag':
+           Go.to(PicaCatComicsPage(id: widget.text, type: "search"),
+                preventDuplicates: false);
+            break;
           case 'category':
           case 'author':
             Go.to(PicaCatComicsPage(id: widget.text, type: type),

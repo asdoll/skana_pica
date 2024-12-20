@@ -5,6 +5,7 @@ import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/blocker.dart';
 import 'package:skana_pica/controller/history.dart';
 import 'package:skana_pica/util/leaders.dart';
+import 'package:skana_pica/util/log.dart';
 
 get errorUrl => errorLoadingUrl;
 
@@ -42,6 +43,7 @@ class ComicListController extends GetxController {
       comics.refresh();
       return true;
     }
+    log.d("keyword: $keyword, page: ${page.value}, sort: ${sort.value}, type: ${type.value}");
     picaClient
         .getCategoryComics(
             keyword,

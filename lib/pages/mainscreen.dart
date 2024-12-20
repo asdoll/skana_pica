@@ -46,16 +46,10 @@ class _MainsState extends State<Mains> with TickerProviderStateMixin {
                     begin: Offset.zero,
                     end: const Offset(1.5, 0.0),
                   ).animate(secondaryAnimation),
-                  child: FadeTransition(
-                    opacity: Tween<double>(
-                      begin: 0.0,
-                      end: 1.0,
-                    ).animate(primaryAnimation),
-                    child: child,
-                  ),
+                  child: child,
                 );
               },
-              duration: Duration(milliseconds: 200),
+              duration: Duration(milliseconds: 100),
               child: mainScreenIndex.index.value == 0
                   ? HomePage()
                   : mainScreenIndex.index.value == 1
