@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/api/managers/history_manager.dart';
@@ -73,8 +75,16 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   ThemeManager appValueNotifier = ThemeManager.instance;
+  
+  @override
+  void initState() {
+    super.initState();
+    if(Platform.isAndroid && appdata.highRefreshRate) {
+      FlutterDisplayMode.setHighRefreshRate();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

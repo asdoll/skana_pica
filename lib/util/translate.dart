@@ -214,7 +214,10 @@ class Messages extends Translations {
           'Release Notes': 'Release Notes',
           'No download link': 'No download link',
           'Check for updates': 'Check for updates',
-          
+          "Click to add category": "Click to add category",
+          "Long Press and Drag to re-order": "Long Press and Drag to re-order",
+          "Click to reorder tags": "Click to reorder tags",
+          'High Refresh Rate': "High Refresh Rate",
 //below are translation with parameters
           "at_page": "Page @page/@total",
           "block_cate": "Block Category @cate?",
@@ -426,6 +429,10 @@ class Messages extends Translations {
           'Release Notes': '更新说明',
           'No download link': '没有下载链接',
           'Check for updates': '检查更新',
+          "Click to reorder tags": "点击重新排序标签",
+          "Click to add category": "点击添加分类",
+          "Long Press and Drag to re-order": "长按并拖动以重新排序",
+          "High Refresh Rate": "高刷新率",
 //below are translation with parameters
           "at_page": "第@page/@total页",
           "block_cate": '屏蔽分类"@cate?"',
@@ -637,6 +644,11 @@ class Messages extends Translations {
           'Release Notes': '更新日誌',
           'No download link': '無下載鏈接',
           'Check for updates': '檢查更新',
+          "Click to reorder tags": "點擊重新排序標籤",
+          "Click to add category": "點擊添加分類",
+          "Long Press and Drag to re-order": "長按並拖動以重新排序",
+          "High Refresh Rate": "高刷新率",
+
 //below are translation with parameters
           "at_page": "第@page/@total頁",
           "block_cate": '屏蔽分類"@cate?"',

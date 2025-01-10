@@ -737,7 +737,7 @@ class _LocalReadPageState extends State<LocalReadPage> {
             initialScale: comicStore.imageLayout.value == 0
                 ? PhotoViewComputedScale.contained
                 : PhotoViewComputedScale.covered,
-            errorBuilder: (_, error, s) {
+            errorBuilder: (_, error, s, retry) {
               return Center(
                 child: SizedBox(
                   height: 300,

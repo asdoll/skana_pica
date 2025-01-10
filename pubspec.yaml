@@ -51,7 +51,10 @@ dependencies:
   cached_network_image: ^3.4.1
   easy_refresh: ^3.4.0
   scrollable_positioned_list: ^0.3.8
-  photo_view: ^0.15.0
+  photo_view:
+    git:
+      url: https://github.com/wgh136/photo_view
+      ref: 94724a0b
   permission_handler: ^11.3.1
   image_gallery_saver_plus: ^3.0.5
   share_plus: ^10.1.2
@@ -62,6 +65,7 @@ dependencies:
   flutter_slidable: ^3.1.2
   icon_decoration: ^2.1.0
   url_launcher: ^6.3.1
+  flutter_displaymode: ^0.6.0
 
 dev_dependencies:
   flutter_test:

@@ -216,6 +216,7 @@ class Appdata {
           "0", //5 mainscreen default tab
           "1", //6 default orientation, 0-auto, 1-portrait, 2-landscape
           "30", //7 cache period
+          "1", //8 high refresh rate
         ];
         break;
       case "pica":
@@ -316,6 +317,13 @@ class Appdata {
   bool get autoCheckUpdate => appdata.general[8] == "1";
 
   set autoCheckUpdate(bool value) {
+    appdata.general[8] = value ? "1" : "0";
+    appdata.updateSettings("general");
+  }
+
+  bool get highRefreshRate => appdata.general[8] == "1";
+
+  set highRefreshRate(bool value) {
     appdata.general[8] = value ? "1" : "0";
     appdata.updateSettings("general");
   }

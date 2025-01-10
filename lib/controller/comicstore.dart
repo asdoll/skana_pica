@@ -54,6 +54,8 @@ class ComicStore extends GetxController {
 
   RxMap<int,bool> selectDownload = <int,bool>{}.obs;
 
+  RxBool disableTap = false.obs;
+
   void fetch(String id) async {
     if (isLoading.value) {
       return;

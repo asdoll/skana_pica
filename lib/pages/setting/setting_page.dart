@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/config/setting.dart';
@@ -8,8 +10,10 @@ import 'package:skana_pica/pages/setting/manga.dart';
 import 'package:skana_pica/pages/setting/theme.dart';
 import 'package:skana_pica/pages/setting/update.dart';
 import 'package:skana_pica/util/leaders.dart';
+import 'package:skana_pica/util/log.dart';
 import 'package:skana_pica/util/tool.dart';
 import 'package:skana_pica/util/widget_utils.dart';
+import 'package:flutter_displaymode/flutter_displaymode.dart';
 
 class SettingPage extends StatefulWidget {
   static const route = "${Mains.route}settings";
@@ -116,6 +120,17 @@ class _SettingPageState extends State<SettingPage> {
                 },
               ),
             )),
+          if(Platform.isAndroid)
+          ListTile(
+            leading: Icon(Icons.refresh_sharp),
+            title: Text('High Refresh Rate'.tr),
+            trailing: Obx(
+              () => Switch(
+                value: settingController.highRefreshRate.value,
+                onChanged: settingController.changeHighRefreshRate,
+              ),
+            ),
+          ),
           ListTile(
             leading: Icon(Icons.info),
             title: Text('About'.tr),
@@ -148,6 +163,7 @@ class _SettingPageState extends State<SettingPage> {
 class SettingController extends GetxController {
   RxString defaultPage = appdata.general[5].obs;
   RxString mainOrientation = appdata.general[6].obs;
+  RxBool highRefreshRate = appdata.highRefreshRate.obs;
 
   void changeDefaultPage(String index) {
     defaultPage.value = index;
@@ -160,6 +176,20 @@ class SettingController extends GetxController {
     appdata.general[6] = index;
     appdata.updateSettings("general");
     resetOrientation();
+  }
+
+  void changeHighRefreshRate(bool value) {
+    highRefreshRate.value = value;
+    appdata.highRefreshRate = value;
+    try {
+      if (value) {
+        FlutterDisplayMode.setHighRefreshRate();
+      } else {
+        FlutterDisplayMode.setLowRefreshRate();
+      }
+    } catch (e) {
+      log.e(e);
+    }
   }
 
   String getVersion() {
