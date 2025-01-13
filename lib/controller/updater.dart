@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:bot_toast/bot_toast.dart';
 import 'package:dio/dio.dart';
+import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Response;
@@ -21,6 +22,7 @@ class Updater extends GetxController {
   RxString updateDescription = "".obs;
   RxString updateVersion = "".obs;
   RxString updateDate = "".obs;
+  EasyRefreshController? controller;
 
   void init() {
     if (appdata.autoCheckUpdate) {
@@ -32,6 +34,19 @@ class Updater extends GetxController {
     //if (Constants.isGooglePlay) return Result.no;
     final result = await checkUpdate("");
     this.result.value = result;
+    try {
+      if (result == Result.yes) {
+        controller?.finishRefresh();
+      }
+      if (result == Result.no) {
+        controller?.finishRefresh(IndicatorResult.noMore);
+      }
+      if (result == Result.timeout) {
+        controller?.finishRefresh(IndicatorResult.fail);
+      }
+    } catch (e) {
+      log.w(e);
+    }
     return result;
   }
 

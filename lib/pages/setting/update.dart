@@ -18,7 +18,8 @@ class _UpdatePageState extends State<UpdatePage> {
   Widget build(BuildContext context) {
     EasyRefreshController controller = EasyRefreshController(
         controlFinishLoad: true, controlFinishRefresh: true);
-
+    updater.controller = controller;
+    
     return Scaffold(
       appBar: AppBar(
         title: Text('Check updates'.tr),
