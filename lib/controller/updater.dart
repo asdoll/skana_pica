@@ -40,7 +40,7 @@ class Updater extends GetxController {
     try {
       Response response =
           await Dio(BaseOptions(baseUrl: 'https://api.github.com'))
-              .get('/repos/asdoll/skana_pix/releases/latest');
+              .get('/repos/asdoll/skana_pica/releases/latest');
       if (response.statusCode != 200) return Result.no;
       String tagName = response.data['tag_name'];
       updateVersion.value = tagName;
