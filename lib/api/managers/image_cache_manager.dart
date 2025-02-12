@@ -66,6 +66,7 @@ class DownloadCacheManage extends CacheManager with ImageCacheManager {
   DownloadCacheManage()
       : super(Config(
           key,
+          stalePeriod: const Duration(days: 365*10),
           repo: JsonCacheInfoRepository(databaseName: key),
           fileSystem: IOFileSystem(key),
           fileService: DioFileService(),
