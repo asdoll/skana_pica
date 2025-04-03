@@ -1,12 +1,8 @@
-import 'package:json_annotation/json_annotation.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
 import 'package:skana_pica/api/models/base_comic.dart';
 import 'package:skana_pica/api/models/history_type.dart';
 
-part 'pica_models.g.dart';
-
-@JsonSerializable()
 class PicaProfile {
   String id;
   String title;
@@ -66,7 +62,6 @@ class PicaEpsImages {
   PicaEpsImages(this.eps, this.imageUrl);
 }
 
-@JsonSerializable()
 class PicaComicItemBrief extends BaseComic {
   @override
   String title;
@@ -108,7 +103,6 @@ class PicaComicItemBrief extends BaseComic {
 
 const errorId = "ERROR";
 
-@JsonSerializable()
 class PicaComicItem with HistoryMixin {
   String id;
   PicaProfile creator;
@@ -296,3 +290,110 @@ class PicaGameInfo {
   PicaGameInfo(this.id, this.name, this.description, this.icon, this.publisher,
       this.screenshots, this.link, this.isLiked, this.likes, this.comments);
 }
+
+PicaProfile _$PicaProfileFromJson(Map<String, dynamic> json) => PicaProfile(
+      json['id'] as String,
+      json['avatarUrl'] as String,
+      json['email'] as String,
+      (json['exp'] as num).toInt(),
+      (json['level'] as num).toInt(),
+      json['name'] as String,
+      json['title'] as String,
+      json['isPunched'] as bool?,
+      json['slogan'] as String?,
+      json['frameUrl'] as String?,
+    );
+
+Map<String, dynamic> _$PicaProfileToJson(PicaProfile instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'title': instance.title,
+      'email': instance.email,
+      'name': instance.name,
+      'level': instance.level,
+      'exp': instance.exp,
+      'avatarUrl': instance.avatarUrl,
+      'frameUrl': instance.frameUrl,
+      'isPunched': instance.isPunched,
+      'slogan': instance.slogan,
+    };
+
+PicaComicItemBrief _$PicaComicItemBriefFromJson(Map<String, dynamic> json) =>
+    PicaComicItemBrief(
+      json['title'] as String,
+      json['author'] as String,
+      (json['likes'] as num).toInt(),
+      json['path'] as String,
+      json['id'] as String,
+      (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
+      pages: (json['pages'] as num?)?.toInt(),
+      epsCount: (json['epsCount'] as num?)?.toInt(),
+      finished: json['finished'] as bool?,
+    )
+      ..description = json['description'] as String
+      ..subTitle = json['subTitle'] as String;
+
+Map<String, dynamic> _$PicaComicItemBriefToJson(PicaComicItemBrief instance) =>
+    <String, dynamic>{
+      'title': instance.title,
+      'author': instance.author,
+      'likes': instance.likes,
+      'path': instance.path,
+      'id': instance.id,
+      'tags': instance.tags,
+      'pages': instance.pages,
+      'epsCount': instance.epsCount,
+      'finished': instance.finished,
+      'description': instance.description,
+      'subTitle': instance.subTitle,
+    };
+
+PicaComicItem _$PicaComicItemFromJson(Map<String, dynamic> json) =>
+    PicaComicItem(
+      PicaProfile.fromJson(json['creator'] as Map<String, dynamic>),
+      json['title'] as String,
+      json['description'] as String,
+      json['thumbUrl'] as String,
+      json['author'] as String,
+      json['chineseTeam'] as String,
+      (json['categories'] as List<dynamic>).map((e) => e as String).toList(),
+      (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
+      (json['likes'] as num).toInt(),
+      (json['totalViews'] as num).toInt(),
+      (json['comments'] as num).toInt(),
+      json['isFavourite'] as bool,
+      json['isLiked'] as bool,
+      (json['epsCount'] as num).toInt(),
+      json['id'] as String,
+      (json['pagesCount'] as num).toInt(),
+      json['time'] as String,
+      (json['eps'] as List<dynamic>).map((e) => e as String).toList(),
+      (json['recommendation'] as List<dynamic>)
+          .map((e) => PicaComicItemBrief.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      json['finished'] as bool,
+    );
+
+Map<String, dynamic> _$PicaComicItemToJson(PicaComicItem instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'creator': instance.creator,
+      'title': instance.title,
+      'description': instance.description,
+      'thumbUrl': instance.thumbUrl,
+      'author': instance.author,
+      'chineseTeam': instance.chineseTeam,
+      'categories': instance.categories,
+      'tags': instance.tags,
+      'likes': instance.likes,
+      'totalViews': instance.totalViews,
+      'comments': instance.comments,
+      'isLiked': instance.isLiked,
+      'isFavourite': instance.isFavourite,
+      'epsCount': instance.epsCount,
+      'pagesCount': instance.pagesCount,
+      'time': instance.time,
+      'eps': instance.eps,
+      'recommendation': instance.recommendation,
+      'finished': instance.finished,
+    };

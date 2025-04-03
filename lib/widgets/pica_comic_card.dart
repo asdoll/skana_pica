@@ -196,7 +196,7 @@ class _PicaComicCardState extends State<PicaComicCard> {
                         right: 8,
                         child: Icon(
                           Icons.bookmark_added_rounded,
-                          color: Get.theme.primaryColor.withOpacity(0.3),
+                          color: Get.theme.primaryColor.withValues(alpha: 0.3),
                           size: Get.width / 8,
                         ))
                 ],

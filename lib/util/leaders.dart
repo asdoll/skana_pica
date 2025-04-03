@@ -109,6 +109,7 @@ class Leader {
             .push(MaterialPageRoute(builder: (context) {
           return Container(); //IllustPageLite(id.toString());
         }));
+      // ignore: empty_catches
       } catch (e) {}
       return true;
     }

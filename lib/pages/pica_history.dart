@@ -243,14 +243,14 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
                       }
                     }
                     if (controller.comics.isEmpty) {
-                      return Container(
+                      return SizedBox(
                           height: Get.height * 0.8,
                           child: Center(
                             child: Text(
                               "[ ]",
                               style: Get.textTheme.displayLarge?.copyWith(
                                   color: Get.theme.colorScheme.onPrimary
-                                      .withOpacity(0.7)),
+                                      .withValues(alpha: 0.7)),
                             ),
                           ));
                     }

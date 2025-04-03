@@ -9,6 +9,7 @@ import 'package:skana_pica/pages/leaderboard.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/widgets/error_loading.dart';
+import 'package:skana_pica/widgets/headfoot.dart';
 import 'package:skana_pica/widgets/pica_comic_card.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
@@ -79,7 +80,7 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                         },
                       ),
                       SizedBox(
-                        width: 8,
+                        width: 2,
                       ),
                       ChoiceChip(
                         selectedColor: Get.theme.primaryColor,
@@ -98,7 +99,7 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                       ),
                       if (widget.keyword != "bookmarks")
                         SizedBox(
-                          width: 8,
+                          width: 2,
                         ),
                       if (widget.keyword != "bookmarks")
                         ChoiceChip(
@@ -118,7 +119,7 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                         ),
                       if (widget.keyword != "bookmarks")
                         SizedBox(
-                          width: 8,
+                          width: 2,
                         ),
                       if (widget.keyword != "bookmarks")
                         ChoiceChip(
@@ -333,6 +334,9 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                       }
                     },
                     refreshOnStart: true,
+                    header: DefaultHeaderFooter.header(context),
+                    footer: DefaultHeaderFooter.footer(context),
+                    refreshOnStartHeader: DefaultHeaderFooter.refreshHeader(context),
                     child: ListView.builder(
                       controller: widget.isMain
                           ? globalScrollController
@@ -370,14 +374,14 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                           }
                         }
                         if (controller.comics.isEmpty) {
-                          return Container(
+                          return SizedBox(
                               height: Get.height * 0.8,
                               child: Center(
                                 child: Text(
                                   "[ ]",
                                   style: Get.textTheme.displayLarge?.copyWith(
                                       color: Get.theme.colorScheme.onPrimary
-                                          .withOpacity(0.7)),
+                                          .withValues( alpha: 0.7)),
                                 ),
                               ));
                         }

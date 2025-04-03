@@ -4,7 +4,7 @@ import 'package:rxdart/rxdart.dart';
 
 class DraggableHome extends StatefulWidget {
   @override
-  _DraggableHomeState createState() => _DraggableHomeState();
+  State<DraggableHome> createState() => _DraggableHomeState();
 
   /// Leading: A widget to display before the toolbar's title.
   final Widget? leading;
@@ -87,7 +87,7 @@ class DraggableHome extends StatefulWidget {
 
   /// This will create DraggableHome.
   const DraggableHome({
-    Key? key,
+    super.key,
     this.leading,
     required this.title,
     this.centerTitle = true,
@@ -118,8 +118,7 @@ class DraggableHome extends StatefulWidget {
             headerExpandedHeight < stretchMaxHeight),
         assert(
           (stretchMaxHeight > headerExpandedHeight) && (stretchMaxHeight < .95),
-        ),
-        super(key: key);
+        );
 }
 
 class _DraggableHomeState extends State<DraggableHome> {

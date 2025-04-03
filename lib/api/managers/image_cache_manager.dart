@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
+// ignore: implementation_imports
 import 'package:flutter_cache_manager/src/web/mime_converter.dart';
 import 'package:skana_pica/config/setting.dart';
 

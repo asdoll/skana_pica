@@ -326,7 +326,7 @@ class _PicaReadPageState extends State<PicaReadPage> {
                 elevation: 3,
                 key: const ValueKey("top_tool_bar"),
                 shadowColor:
-                    Theme.of(context).colorScheme.shadow.withOpacity(0.3),
+                    Theme.of(context).colorScheme.shadow.withValues(alpha: 0.3),
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width,
                   child: Row(

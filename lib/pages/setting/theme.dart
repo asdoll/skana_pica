@@ -47,7 +47,7 @@ class _AppearancePageState extends State<AppearancePage> {
                   Get.defaultDialog(
                     titlePadding: EdgeInsets.only(top: 20),
                     title: "Color Theme".tr,
-                    content: Container(
+                    content: SizedBox(
                       height: Get.height / 1.5,
                       width: Get.width / 1.2,
                       child: CustomScrollView(

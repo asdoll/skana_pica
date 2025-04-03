@@ -17,8 +17,8 @@ class PicaImage extends StatefulWidget {
   final bool useProgressIndicator;
   final bool downloaded;
 
-  PicaImage(this.url,
-      {this.placeWidget,
+  const PicaImage(this.url,
+      {super.key, this.placeWidget,
       this.fade = true,
       this.fit,
       this.enableMemoryCache,
@@ -78,7 +78,7 @@ class _PicaImageState extends State<PicaImage> {
           Container(
             width: width,
             height: height,
-            color: Get.theme.colorScheme.surface.withOpacity(0.5),
+            color: Get.theme.colorScheme.surface.withValues(alpha: 0.5),
           ),
           Center(
             child: TextButton(

@@ -25,7 +25,7 @@ class BottomBarItem {
 
 class BottomBarDoubleBullet extends StatefulWidget {
   const BottomBarDoubleBullet({
-    Key? key,
+    super.key,
     required this.items,
     this.selectedIndex = 0,
     this.height = 71,
@@ -35,7 +35,7 @@ class BottomBarDoubleBullet extends StatefulWidget {
     this.circle2Color = Colors.red,
     this.backgroundColor = Colors.white,
     this.onSelect,
-  }) : super(key: key);
+  });
 
   final int selectedIndex;
   final double height;
@@ -53,11 +53,11 @@ class BottomBarDoubleBullet extends StatefulWidget {
 
 class BottomBarDoubleBulletIcon extends StatefulWidget {
   const BottomBarDoubleBulletIcon({
-    Key? key,
+    super.key,
     required this.item,
     required this.color,
     this.isSelected = false,
-  }) : super(key: key);
+  });
 
   final BottomBarItem item;
   final Color color;
