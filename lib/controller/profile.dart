@@ -13,7 +13,7 @@ class ProfileController extends GetxController {
   Rx<PicaProfile> profile = PicaProfile.error().obs;
   RxBool loading = false.obs;
   RxBool isLogin = false.obs;
-  RxBool isFirstLaunch = appdata.isFirstLaunch().obs;
+  RxBool isFirstLaunch = settings.isFirstLaunch().obs;
 
   void fetch() {
     isLogin.value = picacg.data['token'] != null && picacg.data['token'].isNotEmpty;
@@ -37,7 +37,7 @@ class ProfileController extends GetxController {
   void updateSlogan(String slogan) {
     picaClient.changeSlogan(slogan).then((value) {
       if (!value) {
-        toast("Failed to update slogan".tr);
+        showToast("Failed to update slogan".tr);
         return;
       }
       profile.value.slogan = slogan;
@@ -48,19 +48,19 @@ class ProfileController extends GetxController {
   void updatePassword(String old, String password) {
     String? oldPassword = picacg.data['password'];
     if(oldPassword!= null && oldPassword.isNotEmpty && oldPassword != old){
-      toast("Old password is incorrect".tr);
+      showToast("Old password is incorrect".tr);
       return;
     }
     if(old == password){
-      toast("New password is the same as the old password".tr);
+      showToast("New password is the same as the old password".tr);
       return;
     }
     picaClient.changePassword(old,password).then((value) {
       if (!value.data) {
-        toast("Failed to update password".tr);
+        showToast("Failed to update password".tr);
         return;
       }
-      toast("Password updated".tr);
+      showToast("Password updated".tr);
     });
   }
   
@@ -70,7 +70,7 @@ class ProfileController extends GetxController {
     picacg.data['password'] = null;
     isLogin.value = false;
     loading.value = false;
-    appdata.logout();
+    settings.logout();
     profile.value = PicaProfile.error();
     profile.refresh();
     favorController.clear();
@@ -78,6 +78,6 @@ class ProfileController extends GetxController {
 
   void firstLaunchFinished() {
     isFirstLaunch.value = false;
-    appdata.firstLaunch();
+    settings.firstLaunch();
   }
 }

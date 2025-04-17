@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,7 +11,7 @@ import 'package:skana_pica/controller/categories.dart';
 import 'package:skana_pica/controller/favourite.dart';
 import 'package:skana_pica/controller/profile.dart';
 import 'package:skana_pica/controller/searchhistory.dart';
-import 'package:skana_pica/util/log.dart';
+import 'package:skana_pica/controller/log.dart';
 
 class Appdata {
   ///搜索历史
@@ -50,7 +53,7 @@ class Appdata {
     }
     _isSaving = true;
     for (var e in data.entries) {
-      appdata.secureStorage
+      settings.secureStorage
           .write(key: "${key}_${e.key}", value: e.value.toString());
     }
     _isSaving = false;
@@ -63,7 +66,7 @@ class Appdata {
     "0", //3 hosts
     "0", //4 代理设置, 0代表使用系统代理
     "0", //5 mainscreen default tab
-    "1", //6 default orientation, 0-auto, 1-portrait, 2-landscape
+    "0", //6 default orientation, 0-auto, 1-portrait, 2-landscape
     "30", //7 cache period
     "1", //8 auto check update
   ];
@@ -259,86 +262,92 @@ class Appdata {
   int get theme => int.parse(general[1]);
 
   set theme(int value) {
-    appdata.general[1] = value.toString();
-    appdata.updateSettings("general");
+    settings.general[1] = value.toString();
+    settings.updateSettings("general");
   }
 
   /// Dark Mode, 0/1/2 (system/disabled/enable)
-  int get darkMode => int.parse(appdata.general[0]);
+  String get darkMode => settings.general[0];
 
-  set darkMode(int value) {
-    appdata.general[0] = value.toString();
-    appdata.updateSettings("general");
+  bool get isDarkMode =>
+      settings.general[0] == '2' ||
+      settings.general[0] == '0' &&
+          WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+              Brightness.dark;
+
+  set darkMode(String value) {
+    settings.general[0] = value;
+    settings.updateSettings("general");
   }
 
   /// image quality, original/low/middle/high
-  String get picaImageQuality => appdata.pica[1];
+  String get picaImageQuality => settings.pica[1];
 
   set picaImageQuality(String value) {
-    appdata.pica[1] = value;
-    appdata.updateSettings("pica");
+    settings.pica[1] = value;
+    settings.updateSettings("pica");
   }
 
-  DateTime? get lastPunchedTime => DateTime.tryParse(appdata.pica[3]);
+  DateTime? get lastPunchedTime => DateTime.tryParse(settings.pica[3]);
 
   set lastPunchedTime(DateTime? value) {
-    appdata.pica[3] = value?.toIso8601String() ?? "";
-    appdata.updateSettings("pica");
+    settings.pica[3] = value?.toIso8601String() ?? "";
+    settings.updateSettings("pica");
   }
 
   int get picaSearchMode {
     var modes = ["dd", "da", "ld", "vd"];
-    return modes.indexOf(appdata.pica[4]);
+    return modes.indexOf(settings.pica[4]);
   }
 
   set picaSearchMode(int mode) {
     var modes = ["dd", "da", "ld", "vd"];
-    appdata.pica[4] = modes[mode];
-    appdata.updateSettings("pica");
+    settings.pica[4] = modes[mode];
+    settings.updateSettings("pica");
   }
 
-  List<String> get blockedCategory => appdata.pica[5].split(";");
+  List<String> get blockedCategory => settings.pica[5].split(";");
   set blockedCategory(List<String> value) {
-    appdata.pica[5] = value.join(";");
-    appdata.updateSettings("pica");
+    settings.pica[5] = value.join(";");
+    settings.updateSettings("pica");
   }
 
-  bool get useDarkBackground => appdata.read[3] == "1";
+  bool get useDarkBackground => settings.read[3] == "1";
 
   set useDarkBackground(bool value) {
-    appdata.read[3] = value ? "1" : "0";
-    appdata.updateSettings("read");
+    settings.read[3] = value ? "1" : "0";
+    settings.updateSettings("read");
   }
 
-  int get cachePeriod => int.tryParse(appdata.general[7])??30;
+  int get cachePeriod => int.tryParse(settings.general[7])??30;
 
   String getVersion() {return Base.version;}
 
-  bool get autoCheckUpdate => appdata.general[8] == "1";
+  bool get autoCheckUpdate => settings.general[8] == "1";
 
   set autoCheckUpdate(bool value) {
-    appdata.general[8] = value ? "1" : "0";
-    appdata.updateSettings("general");
+    settings.general[8] = value ? "1" : "0";
+    settings.updateSettings("general");
   }
 
-  bool get highRefreshRate => appdata.general[8] == "1";
+  bool get highRefreshRate => settings.general[8] == "1";
 
   set highRefreshRate(bool value) {
-    appdata.general[8] = value ? "1" : "0";
-    appdata.updateSettings("general");
+    settings.general[8] = value ? "1" : "0";
+    settings.updateSettings("general");
   }
 }
 
-var appdata = Appdata();
+var settings = Appdata();
 
 /// clear all data
 Future<void> clearAppdata() async {
   var s = await SharedPreferences.getInstance();
   await s.clear();
   //appdata.history.clearHistory();
-  appdata = Appdata();
-  await appdata.init();
-  await appdata.readData();
+  settings = Appdata();
+  await settings.init();
+  await settings.readData();
   clearGlobalControllers();
   M.o.clearDB();
 }

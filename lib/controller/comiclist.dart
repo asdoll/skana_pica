@@ -1,11 +1,15 @@
+import 'package:easy_refresh/easy_refresh.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
+import 'package:skana_pica/api/models/res.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/blocker.dart';
 import 'package:skana_pica/controller/history.dart';
 import 'package:skana_pica/util/leaders.dart';
-import 'package:skana_pica/util/log.dart';
+import 'package:skana_pica/controller/log.dart';
+
+import 'setting_controller.dart';
 
 get errorUrl => errorLoadingUrl;
 
@@ -14,37 +18,46 @@ class ComicListController extends GetxController {
   RxBool isLoading = false.obs;
   RxInt page = 1.obs;
   RxInt total = 0.obs;
-  bool isAuthor = false;
-  String keyword = "";
+  bool isAuthor;
+  String keyword;
   RxString sort = "".obs;
-  bool isSearch = false;
-  bool addToHistory = true;
-  RxString type = "".obs;
+  String sortByDefault;
+  bool isSearch;
+  bool addToHistory;
+  String type;
+  int lastFetchTime = 0;
+  EasyRefreshController? easyRefreshController;
+  int loadedPage = 0;
 
-  bool fetch() {
-    if (isLoading.value) {
-      return true;
+  get sortType => settings.pica[4];
+
+  ComicListController({
+    required this.keyword,
+    this.isAuthor = false,
+    this.isSearch = false,
+    this.addToHistory = true,
+    this.type = "",
+    required this.sortByDefault,
+    this.easyRefreshController,
+  });
+
+  bool isLoadin() => isLoading.value && DateTime.now().millisecondsSinceEpoch - lastFetchTime < 5000;
+
+  Future<Res<List<PicaComicItemBrief>>> loadData() async {
+    if (isLoadin()) {
+      return Res.error("Loading");
     }
     isLoading.value = true;
-    sort.value = sort.value.isEmpty ? appdata.pica[4] : sort.value;
+    lastFetchTime = DateTime.now().millisecondsSinceEpoch;
+    sort.value = sort.value.isEmpty ? settings.pica[4] : sort.value;
     if (isSearch) {
-      picaClient
-          .search(keyword, sort.value, page.value, addToHistory: addToHistory)
-          .then((value) {
-        if (value.error) {
-          isLoading.value = false;
-          toast("Failed to load data".tr);
-          return false;
-        }
-        total.value = value.subData;
-        addWithFilter(value.data);
-        isLoading.value = false;
-      });
-      comics.refresh();
-      return true;
+      log.d("search: $keyword, page: ${page.value}, sort: ${sort.value}");
+      return picaClient
+          .search(keyword, sort.value, page.value, addToHistory: addToHistory);
     }
-    log.d("keyword: $keyword, page: ${page.value}, sort: ${sort.value}, type: ${type.value}");
-    picaClient
+    log.d(
+        "keyword: $keyword, page: ${page.value}, sort: ${sort.value}, type: $type");
+    return picaClient
         .getCategoryComics(
             keyword,
             page.value,
@@ -52,20 +65,8 @@ class ComicListController extends GetxController {
             isAuthor
                 ? "a"
                 : keyword == "leaderboard"
-                    ? type.value
-                    : "c")
-        .then((value) {
-      if (value.error) {
-        isLoading.value = false;
-        toast("Failed to load data".tr);
-        return false;
-      }
-      total.value = value.subData;
-      addWithFilter(value.data);
-      isLoading.value = false;
-    });
-    comics.refresh();
-    return true;
+                    ? type
+                    : "c");
   }
 
   void addWithFilter(List<PicaComicItemBrief> list) {
@@ -95,48 +96,68 @@ class ComicListController extends GetxController {
     return false;
   }
 
-  bool onLoad() {
-    if (isLoading.value) {
-      return true;
+  void onLoad() async {
+    log.d(
+        "keyword: $keyword, page: ${page.value}, total: ${total.value}, isLoading: ${isLoading.value}");
+    if (page.value == total.value) {
+      log.d("No more data");
+      easyRefreshController?.finishLoad(IndicatorResult.noMore);
+      return;
     }
-    page.value++;
-    return fetch();
+    if (isLoadin()) {
+      return;
+    }
+    if(loadedPage > page.value) {
+      page.value = loadedPage;
+    }
+    if(page.value == loadedPage) {
+      page.value++;
+    }
+    loadData().then((value) {
+      isLoading.value = false;
+      if (value.success) {
+        loadedPage++;
+        total.value = value.subData;
+        addWithFilter(value.data);
+        easyRefreshController?.finishLoad();
+      } else {
+        showToast("Failed to load data".tr);
+        easyRefreshController?.finishLoad(IndicatorResult.fail);
+      }
+    });
   }
 
-  bool init(String keyword,
-      {String sort = "",
-      bool isAuthor = false,
-      int page = 1,
-      bool addToHistory = false,
-      bool isSearch = false,
-      String type = ""}) {
-    this.keyword = keyword;
-    this.isAuthor = isAuthor;
-    this.addToHistory = addToHistory;
-    this.isSearch = isSearch;
-    sort.isEmpty ? this.sort.value = appdata.pica[4] : this.sort.value = sort;
-    this.page.value = page;
-    this.type.value = type;
+  void reset({String? newSort}) {
+    sort.value = newSort ?? sort.value;
     comics.clear();
-    return fetch();
+    if(!mangaSettingsController.picaPageViewMode.value || keyword == "leaderboard") {
+      page.value = 1;
+      total.value = 0;
+    }
+    loadedPage = 0;
+    isLoading.value = false;
+    loadData().then((value) {
+      isLoading.value = false;
+      if (value.success) {
+        total.value = value.subData;
+        addWithFilter(value.data);
+        easyRefreshController?.finishRefresh();
+      } else {
+        showToast("Failed to load data".tr);
+        easyRefreshController?.finishRefresh(IndicatorResult.fail);
+      }
+    });
   }
 
-  bool pageFetch(int page) {
-    if (isLoading.value) {
-      return true;
+  void pageFetch(int page) {
+    if (isLoadin()) {
+      return;
     }
     if (page > total.value || page < 1) {
-      return false;
+      return;
     }
     this.page.value = page;
-    comics.clear();
-    return fetch();
+    reset();
   }
 
-  bool reload(bool pageReset) {
-    comics.clear();
-    if (pageReset) page.value = 1;
-    isLoading.value = false;
-    return fetch();
-  }
 }

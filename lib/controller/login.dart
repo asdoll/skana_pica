@@ -21,7 +21,7 @@ class LoginController extends GetxController {
         isLoading.value = false;
         isLogin.value = false;
         error.value = handleError(value.errorMessageWithoutNull);
-        toast("Login failed".tr);
+        showToast("Login failed".tr);
         return false;
       } else {
         picacg.data['token'] = value.data;
@@ -31,7 +31,7 @@ class LoginController extends GetxController {
         isLoading.value = false;
         isLogin.value = true;
         error.value = "";
-        toast("Login success".tr);
+        showToast("Login success".tr);
         if(start){
           profileController.firstLaunchFinished();
         }

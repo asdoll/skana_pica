@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -12,14 +11,13 @@ import 'package:skana_pica/pages/pica_list_comics.dart';
 import 'package:skana_pica/pages/pica_read.dart';
 import 'package:skana_pica/pages/pica_results.dart';
 import 'package:skana_pica/util/leaders.dart';
-import 'package:skana_pica/util/widget_utils.dart';
+import 'package:skana_pica/util/widgetplugin.dart';
 import 'package:skana_pica/widgets/pica_comic_card.dart';
 import 'package:skana_pica/widgets/pica_comment_bar.dart';
 import 'package:skana_pica/widgets/pica_comment_tile.dart';
 import 'package:skana_pica/widgets/pica_image.dart';
 import 'package:skana_pica/widgets/pica_like.dart';
 import 'package:skana_pica/widgets/pica_tagchip.dart';
-import 'package:skana_pica/widgets/tag_finished.dart';
 
 class PicacgComicPage extends StatefulWidget {
   static const route = "/pica_comic";
@@ -356,7 +354,7 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                       text: "Category".tr,
                       type: '',
                       style: tagStyle,
-                      backgroundColor: bgColor.lighten(10),
+                      backgroundColor: bgColor,
                     ),
                     ...comicDetailController.comic.value.categories
                         .map((e) => PicaTag(
@@ -378,7 +376,7 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                       text: "Tags".tr,
                       type: '',
                       style: tagStyle,
-                      backgroundColor: bgColor2.lighten(10),
+                      backgroundColor: bgColor2,
                     ),
                     ...comicDetailController.comic.value.tags
                         .map((e) => PicaTag(
@@ -393,7 +391,7 @@ class _PicacgComicPageState extends State<PicacgComicPage>
                   height: 8,
                 ),
                 Card(
-                  color: bgColor.darken(10),
+                  color: bgColor,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [

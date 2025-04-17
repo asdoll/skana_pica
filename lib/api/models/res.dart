@@ -1,4 +1,4 @@
-import 'package:skana_pica/util/log.dart';
+import 'package:skana_pica/controller/log.dart';
 
 class Res<T> {
   /// error info

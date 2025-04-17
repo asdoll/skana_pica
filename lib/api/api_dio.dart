@@ -5,7 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:flutter/services.dart';
 import 'package:skana_pica/config/setting.dart';
-import 'package:skana_pica/util/log.dart';
+import 'package:skana_pica/controller/log.dart';
 import 'package:dio_http2_adapter/dio_http2_adapter.dart';
 import 'package:skana_pica/util/tool.dart';
 
@@ -122,7 +122,7 @@ class AppHttpAdapter implements HttpClientAdapter {
               idleTimeout: const Duration(seconds: 15),
               onClientCreate: (_, config) {
                 if (proxyHttpOverrides?.proxyStr != null &&
-                    appdata.general[3] != "1") {
+                    settings.general[3] != "1") {
                   config.proxy =
                       Uri.parse('http://${proxyHttpOverrides?.proxyStr}');
                 }
@@ -184,7 +184,7 @@ class AppHttpAdapter implements HttpClientAdapter {
     var options = o.copyWith();
     log.t("Network:"
         "${options.method} ${options.path}\nheaders:\n${options.headers.toString()}\ndata:${options.data}");
-    if (appdata.general[3] == "0") {
+    if (settings.general[3] == "0") {
       return checkCookie(
           await adapter!.fetch(options, requestStream, cancelFuture));
     }
@@ -262,15 +262,15 @@ Dio ThisDio([BaseOptions? options, bool http2 = false]) {
 
 ///获取系统设置中的代理, 仅windows,安卓有效
 Future<String?> getProxy() async {
-  if (appdata.general[3] == "1") {
+  if (settings.general[3] == "1") {
     final file = File("${Base.dataPath}/rule.json");
     var json = const JsonDecoder().convert(file.readAsStringSync());
     return "${InternetAddress.loopbackIPv4.address}:${json["port"]}";
   }
 
   //手动设置的代理
-  if (appdata.general[4].removeAllBlank == "") return null;
-  if (appdata.general[4] != "0") return appdata.general[4];
+  if (settings.general[4].removeAllBlank == "") return null;
+  if (settings.general[4] != "0") return settings.general[4];
   //对于安卓, 将获取WIFI设置中的代理
 
   String res;

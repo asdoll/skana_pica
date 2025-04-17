@@ -115,7 +115,7 @@ class _AccountPageState extends State<AccountPage> {
                               TextButton(
                                 onPressed: () {
                                   if (controller.text.trim().isEmpty) {
-                                    toast("Slogan can't be empty".tr);
+                                    showToast("Slogan can't be empty".tr);
                                     return;
                                   }
                                   profileController
@@ -180,12 +180,12 @@ class _AccountPageState extends State<AccountPage> {
                                         newPasswordController.text.isEmpty ||
                                         confirmPasswordController
                                             .text.isEmpty) {
-                                      toast("Password can't be empty".tr);
+                                      showToast("Password can't be empty".tr);
                                       return;
                                     }
                                     if (newPasswordController.text !=
                                         confirmPasswordController.text) {
-                                      toast("Password not match".tr);
+                                      showToast("Password not match".tr);
                                       return;
                                     }
                                     Get.back();

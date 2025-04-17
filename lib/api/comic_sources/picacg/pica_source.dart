@@ -10,16 +10,16 @@ class PicaSource extends Source {
 
   void init() {
     data.clear();
-    if (appdata.cookies["picacg_account"] != null) {
-      data['account'] = appdata.cookies["picacg_account"];
-      data['password'] = appdata.cookies["picacg_password"];
-      data['token'] = appdata.cookies["picacg_token"];
+    if (settings.cookies["picacg_account"] != null) {
+      data['account'] = settings.cookies["picacg_account"];
+      data['password'] = settings.cookies["picacg_password"];
+      data['token'] = settings.cookies["picacg_token"];
     }
     if (data['appChannel'] == null) {
-      data['appChannel'] = (int.parse(appdata.pica[0]) + 1).toString();
+      data['appChannel'] = (int.parse(settings.pica[0]) + 1).toString();
     }
     if (data['imageQuality'] == null) {
-      data['imageQuality'] = appdata.picaImageQuality;
+      data['imageQuality'] = settings.picaImageQuality;
     }
   }
 

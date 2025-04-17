@@ -9,7 +9,7 @@ import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
 import 'package:skana_pica/api/models/res.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/util/leaders.dart';
-import 'package:skana_pica/util/log.dart';
+import 'package:skana_pica/controller/log.dart';
 import 'package:uuid/uuid.dart';
 import 'package:crypto/crypto.dart';
 
@@ -70,7 +70,10 @@ class PicaClient {
   late Dio dio;
 
   PicaClient() {
-    dio = ThisDio();
+    dio = ThisDio(BaseOptions(
+        connectTimeout: const Duration(seconds: 5),
+        receiveTimeout: const Duration(seconds: 5),
+        sendTimeout: const Duration(seconds: 5)));
   }
 
   final String apiUrl = "https://picaapi.picacomic.com";
@@ -84,6 +87,7 @@ class PicaClient {
       await Future.delayed(const Duration(milliseconds: 500));
       return Res.error("未登录");
     }
+    log.d("url: $url");
     await setNetworkProxy();
     var options = _getHeaders("get", token, url.replaceAll("$apiUrl/", ""));
     options.validateStatus = (i) => i == 200 || i == 400 || i == 401;
@@ -275,7 +279,7 @@ class PicaClient {
     }
     user = res.data;
     picacg.data['user'] = user!.toJson();
-    appdata.saveSecures(picacg.key);
+    settings.saveSecures(picacg.key);
     return const Res(true);
   }
 
@@ -327,14 +331,14 @@ class PicaClient {
         return res;
       } else {
         //检查是否打卡
-        DateTime? lastPunchedTime = appdata.lastPunchedTime;
-        if (appdata.pica[2] == "1" &&
+        DateTime? lastPunchedTime = settings.lastPunchedTime;
+        if (settings.pica[2] == "1" &&
             (lastPunchedTime == null ||
                 DateTime.now().difference(lastPunchedTime).inDays.abs() > 0)) {
           punchIn().then((b) {
             if (b) {
-              appdata.lastPunchedTime = DateTime.now();
-              toast("Check-in successful".tr);
+              settings.lastPunchedTime = DateTime.now();
+              showToast("Check-in successful".tr);
               return const Res(true);
             }
             return Res(false, errorMessage: "Failed to punch in");
@@ -390,7 +394,7 @@ class PicaClient {
     }
   }
 
-Future<Res<PicaComicItemBrief>> getBriefComicInfo(String id) async {
+  Future<Res<PicaComicItemBrief>> getBriefComicInfo(String id) async {
     var response = await get("$apiUrl/comics/$id");
     if (response.error) {
       return Res(null, errorMessage: response.errorMessage);

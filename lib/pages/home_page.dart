@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
 import 'package:skana_pica/controller/categories.dart';
+import 'package:skana_pica/controller/setting_controller.dart';
 import 'package:skana_pica/pages/leaderboard.dart';
-import 'package:skana_pica/pages/mainscreen.dart';
 import 'package:skana_pica/pages/setting/manga.dart';
-import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/widgets/pica_comic_list.dart';
 
 class HomePage extends StatefulWidget {
@@ -52,7 +50,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       }).toList(),
                       onChanged: (String? value) {
                         leaderboardController.type.value = value!;
-                        Leader.mainScreenEasyRefreshController.callRefresh();
                       },
                       value: leaderboardController.type.value),
                 ],
@@ -72,7 +69,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         title: Text("Manage".tr),
                         onTap: () {
                           Get.back();
-                          mainScreenIndex.index.value = 2;
                           Get.to(MangaSettingPage(
                             fromMain: true,
                           ));
@@ -125,49 +121,37 @@ class HomePageController extends GetxController {
       if (categoriesController.mainPageTags[i] == "Leaderboard") {
         pages.add(PicaComicsPage(
             keyword: "leaderboard",
-            type: leaderboardController.type.value,
-            isMain: true,
-            easyRefreshController: Leader.mainScreenEasyRefreshController));
+            type: leaderboardController.type.value));
       } else if (categoriesController.mainPageTags[i] == "Random") {
         pages.add(PicaComicsPage(
           keyword: "random",
           type: "fixed",
-          addToHistory: false,
-          isMain: true,
-          easyRefreshController: Leader.mainScreenEasyRefreshController,
+          addToHistory: false
         ));
       } else if (categoriesController.mainPageTags[i] == "Latest") {
         pages.add(PicaComicsPage(
           keyword: "latest",
           type: "fixed",
-          addToHistory: false,
-          isMain: true,
-          easyRefreshController: Leader.mainScreenEasyRefreshController,
+          addToHistory: false
         ));
       } else if (categoriesController.mainPageTags[i] == "Bookmarks") {
         pages.add(PicaComicsPage(
           keyword: "bookmarks",
           type: "fixed",
-          addToHistory: false,
-          isMain: true,
-          easyRefreshController: Leader.mainScreenEasyRefreshController,
+          addToHistory: false
         ));
-      } else if (picacg.categories
+      } else if (mangaSettingsController.categories
           .contains(categoriesController.mainPageTags[i])) {
         pages.add(PicaComicsPage(
           keyword: categoriesController.mainPageTags[i],
           type: "category",
-          addToHistory: false,
-          isMain: true,
-          easyRefreshController: Leader.mainScreenEasyRefreshController,
+          addToHistory: false
         ));
       } else {
         pages.add(PicaComicsPage(
           keyword: categoriesController.mainPageTags[i],
           type: "search",
-          addToHistory: false,
-          isMain: true,
-          easyRefreshController: Leader.mainScreenEasyRefreshController,
+          addToHistory: false
         ));
       }
     }

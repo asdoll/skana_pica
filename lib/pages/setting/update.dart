@@ -58,7 +58,7 @@ class _UpdatePageState extends State<UpdatePage> {
                   title: Text('Download'.tr),
                   onTap: () async {
                     if (updater.updateUrl.isEmpty) {
-                      toast('No download link'.tr);
+                      showToast('No download link'.tr);
                       return;
                     }
                     await launchUrlString(updater.updateUrl.value);

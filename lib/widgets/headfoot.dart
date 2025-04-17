@@ -2,7 +2,7 @@ import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:skana_pica/util/widget_utils.dart';
+import 'package:moon_design/moon_design.dart';
 
 class DefaultHeaderFooter {
   static Header header(BuildContext context,
@@ -13,8 +13,9 @@ class DefaultHeaderFooter {
       triggerOffset: 50,
       safeArea: safeArea,
       processedDuration: Duration(milliseconds: 50),
+      backgroundColor: context.moonTheme?.tokens.colors.trunks,
       spinWidget: SpinKitPulse(
-        color: context.colorScheme.primary,
+        color: context.moonTheme?.tokens.colors.bulma,
       ),
     );
   }
@@ -28,7 +29,13 @@ class DefaultHeaderFooter {
         showMessage: false,
         processedText: "Successed".tr,
         processedDuration: Duration.zero,
-        noMoreText: "No more".tr,);
+        noMoreText: "No more".tr,
+        textStyle: context.moonTheme?.tokens.typography.heading.text14.apply(
+          color: context.moonTheme?.tokens.colors.bulma,
+        ),
+        messageStyle: context.moonTheme?.tokens.typography.heading.text12.apply(
+          color: context.moonTheme?.tokens.colors.bulma,
+        ));
   }
 
   static Header refreshHeader(BuildContext context) {
@@ -47,13 +54,20 @@ class DefaultHeaderFooter {
           width: double.infinity,
           height: state.viewportDimension,
           alignment: Alignment.center,
-          child: SpinKitFadingFour(size: 40, color: context.colorScheme.primary),
+          child: SpinKitFadingFour(
+            size: 40,
+            color: context.moonTheme?.tokens.colors.bulma,
+          ),
         );
       },
     );
   }
 
   static Widget progressIndicator(BuildContext context, {Color? color}) {
-    return SpinKitFadingFour(size: 40);
+    return SpinKitFadingFour(
+      size: 40,
+      color: color ?? context.moonTheme?.tokens.colors.bulma,
+    );
   }
 }
+

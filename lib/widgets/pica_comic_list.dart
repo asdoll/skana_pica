@@ -1,13 +1,14 @@
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:skana_pica/config/setting.dart';
+import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/controller/comiclist.dart';
 import 'package:skana_pica/controller/favourite.dart';
+import 'package:skana_pica/controller/main_controller.dart';
 import 'package:skana_pica/controller/profile.dart';
-import 'package:skana_pica/pages/leaderboard.dart';
-import 'package:skana_pica/pages/mainscreen.dart';
+import 'package:skana_pica/controller/setting_controller.dart';
 import 'package:skana_pica/util/leaders.dart';
+import 'package:skana_pica/util/widgetplugin.dart';
 import 'package:skana_pica/widgets/error_loading.dart';
 import 'package:skana_pica/widgets/headfoot.dart';
 import 'package:skana_pica/widgets/pica_comic_card.dart';
@@ -16,19 +17,21 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 class PicaComicsPage extends StatefulWidget {
   final String keyword;
   final String type;
-  final bool isMain;
   final bool? addToHistory;
   final String? sort;
   final EasyRefreshController? easyRefreshController;
+  final bool fromDrawer;
+  final ScrollController? scrollController;
 
   const PicaComicsPage(
       {super.key,
-      this.isMain = false,
       required this.keyword,
       required this.type,
       this.addToHistory,
       this.sort,
-      this.easyRefreshController});
+      this.easyRefreshController,
+      this.scrollController,
+      this.fromDrawer = false});
 
   @override
   State<PicaComicsPage> createState() => _PicaComicsPageState();
@@ -46,20 +49,30 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
               controlFinishRefresh: true,
               controlFinishLoad: true,
             );
-    ScrollController scrollController = ScrollController();
-    try {
-      controller = Get.find<ComicListController>(tag: tag);
-    } catch (e) {
-      controller = Get.put(ComicListController(), tag: tag);
+    controller = Get.put(
+        ComicListController(
+            keyword: widget.keyword,
+            type: widget.type,
+            isSearch: widget.type == "search",
+            isAuthor: widget.type == "author",
+            addToHistory: widget.addToHistory ?? false,
+            sortByDefault: widget.sort ?? "",
+            easyRefreshController: easyRefreshController),
+        tag: tag);
+    if (widget.fromDrawer) {
+      controller.reset();
     }
-    controller.type.value = widget.type;
-    bool author = widget.type == "author";
+    ScrollController scrollController =
+        widget.scrollController ?? globalScrollController;
     return Obx(
       () => !profileController.isLogin.value
           ? ErrorLoading(text: "Not Logged In".tr)
           : Column(
               children: [
-                if (appdata.pica[6] == "0"&&widget.keyword != "leaderboard")
+                if (!mangaSettingsController.picaPageViewMode.value &&
+                    widget.keyword != "leaderboard" &&
+                    widget.keyword != "latest" &&
+                    widget.keyword != "random")
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -71,11 +84,7 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                         selected: controller.sort.value == "dd",
                         onSelected: (bool selected) {
                           if (selected) {
-                            controller.init(widget.keyword,
-                                isAuthor: author,
-                                sort: "dd",
-                                addToHistory: widget.addToHistory ?? false,
-                                isSearch: widget.type == "search");
+                            controller.reset(newSort: "dd");
                           }
                         },
                       ),
@@ -89,11 +98,7 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                         selected: controller.sort.value == "da",
                         onSelected: (bool selected) {
                           if (selected) {
-                            controller.init(widget.keyword,
-                                isAuthor: author,
-                                sort: "da",
-                                addToHistory: widget.addToHistory ?? false,
-                                isSearch: widget.type == "search");
+                            controller.reset(newSort: "da");
                           }
                         },
                       ),
@@ -109,11 +114,7 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                           selected: controller.sort.value == "ld",
                           onSelected: (bool selected) {
                             if (selected) {
-                              controller.init(widget.keyword,
-                                  isAuthor: author,
-                                  sort: "ld",
-                                  addToHistory: widget.addToHistory ?? false,
-                                  isSearch: widget.type == "search");
+                              controller.reset(newSort: "ld");
                             }
                           },
                         ),
@@ -129,296 +130,246 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                           selected: controller.sort.value == "vd",
                           onSelected: (bool selected) {
                             if (selected) {
-                              controller.init(widget.keyword,
-                                  isAuthor: author,
-                                  sort: "vd",
-                                  addToHistory: widget.addToHistory ?? false,
-                                  isSearch: widget.type == "search");
+                              controller.reset(newSort: "vd");
                             }
                           },
                         ),
                     ],
                   ),
-                if (appdata.pica[6] == "1"&&widget.keyword != "leaderboard")
+                if (mangaSettingsController.picaPageViewMode.value)
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      DropdownButton<String>(
-                        elevation: 4,
-                        style: Get.textTheme.bodyMedium,
-                        value: appdata.pica[4],
-                        onChanged: (String? newValue) {
-                          if (newValue == null) return;
-                          controller.init(widget.keyword,
-                              isAuthor: author, sort: newValue);
-                        },
-                        items: [
-                          DropdownMenuItem(
-                              value: "dd", child: Text('New to Old'.tr)),
-                          DropdownMenuItem(
-                              value: "da", child: Text('Old to New'.tr)),
-                          if (widget.keyword != "bookmarks")
+                      if (widget.keyword != "leaderboard" &&
+                          widget.keyword != "latest" &&
+                          widget.keyword != "random")
+                        DropdownButton<String>(
+                          elevation: 4,
+                          style: Get.textTheme.bodyMedium,
+                          value: controller.sortType,
+                          onChanged: (String? newValue) {
+                            if (newValue == null) return;
+                            controller.reset(newSort: newValue);
+                          },
+                          items: [
                             DropdownMenuItem(
-                                value: "ld", child: Text('Most Likes'.tr)),
-                          if (widget.keyword != "bookmarks")
+                                value: "dd", child: Text('New to Old'.tr)),
                             DropdownMenuItem(
-                                value: "vd", child: Text('Most Viewed'.tr)),
-                        ],
-                      ),
-                      TextButton(
-                          onPressed: () {
-                            showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    title: Text('Jump to Page'.tr),
-                                    content: TextField(
-                                      controller: pageJumpController,
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                          border: OutlineInputBorder(),
-                                          labelText: 'Page Number'.tr),
-                                      onSubmitted: (value) {
-                                        int? pageNumber = int.tryParse(value);
-                                        if (pageNumber != null &&
-                                            pageNumber > 0 &&
-                                            pageNumber <=
-                                                controller.total.value) {
-                                          widget.isMain
-                                              ? globalScrollController
-                                                  .animateTo(0,
-                                                      duration: const Duration(
-                                                          microseconds: 200),
-                                                      curve: Curves.ease)
-                                              : scrollController.animateTo(0,
-                                                  duration: const Duration(
-                                                      microseconds: 200),
-                                                  curve: Curves.ease);
-                                          controller.pageFetch(pageNumber);
-                                          Get.back();
-                                        } else {
-                                          toast('Invalid Page Number'.tr);
-                                        }
-                                      },
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Get.back();
-                                        },
-                                        child: Text('Cancel'.tr),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          int? pageNumber = int.tryParse(
-                                              pageJumpController.value.text);
+                                value: "da", child: Text('Old to New'.tr)),
+                            if (widget.keyword != "bookmarks")
+                              DropdownMenuItem(
+                                  value: "ld", child: Text('Most Likes'.tr)),
+                            if (widget.keyword != "bookmarks")
+                              DropdownMenuItem(
+                                  value: "vd", child: Text('Most Viewed'.tr)),
+                          ],
+                        ),
+                      if (controller.total.value > 1)
+                        TextButton(
+                            onPressed: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: Text('Jump to Page'.tr),
+                                      content: TextField(
+                                        controller: pageJumpController,
+                                        keyboardType: TextInputType.number,
+                                        decoration: InputDecoration(
+                                            border: OutlineInputBorder(),
+                                            labelText: 'Page Number'.tr),
+                                        onSubmitted: (value) {
+                                          int? pageNumber = int.tryParse(value);
                                           if (pageNumber != null &&
                                               pageNumber > 0 &&
                                               pageNumber <=
                                                   controller.total.value) {
-                                            widget.isMain
-                                                ? globalScrollController
-                                                    .animateTo(0,
-                                                        duration:
-                                                            const Duration(
-                                                                microseconds:
-                                                                    200),
-                                                        curve: Curves.ease)
-                                                : scrollController.animateTo(0,
-                                                    duration: const Duration(
-                                                        microseconds: 200),
-                                                    curve: Curves.ease);
+                                            scrollController.animateTo(0,
+                                                duration: const Duration(
+                                                    microseconds: 200),
+                                                curve: Curves.ease);
                                             controller.pageFetch(pageNumber);
                                             Get.back();
                                           } else {
-                                            toast('Invalid Page Number'.tr);
+                                            showToast('Invalid Page Number'.tr);
                                           }
                                         },
-                                        child: Text('Ok'.tr),
                                       ),
-                                    ],
-                                  );
-                                });
-                          },
-                          child: Text(
-                              'at_page'.trParams({
-                                'page': controller.page.toString(),
-                                'total': controller.total.toString()
-                              }),
-                              style: Get.textTheme.bodyMedium)),
-                      TextButton(
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Get.back();
+                                          },
+                                          child: Text('Cancel'.tr),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            int? pageNumber = int.tryParse(
+                                                pageJumpController.value.text);
+                                            if (pageNumber != null &&
+                                                pageNumber > 0 &&
+                                                pageNumber <=
+                                                    controller.total.value) {
+                                              scrollController.animateTo(0,
+                                                  duration: const Duration(
+                                                      microseconds: 200),
+                                                  curve: Curves.ease);
+                                              controller.pageFetch(pageNumber);
+                                              Get.back();
+                                            } else {
+                                              showToast(
+                                                  'Invalid Page Number'.tr);
+                                            }
+                                          },
+                                          child: Text('Ok'.tr),
+                                        ),
+                                      ],
+                                    );
+                                  });
+                            },
+                            child: Text(
+                                'at_page'.trParams({
+                                  'page': controller.page.toString(),
+                                  'total': controller.total.toString()
+                                })).subHeader()),
+                                Expanded(child: SizedBox()),
+                      if (controller.total.value > 1)
+                        filledButton(
+                          color: context.moonTheme?.tokens.colors.cell,
+                          label: "Prev Page".tr,
+                          textColor: Colors.black,
                           onPressed: (controller.page.value == 1)
-                              ? null
-                              : () {
-                                  widget.isMain
-                                      ? globalScrollController.animateTo(0,
-                                          duration:
-                                              const Duration(microseconds: 200),
-                                          curve: Curves.ease)
-                                      : scrollController.animateTo(0,
-                                          duration:
-                                              const Duration(microseconds: 200),
-                                          curve: Curves.ease);
-                                  controller
-                                      .pageFetch(controller.page.value - 1);
-                                },
-                          child: Text("Prev Page".tr)),
-                      TextButton(
+                                ? null
+                                : () {
+                                    scrollController.animateTo(0,
+                                        duration:
+                                            const Duration(microseconds: 200),
+                                        curve: Curves.ease);
+                                    controller
+                                        .pageFetch(controller.page.value - 1);
+                                  },
+                            ),
+                      if (controller.total.value >1)
+                      SizedBox(width: 16),
+                      if (controller.total.value > 1)
+                        filledButton(
+                          color: context.moonTheme?.tokens.colors.cell,
+                          label: "Next Page".tr,
+                          textColor: Colors.black,
                           onPressed: (controller.page.value ==
-                                  controller.total.value)
-                              ? null
-                              : () {
-                                  widget.isMain
-                                      ? globalScrollController.animateTo(0,
-                                          duration:
-                                              const Duration(microseconds: 200),
-                                          curve: Curves.ease)
-                                      : scrollController.animateTo(0,
-                                          duration:
-                                              const Duration(microseconds: 200),
-                                          curve: Curves.ease);
-                                  controller
-                                      .pageFetch(controller.page.value + 1);
-                                },
-                          child: Text("Next Page".tr)),
-                    ],
-                  ),
-                SizedBox(
-                  height: 10,
-                ),
-                Expanded(
-                  child: EasyRefresh(
-                    controller: easyRefreshController,
-                    scrollController: widget.isMain
-                        ? globalScrollController
-                        : scrollController,
-                    onLoad: (appdata.pica[6] == "1")
-                        ? null
-                        : () async {
-                            if (controller.page.value ==
-                                controller.total.value) {
-                              easyRefreshController
-                                  .finishLoad(IndicatorResult.noMore);
-                              return;
-                            }
-                            bool res = controller.onLoad();
-                            if (res) {
-                              easyRefreshController.finishLoad();
-                            } else {
-                              easyRefreshController
-                                  .finishLoad(IndicatorResult.fail);
-                            }
-                          },
-                    onRefresh: () async {
-                      bool res;
-                      if (controller.keyword.isEmpty ||
-                          controller.keyword == "leaderboard") {
-                        res = controller.init(widget.keyword,
-                            isAuthor: author,
-                            sort: widget.sort ?? "",
-                            addToHistory: widget.addToHistory ?? false,
-                            isSearch: widget.type == "search",
-                            type: controller.keyword == "leaderboard"
-                                ? leaderboardController.type.value
-                                : widget.type);
-                      } else {
-                        res = controller
-                            .reload((appdata.pica[6] == "1") ? false : true);
-                      }
-                      if (res) {
-                        easyRefreshController.finishRefresh();
-                      } else {
-                        easyRefreshController
-                            .finishRefresh(IndicatorResult.fail);
-                      }
-                    },
-                    refreshOnStart: true,
-                    header: DefaultHeaderFooter.header(context),
-                    footer: DefaultHeaderFooter.footer(context),
-                    refreshOnStartHeader: DefaultHeaderFooter.refreshHeader(context),
-                    child: ListView.builder(
-                      controller: widget.isMain
-                          ? globalScrollController
-                          : scrollController,
-                      itemCount: (appdata.pica[6] == "1")
-                          ? controller.comics.length + 1
-                          : controller.comics.length,
-                      itemBuilder: (context, index) {
-                        if (index == controller.comics.length) {
-                          if ((controller.page.value <
-                                  controller.total.value) &&
-                              !controller.isLoading.value) {
-                            return Center(
-                              child: IconButton(
-                                  onPressed: () {
-                                    widget.isMain
-                                        ? globalScrollController.animateTo(0,
-                                            duration: const Duration(
-                                                microseconds: 200),
-                                            curve: Curves.ease)
-                                        : scrollController.animateTo(0,
-                                            duration: const Duration(
-                                                microseconds: 200),
-                                            curve: Curves.ease);
+                                    controller.total.value)
+                                ? null
+                                : () {
+                                    scrollController.animateTo(0,
+                                        duration:
+                                            const Duration(microseconds: 200),
+                                        curve: Curves.ease);
                                     controller
                                         .pageFetch(controller.page.value + 1);
                                   },
-                                  icon: Icon(
-                                    Icons.keyboard_arrow_down_rounded,
-                                    size: 40,
-                                  )),
-                            );
-                          } else {
-                            return Container();
-                          }
-                        }
-                        if (controller.comics.isEmpty) {
-                          return SizedBox(
-                              height: Get.height * 0.8,
-                              child: Center(
-                                child: Text(
-                                  "[ ]",
-                                  style: Get.textTheme.displayLarge?.copyWith(
-                                      color: Get.theme.colorScheme.onPrimary
-                                          .withValues( alpha: 0.7)),
-                                ),
-                              ));
-                        }
-                        if (widget.keyword == "bookmarks" &&
-                            widget.type == "me") {
-                          return Slidable(
-                            endActionPane: ActionPane(
-                                motion: const ScrollMotion(),
-                                extentRatio: 0.2,
-                                children: [
-                                  SlidableAction(
-                                    backgroundColor: Colors.red,
-                                    icon: Icons.delete,
-                                    borderRadius: BorderRadius.circular(8),
-                                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                                    onPressed: (context) {
-                                      favorController.favorCall(
-                                          controller.comics[index].id);
-                                      controller.comics.removeAt(index);
-                                      controller.comics.refresh();
-                                    },
-                                  ),
-                                ]),
-                            child: PicaComicCard(
-                              controller.comics[index],
-                              type: "bookmarks",
                             ),
-                          );
-                        }
-
-                        return PicaComicCard(
-                          controller.comics[index],
-                          type: widget.keyword == "bookmarks"? "bookmarks" : "comic",
-                        );
-                      },
-                    ),
+                      if (controller.total.value >1)
+                      SizedBox(width: 16),
+                    ],
                   ),
+                Expanded(
+                  child: EasyRefresh(
+                      controller: easyRefreshController,
+                      scrollController: scrollController,
+                      onLoad: (mangaSettingsController.picaPageViewMode.value)
+                          ? null
+                          : controller.onLoad,
+                      onRefresh: controller.reset,
+                      refreshOnStart:
+                          controller.comics.isEmpty && !widget.fromDrawer,
+                      header: DefaultHeaderFooter.header(context),
+                      footer: DefaultHeaderFooter.footer(context),
+                      refreshOnStartHeader:
+                          DefaultHeaderFooter.refreshHeader(context),
+                      child: Obx(
+                        () => ListView.builder(
+                          controller: scrollController,
+                          itemCount: controller.comics.length + 1,
+                          itemBuilder: (context, index) {
+                            if (index == controller.comics.length) {
+                              if (!mangaSettingsController
+                                  .picaPageViewMode.value) {
+                                return Container();
+                              }
+                              if ((controller.page.value <
+                                      controller.total.value) &&
+                                  !controller.isLoading.value) {
+                                return Center(
+                                  child: IconButton(
+                                      onPressed: () {
+                                        scrollController.animateTo(0,
+                                            duration: const Duration(
+                                                microseconds: 200),
+                                            curve: Curves.ease);
+                                        controller.pageFetch(
+                                            controller.page.value + 1);
+                                      },
+                                      icon: Icon(
+                                        Icons.keyboard_arrow_down_rounded,
+                                        size: 40,
+                                      )),
+                                );
+                              } else {
+                                return Container();
+                              }
+                            }
+                            if (controller.comics.isEmpty) {
+                              return SizedBox(
+                                  height: Get.height * 0.8,
+                                  child: Center(
+                                    child: Text(
+                                      "[ ]",
+                                      style: Get.textTheme.displayLarge
+                                          ?.copyWith(
+                                              color: Get
+                                                  .theme.colorScheme.onPrimary
+                                                  .withValues(alpha: 0.7)),
+                                    ),
+                                  ));
+                            }
+                            if (widget.keyword == "bookmarks" &&
+                                widget.type == "me") {
+                              return Slidable(
+                                endActionPane: ActionPane(
+                                    motion: const ScrollMotion(),
+                                    extentRatio: 0.2,
+                                    children: [
+                                      SlidableAction(
+                                        backgroundColor: Colors.red,
+                                        icon: Icons.delete,
+                                        borderRadius: BorderRadius.circular(8),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 4.0),
+                                        onPressed: (context) {
+                                          favorController.favorCall(
+                                              controller.comics[index].id);
+                                          controller.comics.removeAt(index);
+                                          controller.comics.refresh();
+                                        },
+                                      ),
+                                    ]),
+                                child: PicaComicCard(
+                                  controller.comics[index],
+                                  type: "bookmarks",
+                                ),
+                              );
+                            }
+
+                            return PicaComicCard(
+                              controller.comics[index],
+                              type: widget.keyword == "bookmarks"
+                                  ? "bookmarks"
+                                  : "comic",
+                            );
+                          },
+                        ),
+                      )),
                 ),
                 SizedBox(
                   height: 10,

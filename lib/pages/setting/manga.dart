@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
-import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/blocker.dart';
 import 'package:skana_pica/controller/categories.dart';
-import 'package:skana_pica/pages/mainscreen.dart';
+import 'package:skana_pica/controller/setting_controller.dart';
 import 'package:skana_pica/pages/setting/setting_page.dart';
-import 'package:skana_pica/util/widget_utils.dart';
+import 'package:skana_pica/util/widgetplugin.dart';
 import 'package:smooth_highlight/smooth_highlight.dart';
 
 class MangaSettingPage extends StatefulWidget {
@@ -19,19 +17,6 @@ class MangaSettingPage extends StatefulWidget {
 }
 
 class _MangaSettingPageState extends State<MangaSettingPage> {
-  late MangaSettingsController mangaSettingsController;
-
-  @override
-  void initState() {
-    super.initState();
-    mangaSettingsController = Get.put(MangaSettingsController());
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    Get.delete<MangaSettingsController>();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,9 +26,6 @@ class _MangaSettingPageState extends State<MangaSettingPage> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-            if (widget.fromMain) {
-              mainScreenIndex.index.value = 0;
-            }
             Get.back();
           },
         ),
@@ -123,12 +105,11 @@ class _MangaSettingPageState extends State<MangaSettingPage> {
             ListTile(
               leading: Icon(Icons.view_agenda_outlined),
               title: Text("Set page view mode".tr),
-              trailing: DropdownButton<String>(
+              trailing: DropdownButton<bool>(
                 value: mangaSettingsController.picaPageViewMode.value,
                 items: [
-                  DropdownMenuItem(
-                      value: "0", child: Text('Infinite Scroll'.tr)),
-                  DropdownMenuItem(value: "1", child: Text('Page View'.tr)),
+                  DropdownMenuItem(value: false, child: Text('Infinite Scroll'.tr)),
+                  DropdownMenuItem(value: true, child: Text('Page View'.tr)),
                 ],
                 onChanged: (value) {
                   if (value != null) {
@@ -192,7 +173,7 @@ class _MangaSettingPageState extends State<MangaSettingPage> {
                             child: SingleChildScrollView(
                               scrollDirection: Axis.vertical,
                               child: Wrap(
-                                children: picacg.categories
+                                children: mangaSettingsController.categories
                                     .map<Widget>((e) => FilterChip(
                                           label: Text(
                                             e,
@@ -367,7 +348,7 @@ class _MangaSettingPageState extends State<MangaSettingPage> {
                                                                             categoriesController.toggleMainPageTag(e);
                                                                           },
                                                                         )),
-                                                            ...picacg.categories
+                                                            ...mangaSettingsController.categories
                                                                 .map<Widget>(
                                                                     (e) =>
                                                                         FilterChip(
@@ -524,65 +505,5 @@ class _MangaSettingPageState extends State<MangaSettingPage> {
         ),
       ),
     );
-  }
-}
-
-class MangaSettingsController extends GetxController {
-  final picaStream = int.parse(appdata.pica[0]).obs;
-  final picaImageQuality = appdata.picaImageQuality.obs;
-  final picaSearchMode = appdata.picaSearchMode.obs;
-  final picaPageViewMode = appdata.pica[6].obs;
-  final autoCheckIn = (appdata.pica[2] == "1").obs;
-  final preloadNumPages =
-      (int.parse(appdata.pica[7]) > 6 ? '5' : appdata.pica[7]).obs;
-  final preloadDetailsPage = (appdata.pica[8] == "1").obs;
-  final mainTrigger = false.obs;
-
-  void setPicaStream(int value) {
-    picaStream.value = value;
-    appdata.pica[0] = value.toString();
-    appdata.updateSettings("pica");
-    picacg.data['appChannel'] = (value + 1).toString();
-  }
-
-  void setPicaImageQuality(String value) {
-    picaImageQuality.value = value;
-    appdata.picaImageQuality = value;
-    picacg.data['imageQuality'] = value;
-  }
-
-  void setPicaSearchMode(int value) {
-    picaSearchMode.value = value;
-    appdata.picaSearchMode = value;
-  }
-
-  void setPicaPageViewMode(String value) {
-    picaPageViewMode.value = value;
-    appdata.pica[6] = value;
-    appdata.updateSettings("pica");
-  }
-
-  void toggleAutoCheckIn() {
-    autoCheckIn.value = !autoCheckIn.value;
-    appdata.pica[2] = autoCheckIn.value ? "1" : "0";
-    appdata.updateSettings("pica");
-  }
-
-  void setPreloadNumPages(String value) {
-    preloadNumPages.value = value;
-    appdata.pica[7] = value;
-    appdata.updateSettings("pica");
-  }
-
-  void setPreloadDetailsPage(bool value) {
-    preloadDetailsPage.value = value;
-    appdata.pica[8] = value ? "1" : "0";
-    appdata.updateSettings("pica");
-  }
-
-  void setMainTrigger() {
-    Future.delayed(const Duration(milliseconds: 500), () {
-      mainTrigger.value = true;
-    });
   }
 }

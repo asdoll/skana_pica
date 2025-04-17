@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/controller/categories.dart';
+import 'package:skana_pica/controller/main_controller.dart';
 import 'package:skana_pica/controller/searchhistory.dart';
 import 'package:skana_pica/pages/leaderboard.dart';
 import 'package:skana_pica/pages/mainscreen.dart';

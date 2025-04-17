@@ -7,6 +7,8 @@ import 'package:skana_pica/controller/profile.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/widgets/pica_comic_card.dart';
 
+import '../controller/setting_controller.dart';
+
 class PicaHistoryPage extends StatefulWidget {
   const PicaHistoryPage({super.key});
 
@@ -66,7 +68,7 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
       body: Obx(
         () => Column(
           children: [
-            if (appdata.pica[6] == "1")
+            if (mangaSettingsController.picaPageViewMode.value)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -97,7 +99,7 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
                                       controller.toPage(index: pageNumber);
                                       Get.back();
                                     } else {
-                                      toast('Invalid Page Number'.tr);
+                                      showToast('Invalid Page Number'.tr);
                                     }
                                   },
                                 ),
@@ -123,7 +125,7 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
                                         controller.toPage(index: pageNumber);
                                         Get.back();
                                       } else {
-                                        toast('Invalid Page Number'.tr);
+                                        showToast('Invalid Page Number'.tr);
                                       }
                                     },
                                     child: Text('Ok'.tr),
@@ -170,7 +172,7 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
               child: EasyRefresh(
                 controller: easyRefreshController,
                 scrollController: scrollController,
-                onLoad: (appdata.pica[6] == "1")
+                onLoad: (mangaSettingsController.picaPageViewMode.value)
                     ? null
                     : () async {
                         if (controller.page.value ==
@@ -191,7 +193,7 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
                 onRefresh: () async {
                   if (controller.history.isEmpty) {
                     controller
-                        .init(isList: appdata.pica[6] == "1")
+                        .init(isList: settings.pica[6] == "1")
                         .then((value) {
                       if (value) {
                         easyRefreshController.finishRefresh();
@@ -216,7 +218,7 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
                 refreshOnStart: true,
                 child: ListView.builder(
                   controller: scrollController,
-                  itemCount: (appdata.pica[6] == "1")
+                  itemCount: (settings.pica[6] == "1")
                       ? controller.comics.length + 1
                       : controller.comics.length,
                   itemBuilder: (context, index) {
@@ -256,7 +258,7 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
                     }
                     if(!profileController.isLogin.value){
                       return InkWell(
-                        onTap: () => toast("Not Logged In".tr),
+                        onTap: () => showToast("Not Logged In".tr),
                         child: IgnorePointer(
                           child: PicaComicCard(controller.comics[index],type: "history",),
                         ),

@@ -32,8 +32,8 @@ class CategoriesController extends GetxController {
     } else {
       blocker.blockedCategories.add(index);
     }
-    appdata.pica[5] = blocker.blockedCategories.join(";");
-    appdata.updateSettings("picacg");
+    settings.pica[5] = blocker.blockedCategories.join(";");
+    settings.updateSettings("picacg");
     fetchCategories();
   }
 
@@ -54,7 +54,7 @@ class CategoriesController extends GetxController {
 
   void fetchMainPageTags() {
     mainPageTags.clear();
-    List<String> tags = appdata.pica[9].split(";");
+    List<String> tags = settings.pica[9].split(";");
     tags.removeWhere((element) => element.trim().isEmpty);
     mainPageTags.addAll(tags);
     mainPageTags.refresh();
@@ -67,8 +67,8 @@ class CategoriesController extends GetxController {
     } else {
       mainPageTags.add(tag);
     }
-    appdata.pica[9] = mainPageTags.join(";");
-    appdata.updateSettings("pica");
+    settings.pica[9] = mainPageTags.join(";");
+    settings.updateSettings("pica");
     mainPageTags.refresh();
     reloadMainPage();
   }
@@ -79,8 +79,8 @@ class CategoriesController extends GetxController {
     } else {
       mainPageTags.add(tag);
     }
-    appdata.pica[9] = mainPageTags.join(";");
-    appdata.updateSettings("pica");
+    settings.pica[9] = mainPageTags.join(";");
+    settings.updateSettings("pica");
     mainPageTags.refresh();
     reloadMainPage();
   }
@@ -91,16 +91,16 @@ class CategoriesController extends GetxController {
     } else {
       return;
     }
-    appdata.pica[9] = mainPageTags.join(";");
-    appdata.updateSettings("pica");
+    settings.pica[9] = mainPageTags.join(";");
+    settings.updateSettings("pica");
     mainPageTags.refresh();
     reloadMainPage();
   }
 
   void saveMainPageTags() {
     mainPageTags.refresh();
-    appdata.pica[9] = mainPageTags.join(";");
-    appdata.updateSettings("pica");
+    settings.pica[9] = mainPageTags.join(";");
+    settings.updateSettings("pica");
     reloadMainPage();
   }
 

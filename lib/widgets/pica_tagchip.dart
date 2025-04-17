@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/controller/blocker.dart';
 import 'package:skana_pica/pages/pica_list_comics.dart';
 import 'package:skana_pica/util/leaders.dart';
-import 'package:skana_pica/util/widget_utils.dart';
+import 'package:skana_pica/util/widgetplugin.dart';
 
 class PicaTag extends StatefulWidget {
   final String text;
@@ -51,10 +52,10 @@ class _PicaTagState extends State<PicaTag> {
         padding: const EdgeInsets.all(4.0),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: widget.backgroundColor ?? context.colorScheme.primaryContainer,
+          color: widget.backgroundColor ?? context.moonTheme?.tokens.colors.frieza60,
         ),
         child: Text(widget.text,
-            style: widget.style ?? Theme.of(context).textTheme.bodySmall),
+            style: widget.style).small(),
       ),
     );
   }
@@ -76,10 +77,27 @@ void blockDialog(BuildContext context, String keyword) {
                 onPressed: () {
                   Navigator.of(context).pop();
                   blocker.addKeyword(keyword);
-                  toast('${"Block keyword".tr}"$keyword"');
+                  showToast('${"Block keyword".tr}"$keyword"');
                 },
                 child: Text('Ok'.tr)),
           ],
         );
       });
+}
+
+
+class TagFinished extends StatelessWidget {
+  const TagFinished({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(4.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: Get.context!.moonTheme?.tokens.colors.cell60,
+      ),
+      child: Text("Finished".tr).small()
+    );
+  }
 }

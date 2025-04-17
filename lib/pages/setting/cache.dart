@@ -66,7 +66,7 @@ class CacheSetting extends StatelessWidget {
                             TextButton(
                               onPressed: () {
                                 cacheController.clearCache();
-                                toast("Cache Cleared".tr);
+                                showToast("Cache Cleared".tr);
                                 Get.back();
                               },
                               child: Text('Ok'.tr),
@@ -140,7 +140,7 @@ class CacheSetting extends StatelessWidget {
                                   false
                                 ];
                                 cacheController.restores.refresh();
-                                toast("Restored".tr);
+                                showToast("Restored".tr);
                               },
                               child: Text('Ok'.tr),
                             ),
@@ -167,7 +167,7 @@ class CacheSetting extends StatelessWidget {
                             TextButton(
                               onPressed: () {
                                 clearAppdata();
-                                toast("App Initialized".tr);
+                                showToast("App Initialized".tr);
                                 Get.back();
                               },
                               child: Text('Ok'.tr),
@@ -184,13 +184,13 @@ class CacheSetting extends StatelessWidget {
 }
 
 class CacheController extends GetxController {
-  RxString cachePeriod = appdata.general[7].obs;
+  RxString cachePeriod = settings.general[7].obs;
   RxList<bool> restores = [false, false, false].obs;
 
   void setCachePeriod(String period) {
     cachePeriod.value = period;
-    appdata.general[7] = period;
-    appdata.updateSettings("general");
+    settings.general[7] = period;
+    settings.updateSettings("general");
   }
 
   void clearCache() {
@@ -198,6 +198,6 @@ class CacheController extends GetxController {
   }
 
   void restore(String type) {
-    appdata.restore(type);
+    settings.restore(type);
   }
 }

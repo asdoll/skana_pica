@@ -1,15 +1,15 @@
 import 'dart:convert';
 
-import 'package:bot_toast/bot_toast.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_refresh/easy_refresh.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Response;
+import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/config/base.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/util/leaders.dart';
-import 'package:skana_pica/util/log.dart';
+import 'package:skana_pica/controller/log.dart';
+import 'package:skana_pica/util/widgetplugin.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 enum Result { yes, no, timeout }
@@ -25,7 +25,7 @@ class Updater extends GetxController {
   EasyRefreshController? controller;
 
   void init() {
-    if (appdata.autoCheckUpdate) {
+    if (settings.autoCheckUpdate) {
       check();
     }
   }
@@ -80,7 +80,7 @@ class Updater extends GetxController {
       }
     } catch (e) {
       log.w(e);
-      toast("Update check failed".tr);
+      showToast("Update check failed".tr);
       return Result.timeout;
     }
     return Result.no;
@@ -136,61 +136,76 @@ class BoardController extends GetxController {
       if (!notified) {
         notified = true;
         if (updater.result.value == Result.yes) {
-          BotToast.showWidget(toastBuilder: (_) {
-            return AlertDialog(
-              title: Text("New version available".tr),
-              content: Text(updater.updateDescription.value),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    BotToast.cleanAll();
-                  },
-                  child: Text("Cancel".tr),
-                ),
-                TextButton(
-                  onPressed: () {
-                    BotToast.cleanAll();
-                    launchUrlString(updater.updateUrl.value);
-                  },
-                  child: Text("Update".tr),
-                ),
+          MoonToast.show(
+              toastAlignment: Alignment.center,
+              backgroundColor: MoonColors.dark.gohan,
+              displayDuration: const Duration(seconds: 10),
+              Get.context!,
+              label: Text("New version available".tr,
+                  style: TextStyle(color: MoonColors.light.goku)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(updater.updateDescription.value).paddingBottom(16),
+                  Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                    TextButton(
+                      onPressed: () {
+                        MoonToast.clearToastQueue();
+                      },
+                      child: Text("Cancel".tr),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        MoonToast.clearToastQueue();
+                        launchUrlString(updater.updateUrl.value);
+                      },
+                      child: Text("Update".tr),
+                    ),
+                  ]),
+                ],
+              ));
+        }
+      }
+      BoardInfo? info;
+      // if (kDebugMode) {
+      //   info = boardController.boardList.firstOrNull;
+      // } else {
+        info = boardController.boardList.firstWhere(
+            (element) => element.debug == true,
+            orElse: () => BoardInfo(
+                title: "PLACEHOLDER",
+                content: "",
+                startDate: "",
+                endDate: "",
+                debug: true));
+        if (info.debug ?? true) {
+          info = null;
+        }
+      //}
+      boardController.boardList.clear();
+      if (info != null) {
+        MoonToast.show(
+            toastAlignment: Alignment.center,
+            backgroundColor: MoonColors.dark.gohan,
+            displayDuration: const Duration(seconds: 10),
+            Get.context!,
+            label: Text(info.title),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(info.content).paddingBottom(16),
+                Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                  filledButton(
+                    onPressed: () {
+                      MoonToast.clearToastQueue();
+                    },
+                    label: "Ok".tr,
+                  ),
+                ]),
               ],
-            );
-          });
-        }
-        BoardInfo? info;
-        if (kDebugMode) {
-          info = boardController.boardList.firstOrNull;
-        } else {
-          info = boardController.boardList.firstWhere(
-              (element) => element.debug == true,
-              orElse: () => BoardInfo(
-                  title: "PLACEHOLDER",
-                  content: "",
-                  startDate: "",
-                  endDate: "",
-                  debug: true));
-          if (info.debug ?? true) {
-            info = null;
-          }
-        }
-        boardController.boardList.clear();
-        if (info != null) {
-          BotToast.showWidget(toastBuilder: (_) {
-            return AlertDialog(
-              title: Text(info!.title),
-              content: Text(info.content),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    BotToast.cleanAll();
-                  },
-                  child: Text("Ok".tr),
-                ),
-              ],
-            );
-          });
-        }
+            ));
       }
     });
   }

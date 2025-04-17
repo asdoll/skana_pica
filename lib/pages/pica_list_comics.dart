@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:skana_pica/controller/main_controller.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
+import 'package:skana_pica/widgets/gotop.dart';
 import 'package:skana_pica/widgets/pica_comic_list.dart';
 
 class PicaCatComicsPage extends StatefulWidget {
@@ -8,16 +10,35 @@ class PicaCatComicsPage extends StatefulWidget {
 
   final String id;
   final String type;
-  final bool isMain;
 
   const PicaCatComicsPage(
-      {super.key, required this.id, required this.type, this.isMain = false});
+      {super.key, required this.id, required this.type});
 
   @override
   State<PicaCatComicsPage> createState() => _PicaCatComicsPageState();
 }
 
 class _PicaCatComicsPageState extends State<PicaCatComicsPage> {
+  ScrollController scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    scrollController.addListener(() {
+      if (scrollController.offset < context.height) {
+        homeController.showBackArea.value = false;
+      } else {
+        homeController.showBackArea.value = true;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,8 +51,9 @@ class _PicaCatComicsPageState extends State<PicaCatComicsPage> {
                     ? "Bookmarks".tr
                     : widget.id),
       ),
+      floatingActionButton: GoTop(scrollController: scrollController),
       body: PicaComicsPage(
-          keyword: widget.id, type: widget.type, isMain: widget.isMain),
+          keyword: widget.id, type: widget.type, scrollController: scrollController),
     );
   }
 }

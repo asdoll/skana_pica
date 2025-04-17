@@ -4,10 +4,9 @@ import 'package:skana_pica/api/models/objectbox_models.dart';
 import 'package:skana_pica/controller/downloadstore.dart';
 import 'package:skana_pica/pages/local_comic.dart';
 import 'package:skana_pica/util/leaders.dart';
-import 'package:skana_pica/util/widget_utils.dart';
+import 'package:skana_pica/util/widgetplugin.dart';
 import 'package:skana_pica/widgets/pica_image.dart';
 import 'package:skana_pica/widgets/pica_tagchip.dart';
-import 'package:skana_pica/widgets/tag_finished.dart';
 
 class DownloadComicCard extends StatefulWidget {
   final DownloadTask task;
@@ -141,11 +140,6 @@ class _DownloadComicCardState extends State<DownloadComicCard> {
                                       text:
                                           "${"Downloaded".tr}: ${downloadStore.progress[widget.task.id]}/${downloadStore.total[widget.task.id]}",
                                       type: "placed",
-                                      style: Get.textTheme.bodySmall?.copyWith(
-                                          color: Get
-                                              .theme.colorScheme.onSecondary),
-                                      backgroundColor:
-                                          Get.theme.colorScheme.secondary,
                                     ),
                                   ],
                                 ),

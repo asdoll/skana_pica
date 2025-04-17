@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
-import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/widgets/pica_comic_list.dart';
 
 class LeaderboardPage extends StatefulWidget {
   static const route = "${Mains.route}leaderboard";
-  final bool isMain;
 
-  const LeaderboardPage({super.key, this.isMain = false});
+  const LeaderboardPage({super.key});
 
   @override
   State<LeaderboardPage> createState() => _LeaderboardPageState();
@@ -35,7 +33,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                   }).toList(),
                   onChanged: (String? value) {
                     leaderboardController.type.value = value!;
-                    Leader.mainScreenEasyRefreshController.callRefresh();
                   },
                   value: leaderboardController.type.value),
             ],
@@ -43,9 +40,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         ),
         body: PicaComicsPage(
             keyword: "leaderboard",
-            type: leaderboardController.type.value,
-            isMain: widget.isMain,
-            easyRefreshController: Leader.mainScreenEasyRefreshController),
+            type: leaderboardController.type.value),
       ),
     );
   }

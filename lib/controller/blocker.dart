@@ -9,25 +9,25 @@ class Blocker extends GetxController {
 
   void init() {
     blockedKeywords.clear();
-    blockedKeywords.addAll(appdata.blockingKeyword);
+    blockedKeywords.addAll(settings.blockingKeyword);
     blockedKeywords.refresh();
   }
 
   void removeKeyword(String keyword) {
     blockedKeywords.remove(keyword);
-    appdata.blockingKeyword.remove(keyword);
-    appdata.setBlockingKeyword();
+    settings.blockingKeyword.remove(keyword);
+    settings.setBlockingKeyword();
     blockedKeywords.refresh();
   }
 
   void addKeyword(String keyword) {
     if (blockedKeywords.contains(keyword)) {
       blockedKeywords.remove(keyword);
-      appdata.blockingKeyword.remove(keyword);
+      settings.blockingKeyword.remove(keyword);
     }
     blockedKeywords.add(keyword);
-    appdata.blockingKeyword.add(keyword);
-    appdata.setBlockingKeyword();
+    settings.blockingKeyword.add(keyword);
+    settings.setBlockingKeyword();
     blockedKeywords.refresh();
   }
 
@@ -37,16 +37,16 @@ class Blocker extends GetxController {
     } else {
       blockedCategories.add(category);
     }
-    appdata.pica[5] = blockedCategories.join(";");
-    appdata.updateSettings("picacg");
+    settings.pica[5] = blockedCategories.join(";");
+    settings.updateSettings("picacg");
   }
 
   void removeBlockedCategory(String category) {
     if (blockedCategories.contains(category)) {
       blockedCategories.remove(category);
     }
-    appdata.pica[5] = blockedCategories.join(";");
-    appdata.updateSettings("picacg");
+    settings.pica[5] = blockedCategories.join(";");
+    settings.updateSettings("picacg");
   }
 
   void toggleBlockedCategory(String category) {
@@ -55,14 +55,14 @@ class Blocker extends GetxController {
     } else {
       blockedCategories.add(category);
     }
-    appdata.pica[5] = blockedCategories.join(";");
-    appdata.updateSettings("picacg");
+    settings.pica[5] = blockedCategories.join(";");
+    settings.updateSettings("picacg");
     blockedCategories.refresh();
   }
 
   void fetchCategories() {
     if (blockedCategories.isEmpty) {
-      blockedCategories.value = appdata.pica[5].split(";").toList();
+      blockedCategories.value = settings.pica[5].split(";").toList();
     }
     blockedCategories.refresh();
   }

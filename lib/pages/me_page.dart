@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/api/managers/image_cache_manager.dart';
 import 'package:skana_pica/controller/profile.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
@@ -10,7 +11,8 @@ import 'package:skana_pica/pages/pica_favor.dart';
 import 'package:skana_pica/pages/pica_history.dart';
 import 'package:skana_pica/pages/setting/setting_page.dart';
 import 'package:skana_pica/util/leaders.dart';
-import 'package:skana_pica/util/theme.dart';
+import 'package:skana_pica/controller/theme_controller.dart';
+import 'package:skana_pica/util/widgetplugin.dart';
 import 'package:skana_pica/widgets/pica_image.dart';
 
 class MePage extends StatefulWidget {
@@ -33,20 +35,23 @@ class _MePageState extends State<MePage> {
 
   @override
   Widget build(BuildContext context) {
-    DarkModeController themeQuickController = Get.put(DarkModeController());
     return Scaffold(
       appBar: AppBar(
         title: Text("Me".tr),
         actions: [
           Obx(
-            () => IconButton(
-              icon: themeQuickController.isDark.value > 0
-                  ? Icon(Icons.nights_stay)
-                  : Icon(Icons.wb_sunny_sharp),
-              onPressed: () {
-                themeQuickController.toggleDarkMode();
-              },
-            ),
+            () => MoonSwitch(
+                value: tc.darkMode.value == "0"
+                    ? Get.isPlatformDarkMode
+                    : tc.darkMode.value == "2",
+                switchSize: MoonSwitchSize.xs,
+                activeTrackWidget: Icon(Icons.dark_mode_outlined),
+                inactiveTrackWidget: Icon(Icons.light_mode_outlined),
+                inactiveTrackColor: context.moonTheme?.tokens.colors.krillin,
+                activeTrackColor: context.moonTheme?.tokens.colors.trunks,
+                onChanged: (bool newValue) =>
+                    tc.changeDarkMode(newValue ? "2" : "1"),
+              ).paddingRight(8),
           ),
           IconButton(
             icon: Icon(Icons.settings),
@@ -179,7 +184,7 @@ class _MePageState extends State<MePage> {
                               TextButton(
                                 onPressed: () {
                                   if (controller.text.trim().isEmpty) {
-                                    toast("Slogan can't be empty".tr);
+                                    showToast("Slogan can't be empty".tr);
                                     return;
                                   }
                                   profileController
@@ -209,24 +214,3 @@ class _MePageState extends State<MePage> {
   }
 }
 
-class DarkModeController extends GetxController {
-  var isDark = ThemeManager.currentDarkMode.obs;
-  var isSystem = ThemeManager.colorMode == 0;
-
-  void fallback() {
-    isDark.value = ThemeManager.currentDarkMode;
-    isSystem = ThemeManager.colorMode == 0;
-  }
-
-  void toggleDarkMode() {
-    ThemeManager.instance.toggleDarkMode();
-    isDark.value = ThemeManager.currentDarkMode;
-    isSystem = ThemeManager.colorMode == 0;
-  }
-
-  void setSystemMode(int value) {
-    ThemeManager.instance.setSystemMode(value);
-    isDark.value = ThemeManager.currentDarkMode;
-    isSystem = ThemeManager.colorMode == 0;
-  }
-}

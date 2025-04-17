@@ -2,18 +2,15 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:skana_pica/config/setting.dart';
+import 'package:skana_pica/controller/setting_controller.dart';
+import 'package:skana_pica/controller/theme_controller.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
 import 'package:skana_pica/pages/setting/account.dart';
 import 'package:skana_pica/pages/setting/cache.dart';
 import 'package:skana_pica/pages/setting/manga.dart';
-import 'package:skana_pica/pages/setting/theme.dart';
 import 'package:skana_pica/pages/setting/update.dart';
 import 'package:skana_pica/util/leaders.dart';
-import 'package:skana_pica/util/log.dart';
-import 'package:skana_pica/util/tool.dart';
-import 'package:skana_pica/util/widget_utils.dart';
-import 'package:flutter_displaymode/flutter_displaymode.dart';
+import 'package:skana_pica/util/widgetplugin.dart';
 
 class SettingPage extends StatefulWidget {
   static const route = "${Mains.route}settings";
@@ -50,12 +47,41 @@ class _SettingPageState extends State<SettingPage> {
           },
         ),
         ListTile(
-          leading: Icon(Icons.palette),
-          title: Text('Appearance'.tr),
-          onTap: () {
-            Go.to(AppearancePage());
-          },
-        ),
+                leading: Icon(Icons.dark_mode_rounded),
+                trailing: DropdownButton<String>(
+                  value: tc.darkMode.value,
+                  items: [
+                    DropdownMenuItem(value: "0", child: Text('Follow System'.tr)),
+                    DropdownMenuItem(value: "1", child: Text('Light'.tr)),
+                    DropdownMenuItem(value: "2", child: Text('Dark'.tr)),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      tc.changeDarkMode(value);
+                    }
+                  },
+                ),
+                title: Text('Dark Mode'.tr),
+              ),
+              ListTile(
+                leading: Icon(Icons.language),
+                trailing: DropdownButton<String>(
+                  value: settingController.language.value,
+                  items: [
+                    DropdownMenuItem(
+                        value: "", child: Text('Follow System'.tr)),
+                    DropdownMenuItem(value: "cn", child: Text("中文(简体)")),
+                    DropdownMenuItem(value: "tw", child: Text("中文(繁體)")),
+                    DropdownMenuItem(value: "en", child: Text("English")),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      settingController.changeLanguage(value);
+                    }
+                  },
+                ),
+                title: Text("Language".tr),
+              ),
         ListTile(
           leading: Icon(Icons.image),
           title: Text('Manga Settings'.tr),
@@ -157,42 +183,5 @@ class _SettingPageState extends State<SettingPage> {
           ),
       ],
     );
-  }
-}
-
-class SettingController extends GetxController {
-  RxString defaultPage = appdata.general[5].obs;
-  RxString mainOrientation = appdata.general[6].obs;
-  RxBool highRefreshRate = appdata.highRefreshRate.obs;
-
-  void changeDefaultPage(String index) {
-    defaultPage.value = index;
-    appdata.general[5] = index;
-    appdata.updateSettings("general");
-  }
-
-  void changeMainOrientation(String index) {
-    mainOrientation.value = index;
-    appdata.general[6] = index;
-    appdata.updateSettings("general");
-    resetOrientation();
-  }
-
-  void changeHighRefreshRate(bool value) {
-    highRefreshRate.value = value;
-    appdata.highRefreshRate = value;
-    try {
-      if (value) {
-        FlutterDisplayMode.setHighRefreshRate();
-      } else {
-        FlutterDisplayMode.setLowRefreshRate();
-      }
-    } catch (e) {
-      log.e(e);
-    }
-  }
-
-  String getVersion() {
-    return appdata.getVersion();
   }
 }

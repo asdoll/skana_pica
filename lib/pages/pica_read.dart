@@ -9,7 +9,7 @@ import 'package:skana_pica/controller/comicstore.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
 import 'package:skana_pica/pages/pica_comic.dart';
 import 'package:skana_pica/util/leaders.dart';
-import 'package:skana_pica/util/log.dart';
+import 'package:skana_pica/controller/log.dart';
 import 'package:skana_pica/util/tool.dart';
 import 'package:skana_pica/widgets/custom_slider.dart';
 import 'package:skana_pica/widgets/pica_image.dart';
@@ -66,7 +66,7 @@ class _PicaReadPageState extends State<PicaReadPage> {
             keepPage: true);
       }
     } catch (e) {
-      toast( "Internal Error".tr);
+      showToast( "Internal Error".tr);
       Get.until((route) => Get.currentRoute == Mains.route);
       pageController = PageController(initialPage: 1);
       return const SizedBox();

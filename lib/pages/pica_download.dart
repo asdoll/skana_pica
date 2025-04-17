@@ -60,7 +60,7 @@ class _PicaDownloadPageState extends State<PicaDownloadPage> {
                                       dc.page.value = pageNumber;
                                       Get.back();
                                     } else {
-                                      toast('Invalid Page Number'.tr);
+                                      showToast('Invalid Page Number'.tr);
                                     }
                                   },
                                 ),
@@ -88,7 +88,7 @@ class _PicaDownloadPageState extends State<PicaDownloadPage> {
                                         dc.page.value = pageNumber;
                                         Get.back();
                                       } else {
-                                        toast('Invalid Page Number'.tr);
+                                        showToast('Invalid Page Number'.tr);
                                       }
                                     },
                                     child: Text('Ok'.tr),
