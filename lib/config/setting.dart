@@ -78,7 +78,7 @@ class Appdata {
     "", //3 last punched time
     "dd", //4 搜索模式
     "", //5 blocked category
-    "0", //6 page view(1) or unlimited scroll(0)
+    "1", //6 page view(1) or unlimited scroll(0)
     "3", //7 preload pages
     "1", //8 preload when enter details page
     "Leaderboard;Latest;Random;Bookmarks;", //9 main screen display cates

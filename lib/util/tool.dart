@@ -218,7 +218,7 @@ String getLastTime(VisitHistory? history) {
     return "";
   }
   DateTime Date = DateTime.fromMillisecondsSinceEpoch(time);
-  return DateFormat.yMMMd(Get.locale.toString()).add_Hm().format(Date);
+  return DateFormat.yMd(Get.locale.toString()).add_Hm().format(Date);
 }
 
 extension TimeExts on DateTime {

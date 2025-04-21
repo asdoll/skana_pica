@@ -9,7 +9,6 @@ import 'package:skana_pica/controller/history.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/controller/log.dart';
 
-import 'setting_controller.dart';
 
 get errorUrl => errorLoadingUrl;
 
@@ -20,14 +19,14 @@ class ComicListController extends GetxController {
   RxInt total = 0.obs;
   bool isAuthor;
   String keyword;
-  RxString sort = "".obs;
+  RxInt sort = settings.picaSearchMode.obs;
   String sortByDefault;
   bool isSearch;
   bool addToHistory;
   String type;
   int lastFetchTime = 0;
   EasyRefreshController? easyRefreshController;
-  int loadedPage = 0;
+  RxBool filterMenu = false.obs;
 
   get sortType => settings.pica[4];
 
@@ -49,11 +48,10 @@ class ComicListController extends GetxController {
     }
     isLoading.value = true;
     lastFetchTime = DateTime.now().millisecondsSinceEpoch;
-    sort.value = sort.value.isEmpty ? settings.pica[4] : sort.value;
     if (isSearch) {
       log.d("search: $keyword, page: ${page.value}, sort: ${sort.value}");
       return picaClient
-          .search(keyword, sort.value, page.value, addToHistory: addToHistory);
+          .search(keyword, getSort(), page.value, addToHistory: addToHistory);
     }
     log.d(
         "keyword: $keyword, page: ${page.value}, sort: ${sort.value}, type: $type");
@@ -61,7 +59,7 @@ class ComicListController extends GetxController {
         .getCategoryComics(
             keyword,
             page.value,
-            sort.value,
+            getSort(),
             isAuthor
                 ? "a"
                 : keyword == "leaderboard"
@@ -69,11 +67,29 @@ class ComicListController extends GetxController {
                     : "c");
   }
 
+  String getSort() {
+    return sort.value == 0 ? "dd" : sort.value == 1 ? "da" : sort.value == 2 ? "ld" : "vd";
+  }
+
   void addWithFilter(List<PicaComicItemBrief> list) {
-    list.removeWhere((element) => blocked(element));
-    addHistory(list);
-    comics.addAll(list);
+    for(var comic in list) {
+      if(blocked(comic)) {
+        continue;
+      }
+      if(containsComic(comic)) {
+        continue;
+      }
+      visitHistoryController.fetchVisitHistory(comic.id);
+      comics.add(comic);
+    }
     comics.refresh();
+  }
+
+  bool containsComic(PicaComicItemBrief comic) {
+    for(var item in comics) {
+      if(item.id == comic.id) return true;
+    }
+    return false;
   }
 
   void addHistory(List<PicaComicItemBrief> list) {
@@ -107,46 +123,49 @@ class ComicListController extends GetxController {
     if (isLoadin()) {
       return;
     }
-    if(loadedPage > page.value) {
-      page.value = loadedPage;
-    }
-    if(page.value == loadedPage) {
-      page.value++;
-    }
+    page.value++;
+    easyRefreshController?.finishLoad();
+    easyRefreshController?.finishRefresh();
     loadData().then((value) {
-      isLoading.value = false;
       if (value.success) {
-        loadedPage++;
         total.value = value.subData;
         addWithFilter(value.data);
         easyRefreshController?.finishLoad();
+        isLoading.value = false;
       } else {
         showToast("Failed to load data".tr);
         easyRefreshController?.finishLoad(IndicatorResult.fail);
+        isLoading.value = false;
       }
     });
   }
 
-  void reset({String? newSort}) {
-    sort.value = newSort ?? sort.value;
+  void reset() {
     comics.clear();
-    if(!mangaSettingsController.picaPageViewMode.value || keyword == "leaderboard") {
+    easyRefreshController?.finishRefresh();
+    easyRefreshController?.finishLoad();
+    if(keyword == "leaderboard") {
       page.value = 1;
       total.value = 0;
     }
-    loadedPage = 0;
     isLoading.value = false;
     loadData().then((value) {
-      isLoading.value = false;
       if (value.success) {
         total.value = value.subData;
         addWithFilter(value.data);
         easyRefreshController?.finishRefresh();
+        isLoading.value = false;
       } else {
         showToast("Failed to load data".tr);
         easyRefreshController?.finishRefresh(IndicatorResult.fail);
+        isLoading.value = false;
       }
     });
+  }
+
+  void resetWithSort(int sort) {
+    this.sort.value = sort;
+    reset();
   }
 
   void pageFetch(int page) {
@@ -157,7 +176,7 @@ class ComicListController extends GetxController {
       return;
     }
     this.page.value = page;
-    reset();
+    easyRefreshController?.callRefresh();
   }
 
 }

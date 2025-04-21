@@ -40,7 +40,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         ),
         body: PicaComicsPage(
             keyword: "leaderboard",
-            type: leaderboardController.type.value),
+            type: "fixed"),
       ),
     );
   }

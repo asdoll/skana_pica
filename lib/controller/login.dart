@@ -69,5 +69,6 @@ class LoginController extends GetxController {
 
   void logout() {
     profileController.logout();
+    init();
   }
 }

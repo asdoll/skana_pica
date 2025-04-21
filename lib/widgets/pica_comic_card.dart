@@ -125,11 +125,9 @@ class _PicaComicCardState extends State<PicaComicCard> {
                   children: [
                     PicaTag(
                       text:
-                          "${"Last Read:".tr} ${getLastRead(visitHistoryController.history[comic.id])}${widget.type == "history" ? " ${getLastTime(visitHistoryController.history[comic.id])}" : ""}",
+                          "${"Last Read:".tr} ${getLastRead(visitHistoryController.history[comic.id])}${widget.type == "history" ? "  ${getLastTime(visitHistoryController.history[comic.id])}" : ""}",
                       type: "placed",
-                      style: Get.textTheme.bodySmall
-                          ?.copyWith(color: Get.theme.colorScheme.onSecondary),
-                      backgroundColor: Get.theme.colorScheme.secondary,
+                      backgroundColor: Get.context!.moonTheme?.tokens.colors.nappa60,
                     ),
                   ],
                 ),

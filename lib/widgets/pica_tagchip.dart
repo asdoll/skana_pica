@@ -48,14 +48,14 @@ class _PicaTagState extends State<PicaTag> {
           blockDialog(context, widget.text);
         }
       },
-      child: Container(
+      child: 
+      Container(
         padding: const EdgeInsets.all(4.0),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
           color: widget.backgroundColor ?? context.moonTheme?.tokens.colors.frieza60,
         ),
-        child: Text(widget.text,
-            style: widget.style).small(),
+        child: Text(widget.text).small(),
       ),
     );
   }

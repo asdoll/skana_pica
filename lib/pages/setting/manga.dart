@@ -103,22 +103,6 @@ class _MangaSettingPageState extends State<MangaSettingPage> {
               ),
             ),
             ListTile(
-              leading: Icon(Icons.view_agenda_outlined),
-              title: Text("Set page view mode".tr),
-              trailing: DropdownButton<bool>(
-                value: mangaSettingsController.picaPageViewMode.value,
-                items: [
-                  DropdownMenuItem(value: false, child: Text('Infinite Scroll'.tr)),
-                  DropdownMenuItem(value: true, child: Text('Page View'.tr)),
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    mangaSettingsController.setPicaPageViewMode(value);
-                  }
-                },
-              ),
-            ),
-            ListTile(
               leading: Icon(Icons.calendar_today),
               title: Text("Auto check-in".tr),
               trailing: Switch(

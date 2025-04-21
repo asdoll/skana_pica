@@ -16,7 +16,6 @@ import 'package:skana_pica/pages/setting/setting_page.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/widgetplugin.dart';
 import 'package:bootstrap_icons/bootstrap_icons.dart';
-import 'package:skana_pica/widgets/gotop.dart';
 import 'package:skana_pica/widgets/pica_comic_list.dart';
 
 class Mains extends StatefulWidget {
@@ -31,13 +30,13 @@ class Mains extends StatefulWidget {
 class _MainsState extends State<Mains> {
   @override
   Widget build(BuildContext context) {
-    globalScrollController.addListener(() {
-      if (globalScrollController.offset < context.height) {
-        homeController.showBackArea.value = false;
-      } else {
-        homeController.showBackArea.value = true;
-      }
-    });
+    // globalScrollController.addListener(() {
+    //   if (globalScrollController.offset < context.height) {
+    //     homeController.showBackArea.value = false;
+    //   } else {
+    //     homeController.showBackArea.value = true;
+    //   }
+    // });
     return Obx(
       () => profileController.isFirstLaunch.value
           ? Scaffold(
@@ -103,7 +102,7 @@ class _MainsState extends State<Mains> {
                     buildButton('Downloads'.tr, BootstrapIcons.download, 5),
                     buildButton('Settings'.tr, BootstrapIcons.gear, 6),
                   ]).paddingSymmetric(horizontal: 8)),
-              floatingActionButton: GoTop(),
+              //floatingActionButton: GoTop(),
               body: (homeController.pageIndex.value == 0 &&
                       categoriesController
                               .mainPageTags[homeController.tagIndex.value] ==

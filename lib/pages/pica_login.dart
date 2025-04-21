@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/controller/login.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
+import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/widgetplugin.dart';
 
 class PicaLoginPage extends StatefulWidget {
@@ -48,9 +49,6 @@ class _PicaLoginPageState extends State<PicaLoginPage> {
                         controller: accountController,
                         hasFloatingLabel: true,
                         hintText: "Account".tr,
-                        validator: (String? value) => value?.length != null 
-                            ? "Please enter account and password".tr
-                            : null,
                         onTapOutside: (PointerDownEvent _) =>
                             FocusManager.instance.primaryFocus?.unfocus(),
                         leading: const Icon(
@@ -75,9 +73,6 @@ class _PicaLoginPageState extends State<PicaLoginPage> {
                         obscureText: _hidePassword,
                         hasFloatingLabel: true,
                         hintText: "Password".tr,
-                        validator: (String? value) => value?.length != null 
-                            ? "Please enter account and password".tr
-                            : null,
                         onTapOutside: (PointerDownEvent _) =>
                             FocusManager.instance.primaryFocus?.unfocus(),
                         leading: const Icon(
@@ -112,6 +107,10 @@ class _PicaLoginPageState extends State<PicaLoginPage> {
                     ),
                     actions: [filledButton(
                       onPressed: () {
+                        if(accountController.text.isEmpty || passwordController.text.isEmpty) {
+                          showToast("Please enter account and password".tr);
+                          return;
+                        }
                         loginController.picalogin(accountController.text,
                             passwordController.text, start: widget.start);
                       },

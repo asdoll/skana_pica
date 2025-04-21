@@ -173,11 +173,12 @@ Widget filledButton(
     MoonButtonSize? buttonSize,
     Widget? leading,
     Color? textColor,
-    Color? color}) {
+    Color? color,
+    bool applyDarkMode = false}) {
   return MoonFilledButton(
     buttonSize: buttonSize ?? MoonButtonSize.sm,
     onTap: onPressed,
-    label: label == null ? null : Text(label, style: TextStyle(color: textColor)),
+    label: label == null ? null : Text(label, style: TextStyle(color: textColor ?? (settings.isDarkMode ? Colors.white : Colors.black))),
     backgroundColor: color,
   );
 }
@@ -242,6 +243,7 @@ AppBar appBar(
         Widget? leading = const CommonBackArea(),
         List<Widget>? actions}) =>
     AppBar(
+      leadingWidth: 40,
       title: MoonMenuItem(
           onTap: () {},
           label: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis)
@@ -254,7 +256,7 @@ AppBar appBar(
                           color: Get.context?.moonTheme?.textAreaTheme.colors
                               .helperTextColor))
                   .subHeader()),
-      leading: leading,
+      leading: Transform.translate(offset: Offset(0, 2),child: leading),
       actions: actions,
       shape: Border(
           bottom: BorderSide(

@@ -59,9 +59,7 @@ class _PicacgComicPageState extends State<PicacgComicPage>
     });
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.comic.title),
-      ),
+      appBar: appBar(title: widget.comic.title),
       body: Obx(() {
         if (comicDetailController.isLoading.value) {
           return Center(child: CircularProgressIndicator());
