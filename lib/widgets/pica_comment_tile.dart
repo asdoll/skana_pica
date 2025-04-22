@@ -64,9 +64,7 @@ class PicaCommentTile extends StatelessWidget {
               SizedBox(
                 height: 16,
               ),
-              Expanded(
-                child: Text(comment.text).subHeader(),
-              ).paddingHorizontal(20),
+              Text(comment.text).subHeader().paddingHorizontal(20),
               SizedBox(
                 height: 8,
               ),

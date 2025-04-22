@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/api/managers/image_cache_manager.dart';
 import 'package:skana_pica/controller/comment.dart';
@@ -32,7 +33,9 @@ class _PicaRepliesPageState extends State<PicaRepliesPage> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: appBar(title: "Replies".tr),
+      backgroundColor: context.moonTheme?.tokens.colors.gohan,
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
             height: 16,
@@ -64,12 +67,13 @@ class _PicaRepliesPageState extends State<PicaRepliesPage> {
           SizedBox(
             height: 16,
           ),
-          Text(comment.text).small().paddingHorizontal(20),
+          Text(comment.text).subHeader().paddingHorizontal(20),
           SizedBox(
-            width: 16,
+            height: 16,
           ),
           Expanded(
             child: Obx(() => ListView.builder(
+              shrinkWrap: true,
                 itemCount: commentController.replies.value.comments.length,
                 itemBuilder: (context, index) {
                   if (index ==

@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/controller/setting_controller.dart';
 import 'package:skana_pica/controller/theme_controller.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
@@ -23,165 +25,164 @@ class SettingPage extends StatefulWidget {
 class _SettingPageState extends State<SettingPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Settings".tr),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () => Get.back(),
-        ),
-      ),
-      body: _buildContent(context).padding(EdgeInsets.only(top: 20)),
-    );
-  }
-
-  Widget _buildContent(BuildContext context) {
     SettingController settingController = Get.put(SettingController());
-    return ListView(
+    return Obx(() => ListView(
       children: [
-        ListTile(
-          leading: Icon(Icons.person),
-          title: Text('Account'.tr),
+        moonListTile(
+          leading: Icon(BootstrapIcons.person),
+          title: 'Account'.tr,
           onTap: () {
             Go.to(AccountPage());
           },
         ),
-        ListTile(
-                leading: Icon(Icons.dark_mode_rounded),
-                trailing: DropdownButton<String>(
-                  value: tc.darkMode.value,
-                  items: [
-                    DropdownMenuItem(value: "0", child: Text('Follow System'.tr)),
-                    DropdownMenuItem(value: "1", child: Text('Light'.tr)),
-                    DropdownMenuItem(value: "2", child: Text('Dark'.tr)),
+        moonListTile(
+          leading: Icon(BootstrapIcons.moon),
+          title: 'Dark Mode'.tr,
+          trailing: MoonDropdown(
+            offset: Offset(-10, 0),
+            minWidth: 100,
+            maxWidth: 100,
+            show: settingController.darkMenu.value,
+            //constrainWidthToChild: true,
+            onTapOutside: () => settingController.darkMenu.value = false,
+            content: Column(
+              children: [
+                    MoonMenuItem(onTap: () {
+                      settingController.darkMenu.value = false;
+                      tc.changeDarkMode("0");
+                    }, label: Text('Follow System'.tr)),
+                    MoonMenuItem(onTap: () {
+                      settingController.darkMenu.value = false;
+                      tc.changeDarkMode("1");
+                    }, label: Text('Light'.tr)),
+                    MoonMenuItem(onTap: () {
+                      settingController.darkMenu.value = false;
+                      tc.changeDarkMode("2");
+                    }, label: Text('Dark'.tr)),
                   ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      tc.changeDarkMode(value);
-                    }
-                  },
-                ),
-                title: Text('Dark Mode'.tr),
-              ),
-              ListTile(
-                leading: Icon(Icons.language),
-                trailing: DropdownButton<String>(
-                  value: settingController.language.value,
-                  items: [
-                    DropdownMenuItem(
-                        value: "", child: Text('Follow System'.tr)),
-                    DropdownMenuItem(value: "cn", child: Text("中文(简体)")),
-                    DropdownMenuItem(value: "tw", child: Text("中文(繁體)")),
-                    DropdownMenuItem(value: "en", child: Text("English")),
+            ),
+            child: filledButton(
+              label: tc.darkMode.value == "0" ? 'Follow System'.tr : tc.darkMode.value == "1" ? 'Light'.tr : 'Dark'.tr,
+              onPressed: () => settingController.darkMenu.value = !settingController.darkMenu.value,
+            ),
+          ),
+        ),
+        moonListTile(
+          leading: Icon(BootstrapIcons.translate),
+          title: 'Language'.tr,
+          trailing: MoonDropdown(
+            offset: Offset(-10, 0),
+            minWidth: 100,
+            maxWidth: 100,
+            show: settingController.langMenu.value,
+            onTapOutside: () => settingController.langMenu.value = false,
+            content: Column(
+              children: [
+                    MoonMenuItem(onTap: () {
+                      settingController.langMenu.value = false;
+                      settingController.changeLanguage("");
+                    }, label: Text('Follow System'.tr)),
+                    MoonMenuItem(onTap: () {
+                      settingController.langMenu.value = false;
+                      settingController.changeLanguage("cn");
+                    }, label: Text("中文(简体)")),
+                    MoonMenuItem(onTap: () {
+                      settingController.langMenu.value = false;
+                      settingController.changeLanguage("tw");
+                    }, label: Text("中文(繁體)")),
+                    MoonMenuItem(onTap: () {
+                      settingController.langMenu.value = false;
+                      settingController.changeLanguage("en");
+                    }, label: Text("English")),
                   ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      settingController.changeLanguage(value);
-                    }
-                  },
+            ),
+            child: filledButton(
+              label: settingController.language.value == "" ? 'Follow System'.tr : settingController.language.value == "cn" ? '中文(简体)'.tr : settingController.language.value == "tw" ? '中文(繁體)'.tr : 'English'.tr,
+              onPressed: () => settingController.langMenu.value = !settingController.langMenu.value,
+            ),
+          ),
+        ),
+        moonListTile(
+            leading: Icon(BootstrapIcons.arrow_counterclockwise),
+            title: 'Main orientation'.tr,
+            trailing: Obx(
+              () => MoonDropdown(
+                offset: Offset(-10, 0),
+                minWidth: 100,
+                maxWidth: 100,
+                show: settingController.orienMenu.value,
+                onTapOutside: () => settingController.orienMenu.value = false,
+                content: Column(
+                  children: [
+                    MoonMenuItem(onTap: () {
+                      settingController.orienMenu.value = false;
+                      settingController.changeMainOrientation("0");
+                    }, label: Text("Auto".tr)),
+                    MoonMenuItem(onTap: () {
+                      settingController.orienMenu.value = false;
+                      settingController.changeMainOrientation("1");
+                    }, label: Text("Portrait".tr)),
+                    MoonMenuItem(onTap: () {
+                      settingController.orienMenu.value = false;
+                      settingController.changeMainOrientation("2");
+                    }, label: Text("Landscape".tr)),
+                  ],
                 ),
-                title: Text("Language".tr),
-              ),
-        ListTile(
-          leading: Icon(Icons.image),
-          title: Text('Manga Settings'.tr),
-          onTap: () {
-            Go.to(MangaSettingPage());
-          },
-        ),
-        ListTile(
-          leading: Icon(Icons.cached),
-          title: Text('Cache & Restore'.tr),
-          onTap: () {
-            Go.to(CacheSetting());
-          },
-        ),
-        ListTile(
-            leading: Icon(Icons.switch_access_shortcut_rounded),
-            title: Text('Home Page'.tr),
-            trailing: Obx(
-              () => DropdownButton(
-                value: settingController.defaultPage.value,
-                items: [
-                  DropdownMenuItem(
-                    value: "0",
-                    child: Text("Main Page".tr),
-                  ),
-                  DropdownMenuItem(
-                    value: "1",
-                    child: Text("Search Page".tr),
-                  ),
-                  DropdownMenuItem(
-                    value: "2",
-                    child: Text("Me Page".tr),
-                  ),
-                ],
-                onChanged: (String? value) {
-                  settingController.changeDefaultPage(value!);
-                },
-              ),
-            )),
-        ListTile(
-            leading: Icon(Icons.screen_lock_rotation_rounded),
-            title: Text('Main orientation'.tr),
-            trailing: Obx(
-              () => DropdownButton(
-                value: settingController.mainOrientation.value,
-                items: [
-                  DropdownMenuItem(
-                    value: "0",
-                    child: Text("Auto".tr),
-                  ),
-                  DropdownMenuItem(
-                    value: "1",
-                    child: Text("Portrait".tr),
-                  ),
-                  DropdownMenuItem(
-                    value: "2",
-                    child: Text("Landscape".tr),
-                  ),
-                ],
-                onChanged: (String? value) {
-                  settingController.changeMainOrientation(value!);
-                },
+                child: filledButton(
+                  label: settingController.mainOrientation.value == "0" ? 'Auto'.tr : settingController.mainOrientation.value == "1" ? 'Portrait'.tr : 'Landscape'.tr,
+                  onPressed: () => settingController.orienMenu.value = !settingController.orienMenu.value,
+                ),
               ),
             )),
           if(Platform.isAndroid)
-          ListTile(
-            leading: Icon(Icons.refresh_sharp),
-            title: Text('High Refresh Rate'.tr),
+          moonListTile(
+            leading: Icon(BootstrapIcons.arrow_clockwise),
+            title: 'High Refresh Rate'.tr,
             trailing: Obx(
-              () => Switch(
+              () => MoonSwitch(
                 value: settingController.highRefreshRate.value,
                 onChanged: settingController.changeHighRefreshRate,
               ),
             ),
           ),
-          ListTile(
-            leading: Icon(Icons.info),
-            title: Text('About'.tr),
+           moonListTile(
+            leading: Icon(BootstrapIcons.image),
+            title: 'Manga Settings'.tr,
             onTap: () {
-              showAboutDialog(
-                context: context,
-                applicationIcon: Image.asset(
-                  "assets/images/0.png",
-                  width: 50,
-                  height: 50,
-                ),
-                applicationName: "Skana Pica",
-                applicationVersion: settingController.getVersion(),
-                applicationLegalese: "© 2024 Skana - Asdoll",
+              Go.to(MangaSettingPage());
+          },
+        ),
+        moonListTile(
+          leading: Icon(BootstrapIcons.database),
+          title: 'Cache & Restore'.tr,
+          onTap: () {
+            Go.to(CacheSetting());
+          },
+        ),
+          moonListTile(
+            leading: Icon(BootstrapIcons.info_circle),
+            title: 'About'.tr,
+            onTap: () {
+              alertDialog(
+                context,
+                "Skana Pica",
+                '''Version:${settingController.getVersion()}\n\n© 2024 Skana - Asdoll
+                ''',
+                [filledButton(
+                label: 'Ok'.tr,
+                onPressed: () => Get.back(),
+              )]
               );
             },
           ),
-          ListTile(
-            leading: Icon(Icons.update),
-            title: Text('Update'.tr),
+          moonListTile(
+            leading: Icon(BootstrapIcons.download),
+            title: 'Update'.tr,
             onTap: () {
               Go.to(UpdatePage());
             },
           ),
       ],
-    );
+    ));
   }
 }

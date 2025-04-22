@@ -1,9 +1,12 @@
+import 'package:bootstrap_icons/bootstrap_icons.dart' show BootstrapIcons;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/controller/login.dart';
 import 'package:skana_pica/controller/profile.dart';
 import 'package:skana_pica/pages/pica_login.dart';
 import 'package:skana_pica/util/leaders.dart';
+import 'package:skana_pica/util/widgetplugin.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -34,12 +37,8 @@ class _AccountPageState extends State<AccountPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Account".tr),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () => Get.back(),
-        ),
+      appBar: appBar(
+        title: "Account".tr,
       ),
       body: Obx(() {
         if (profileController.loading.value) {
@@ -50,17 +49,17 @@ class _AccountPageState extends State<AccountPage> {
           return ListView(
             children: [
               if (!loginController.isLogin.value)
-                ListTile(
-                  title: Text("Login".tr),
-                  trailing: Icon(Icons.login),
+                moonListTile(
+                  title: "Login".tr,
+                  trailing: Icon(BootstrapIcons.box_arrow_in_left),
                   onTap: () {
                     Go.to(PicaLoginPage());
                   },
                 ),
               if (loginController.isLogin.value)
-                ListTile(
-                  title: Text("Username".tr),
-                  subtitle: Text(profileController.profile.value.name),
+                moonListTile(
+                  title: "Username".tr,
+                  subtitle: profileController.profile.value.name,
                 ),
               // TODO: Avatar change
               // if(loginController.isLogin.value)
@@ -76,62 +75,82 @@ class _AccountPageState extends State<AccountPage> {
               //     }
               //   ),
               if (loginController.isLogin.value)
-                ListTile(
-                  title: Text("Email".tr),
-                  subtitle: Text(profileController.profile.value.email),
+                moonListTile(
+                  title: "Email".tr,
+                  subtitle: profileController.profile.value.email,
                 ),
               if (loginController.isLogin.value)
-                ListTile(
-                  title: Text("Level".tr),
-                  subtitle: Text(
-                      "(Lv. ${profileController.profile.value.level}) (${profileController.profile.value.title})"),
+                moonListTile(
+                  title: "Level".tr,
+                  subtitle:
+                      "(Lv. ${profileController.profile.value.level}) (${profileController.profile.value.title})",
                 ),
               if (loginController.isLogin.value)
-                ListTile(
-                  title: Text("${"Slogan".tr}(${"Tap to change".tr})"),
-                  subtitle: Text(profileController.profile.value.slogan ?? ""),
+                moonListTile(
+                  title: "${"Slogan".tr}(${"Tap to change".tr})",
+                  subtitle: profileController.profile.value.slogan ?? "",
                   onTap: () {
-                    showDialog(
+                    showMoonModal(
                         context: context,
                         builder: (context) {
                           TextEditingController controller =
                               TextEditingController();
-                          return AlertDialog(
-                            title: Text("Slogan".tr),
-                            content: TextField(
-                              controller: controller,
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(),
-                                hintText: "Slogan".tr,
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: Text("Cancel".tr),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  if (controller.text.trim().isEmpty) {
-                                    showToast("Slogan can't be empty".tr);
-                                    return;
-                                  }
-                                  profileController
-                                      .updateSlogan(controller.text);
-                                  Navigator.of(context).pop();
-                                },
-                                child: Text("Save".tr),
-                              ),
+                          return Dialog(
+                              child: ListView(
+                            shrinkWrap: true,
+                            children: [
+                              MoonAlert(
+                                  borderColor: Get.context?.moonTheme
+                                      ?.buttonTheme.colors.borderColor
+                                      .withValues(alpha: 0.5),
+                                  showBorder: true,
+                                  label: Text("Slogan".tr).header(),
+                                  verticalGap: 16,
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      MoonTextInput(
+                                        controller: controller,
+                                        hintText: "Slogan".tr,
+                                      ).paddingVertical(8),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          outlinedButton(
+                                                  label: "Cancel".tr,
+                                                  onPressed: () => Get.back())
+                                              .paddingRight(8),
+                                          filledButton(
+                                              label: "Save".tr,
+                                              onPressed: () {
+                                                FocusManager.instance.primaryFocus?.unfocus();
+                                                if (controller.text
+                                                    .trim()
+                                                    .isEmpty) {
+                                                  showToast(
+                                                      "Slogan can't be empty"
+                                                          .tr);
+                                                  return;
+                                                }
+                                                profileController.updateSlogan(
+                                                    controller.text);
+                                                Navigator.of(context).pop();
+                                              }).paddingRight(8)
+                                        ],
+                                      ),
+                                    ],
+                                  )),
                             ],
-                          );
+                          ));
                         });
                   },
                 ),
               if (loginController.isLogin.value)
-                ListTile(
-                    title: Text("Change Password".tr),
+                moonListTile(
+                    title: "Change Password".tr,
                     onTap: () {
                       showDialog(
                           context: context,
@@ -200,11 +219,21 @@ class _AccountPageState extends State<AccountPage> {
                           });
                     }),
               if (loginController.isLogin.value)
-                ListTile(
-                  title: Text("Logout".tr),
-                  trailing: Icon(Icons.logout),
+                moonListTile(
+                  title: "Logout".tr,
+                  trailing: Icon(BootstrapIcons.box_arrow_in_right),
                   onTap: () {
-                    loginController.logout();
+                    alertDialog(
+                        context, "Logout".tr, "Are you sure to logout?".tr, [
+                      outlinedButton(
+                        label: "Cancel".tr,
+                        onPressed: () => Get.back(),
+                      ),
+                      filledButton(
+                        label: "Logout".tr,
+                        onPressed: () => loginController.logout(),
+                      ),
+                    ]);
                   },
                 ),
             ],

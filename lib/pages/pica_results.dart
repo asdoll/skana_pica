@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:skana_pica/util/widgetplugin.dart';
 import 'package:skana_pica/widgets/pica_comic_list.dart';
 
 class PicaResultsPage extends StatefulWidget {
@@ -20,13 +21,6 @@ class _PicaResultsPageState extends State<PicaResultsPage> {
   @override
   void initState() {
     super.initState();
-    // scrollController.addListener(() {
-    //   if (scrollController.offset < context.height) {
-    //     homeController.showBackArea.value = false;
-    //   } else {
-    //     homeController.showBackArea.value = true;
-    //   }
-    // });
   }
 
   @override
@@ -38,10 +32,9 @@ class _PicaResultsPageState extends State<PicaResultsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.keyword),
+      appBar: appBar(
+        title: widget.keyword,
       ),
-      //floatingActionButton: GoTop(scrollController: scrollController),
       body: PicaComicsPage(
         keyword: widget.keyword,
         type: "search",

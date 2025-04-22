@@ -13,6 +13,10 @@ class SettingController extends GetxController {
   RxString mainOrientation = settings.general[6].obs;
   RxBool highRefreshRate = settings.highRefreshRate.obs;
   RxString language = settings.general[2].obs;
+  RxBool darkMenu = false.obs;
+  RxBool langMenu = false.obs;
+  RxBool homePageMenu = false.obs;
+  RxBool orienMenu = false.obs;
 
   void changeDefaultPage(String index) {
     defaultPage.value = index;

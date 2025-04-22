@@ -7,7 +7,6 @@ import 'package:skana_pica/controller/setting_controller.dart'
     show mangaSettingsController;
 import 'package:skana_pica/pages/leaderboard.dart';
 import 'package:skana_pica/pages/pica_download.dart';
-import 'package:skana_pica/pages/pica_favor.dart';
 import 'package:skana_pica/pages/pica_history.dart';
 import 'package:skana_pica/pages/pica_login.dart';
 import 'package:moon_design/moon_design.dart';
@@ -139,7 +138,7 @@ class _MainsState extends State<Mains> {
                                       : switch (homeController.pageIndex.value) {
                                           1 => PicaSearchPage(),
                                           2 => LeaderboardPage(),
-                                          3 => PicaFavorPage(),
+                                          3 => PicaComicsPage(keyword: "bookmarks", type: "me"),
                                           4 => PicaHistoryPage(),
                                           5 => PicaDownloadPage(),
                                           _ => SettingPage(),

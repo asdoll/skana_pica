@@ -35,14 +35,10 @@ class Updater extends GetxController {
     final result = await checkUpdate("");
     this.result.value = result;
     try {
-      if (result == Result.yes) {
-        controller?.finishRefresh();
-      }
-      if (result == Result.no) {
-        controller?.finishRefresh(IndicatorResult.noMore);
-      }
       if (result == Result.timeout) {
         controller?.finishRefresh(IndicatorResult.fail);
+      } else {
+        controller?.finishRefresh();
       }
     } catch (e) {
       log.w(e);

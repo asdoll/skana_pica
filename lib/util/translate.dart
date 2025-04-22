@@ -440,6 +440,15 @@ class Messages extends Translations {
           "Hide": "隐藏",
           "Please select at least one episode": "请至少选择一个",
           "Replies": "回复",
+          "Reply:": "回复:",
+          "Loading": "加载中",
+          "Failed": "失败",
+          "Successed": "成功",
+          "No more": "没有更多",
+          "Username": "用户名",
+          "Tap to change": "点击修改",
+          "Email": "邮箱",
+          "Are you sure to logout?": "您确定要登出吗？",
 
 //below are translation with parameters
           "at_page": "第@page/@total页",
@@ -663,6 +672,14 @@ class Messages extends Translations {
           "Hide": "隱藏",
           "Please select at least one episode": "請至少選擇一個",
           "Replies": "回復",
+          "Reply:": "回復:",
+          "Loading": "載入中",
+          "Failed": "失敗",
+          "Successed": "成功",
+          "No more": "沒有更多",
+          "Tap to change": "點選修改",
+          "Email": "郵箱",
+          "Are you sure to logout?": "您確定要登出嗎？",
 
 //below are translation with parameters
           "at_page": "第@page/@total頁",

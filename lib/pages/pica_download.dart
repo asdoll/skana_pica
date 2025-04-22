@@ -22,11 +22,7 @@ class _PicaDownloadPageState extends State<PicaDownloadPage> {
     TextEditingController pageJumpController = TextEditingController();
     ScrollController scrollController = ScrollController();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("My Downloads".tr),
-      ),
-      body: Obx(() => Column(
+    return Obx(() => Column(
             children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -178,7 +174,7 @@ class _PicaDownloadPageState extends State<PicaDownloadPage> {
                     controller: scrollController),
               ),
             ],
-          )),
+          ),
     );
   }
 }
