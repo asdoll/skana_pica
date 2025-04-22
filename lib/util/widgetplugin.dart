@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/config/setting.dart';
-import 'package:skana_pica/widgets/backarea.dart';
+import 'package:skana_pica/widgets/icons.dart';
 
 extension WidgetExtension on Widget {
   Widget padding(EdgeInsetsGeometry padding) {
@@ -82,6 +82,24 @@ extension WidgetExtension on Widget {
   }
 }
 
+extension ColorExtension on Color {
+  Color darken([int percent = 10]) {
+    return Color.lerp(this, Colors.black, percent / 100) ?? this;
+  }
+
+  Color lighten([int percent = 10]) {
+    return Color.lerp(this, Colors.white, percent / 100) ?? this;
+  }
+
+  // lighten if dark by default
+  Color applyDarkMode({bool reverse = false, int percent = 20}) {
+    if (reverse) {
+      return settings.isDarkMode ? darken(percent) : lighten(percent);
+    }
+    return settings.isDarkMode ? lighten(percent) : darken(percent);
+  }
+}
+
 final homeKey = GlobalKey<ScaffoldState>();
 
 void openDrawer() {
@@ -127,25 +145,30 @@ Future<T?> alertDialog<T>(BuildContext context, String title, String content,
       });
 }
 
-Widget moonCard({String? title, required Widget content, List<Widget>? actions}){
+Widget moonCard(
+    {String? title,
+    required Widget content,
+    List<Widget>? actions,
+    EdgeInsetsGeometry? padding,
+    Color? backgroundColor}) {
   return MoonAlert(
-                backgroundColor: settings.isDarkMode ? MoonColors.dark.gohan : MoonColors.light.gohan,
-                showBorder: false,
-                label: title == null ? Container() : Text(title).header(),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    content,
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: actions
-                              ?.map((action) => action.paddingRight(8))
-                              .toList() ??
-                          [],
-                    ),
-                  ],
-                ));
+      backgroundColor: backgroundColor ??
+          (Get.context?.moonTheme?.tokens.colors.gohan ?? Colors.white),
+      padding: padding,
+      showBorder: false,
+      label: title == null ? Container() : Text(title).header(),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          content,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children:
+                actions?.map((action) => action.paddingRight(8)).toList() ?? [],
+          ),
+        ],
+      ));
 }
 
 Widget outlinedButton(
@@ -158,8 +181,8 @@ Widget outlinedButton(
           .withValues(alpha: 0.5));
 }
 
-
-Widget textButton({String? label, VoidCallback? onPressed, MoonButtonSize? buttonSize}) {
+Widget textButton(
+    {String? label, VoidCallback? onPressed, MoonButtonSize? buttonSize}) {
   return MoonTextButton(
     buttonSize: buttonSize ?? MoonButtonSize.sm,
     onTap: onPressed,
@@ -178,7 +201,14 @@ Widget filledButton(
   return MoonFilledButton(
     buttonSize: buttonSize ?? MoonButtonSize.sm,
     onTap: onPressed,
-    label: label == null ? null : Text(label, style: TextStyle(color: textColor ?? (settings.isDarkMode ? Colors.white : Colors.black))),
+    label: label == null
+        ? null
+        : Text(label,
+            style: TextStyle(
+                color: textColor ??
+                    (applyDarkMode
+                        ? (settings.isDarkMode ? Colors.white : Colors.black)
+                        : null))),
     backgroundColor: color,
   );
 }
@@ -192,7 +222,9 @@ Widget moonListTile(
   return InkWell(
       onTap: onTap ?? () {},
       child: MoonMenuItem(
-        backgroundColor: settings.isDarkMode ? MoonColors.dark.gohan : MoonColors.light.gohan,
+        backgroundColor: settings.isDarkMode
+            ? MoonColors.dark.gohan
+            : MoonColors.light.gohan,
         onTap: onTap ?? () {},
         label: Text(title).header(),
         content: subtitle == null ? null : Text(subtitle).subHeader(),
@@ -213,7 +245,9 @@ Widget moonListTileWidgets(
   return InkWell(
       onTap: onTap ?? () {},
       child: MoonMenuItem(
-        backgroundColor: settings.isDarkMode ? MoonColors.dark.gohan : MoonColors.light.gohan,
+        backgroundColor: settings.isDarkMode
+            ? MoonColors.dark.gohan
+            : MoonColors.light.gohan,
         menuItemPadding: menuItemPadding,
         menuItemCrossAxisAlignment: menuItemCrossAxisAlignment,
         onTap: onTap ?? () {},
@@ -229,7 +263,7 @@ Widget emptyPlaceholder(BuildContext context) {
   return Container(
     padding: const EdgeInsets.only(bottom: 100),
     width: double.infinity,
-    height: context.height/1.5,
+    height: context.height / 1.5,
     alignment: Alignment.center,
     child: Center(
       child: Text('[ ]').h1(),
@@ -240,14 +274,15 @@ Widget emptyPlaceholder(BuildContext context) {
 AppBar appBar(
         {required String title,
         String? subtitle,
-        Widget? leading = const CommonBackArea(),
+        Widget? leading = const NormalBackButton(),
         List<Widget>? actions}) =>
     AppBar(
       leadingWidth: 40,
       title: MoonMenuItem(
           onTap: () {},
           label: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis)
-              .appHeader(),
+              .appHeader()
+              .paddingRight(8),
           verticalGap: 0,
           content: subtitle == null
               ? null
@@ -256,19 +291,20 @@ AppBar appBar(
                           color: Get.context?.moonTheme?.textAreaTheme.colors
                               .helperTextColor))
                   .subHeader()),
-      leading: Transform.translate(offset: Offset(0, 2),child: leading),
+      leading: Transform.translate(offset: Offset(0, 2), child: leading),
       actions: actions,
       shape: Border(
           bottom: BorderSide(
-        color: settings.isDarkMode ? Colors.white.withValues(alpha: 0.5) : Colors.black.withValues(alpha: 0.5),
+        color: settings.isDarkMode
+            ? Colors.white.withValues(alpha: 0.5)
+            : Colors.black.withValues(alpha: 0.5),
         width: 0.2,
       )),
     );
 
-
 extension TextExtension on Text {
-
-  Color get _textColor => style?.color ?? (settings.isDarkMode ? Colors.white : Colors.black);
+  Color get _textColor =>
+      style?.color ?? (settings.isDarkMode ? Colors.white : Colors.black);
 
   Text appHeader() => Text(
         data ?? '',
@@ -276,8 +312,7 @@ extension TextExtension on Text {
         overflow: overflow,
         strutStyle: strutStyle,
         style: Get.context?.moonTheme?.tokens.typography.heading.text18
-            .copyWith(
-                color: _textColor),
+            .copyWith(color: _textColor),
       );
 
   Text appSubHeader() => Text(
@@ -286,8 +321,7 @@ extension TextExtension on Text {
         overflow: overflow,
         strutStyle: strutStyle,
         style: Get.context?.moonTheme?.tokens.typography.heading.text16
-            .copyWith(
-                color: _textColor),
+            .copyWith(color: _textColor),
       );
 
   Text header() => Text(
@@ -296,8 +330,7 @@ extension TextExtension on Text {
         overflow: overflow,
         strutStyle: strutStyle,
         style: Get.context?.moonTheme?.tokens.typography.heading.text16
-            .copyWith(
-                color: _textColor),
+            .copyWith(color: _textColor),
       );
 
   Text subHeader() => Text(
@@ -306,20 +339,18 @@ extension TextExtension on Text {
         overflow: overflow,
         strutStyle: strutStyle,
         style: Get.context?.moonTheme?.tokens.typography.heading.text14
-            .copyWith(
-                color: _textColor),
+            .copyWith(color: _textColor),
       );
 
-  Text small(){
+  Text small() {
     return Text(
-        data ?? '',
-        maxLines: maxLines,
-        overflow: overflow,
-        strutStyle: strutStyle,
-        style: Get.context?.moonTheme?.tokens.typography.heading.text12
-            .copyWith(
-                color: _textColor),
-      );
+      data ?? '',
+      maxLines: maxLines,
+      overflow: overflow,
+      strutStyle: strutStyle,
+      style: Get.context?.moonTheme?.tokens.typography.heading.text12
+          .copyWith(color: _textColor),
+    );
   }
 
   Text underlineSmall() => Text(
@@ -328,9 +359,7 @@ extension TextExtension on Text {
         overflow: overflow,
         strutStyle: strutStyle,
         style: Get.context?.moonTheme?.tokens.typography.heading.text12
-            .copyWith(
-                color: _textColor,
-                decoration: TextDecoration.underline),
+            .copyWith(color: _textColor, decoration: TextDecoration.underline),
       );
 
   Text subHeaderForgound() => Text(
@@ -352,8 +381,7 @@ extension TextExtension on Text {
         overflow: overflow,
         strutStyle: strutStyle,
         style: Get.context?.moonTheme?.tokens.typography.heading.text10
-            .copyWith(
-                color: _textColor),
+            .copyWith(color: _textColor),
       );
 
   Text h1() => Text(
@@ -362,8 +390,7 @@ extension TextExtension on Text {
         overflow: overflow,
         strutStyle: strutStyle,
         style: Get.context?.moonTheme?.tokens.typography.heading.text40
-            .copyWith(
-                color: _textColor),
+            .copyWith(color: _textColor),
       );
 
   Text h2() => Text(
@@ -372,8 +399,7 @@ extension TextExtension on Text {
         overflow: overflow,
         strutStyle: strutStyle,
         style: Get.context?.moonTheme?.tokens.typography.heading.text32
-            .copyWith(
-                color: _textColor),
+            .copyWith(color: _textColor),
       );
 }
 

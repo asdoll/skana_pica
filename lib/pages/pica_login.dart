@@ -86,7 +86,7 @@ class _PicaLoginPageState extends State<PicaLoginPage> {
                               child: Align(
                                 alignment: Alignment.centerRight,
                                 child: Text(
-                                  _hidePassword ? "Show" : "Hide",
+                                  _hidePassword ? "Show".tr : "Hide".tr,
                                   style: TextStyle(
                                     decoration: TextDecoration.underline,
                                     color: Colors.grey,

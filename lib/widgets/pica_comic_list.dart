@@ -9,8 +9,7 @@ import 'package:skana_pica/controller/main_controller.dart';
 import 'package:skana_pica/controller/profile.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/widgetplugin.dart';
-import 'package:skana_pica/widgets/error_loading.dart';
-import 'package:skana_pica/widgets/headfoot.dart';
+import 'package:skana_pica/widgets/icons.dart';
 import 'package:skana_pica/widgets/pica_comic_card.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
@@ -71,6 +70,7 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
           ? ErrorLoading(text: "Not Logged In".tr)
           : Column(
               children: [
+                if (controller.total.value > 1)
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -132,7 +132,6 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                                           : "Most Viewed".tr,
                               onPressed: () => controller.filterMenu.value =
                                   !controller.filterMenu.value)),
-                    if (controller.total.value > 1)
                       TextButton(
                           onPressed: () {
                             showMoonModal(
@@ -222,7 +221,6 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                             'total': controller.total.toString()
                           })).subHeader()),
                     Expanded(child: SizedBox()),
-                    if (controller.total.value > 1)
                       filledButton(
                         color: context.moonTheme?.tokens.colors.cell60,
                         label: "Prev Page".tr,
@@ -236,8 +234,7 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                                 controller.pageFetch(controller.page.value - 1);
                               },
                       ),
-                    if (controller.total.value > 1) SizedBox(width: 4),
-                    if (controller.total.value > 1)
+                    SizedBox(width: 4),
                       filledButton(
                         color: context.moonTheme?.tokens.colors.cell60,
                         label: "Next Page".tr,
@@ -252,7 +249,7 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                                 controller.pageFetch(controller.page.value + 1);
                               },
                       ),
-                    if (controller.total.value > 1) SizedBox(width: 16),
+                    SizedBox(width: 16),
                   ],
                 ),
                 Expanded(

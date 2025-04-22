@@ -43,7 +43,6 @@ class _LocalComicPageState extends State<LocalComicPage>
 
   @override
   Widget build(BuildContext context) {
-    TextStyle? tagStyle = Theme.of(context).textTheme.bodyLarge;
     Color bgColor = Theme.of(context).colorScheme.primaryContainer;
     Color bgColor2 = Theme.of(context).colorScheme.primaryContainer;
 
@@ -241,14 +240,12 @@ class _LocalComicPageState extends State<LocalComicPage>
                     PicaTag(
                       text: "Category".tr,
                       type: '',
-                      style: tagStyle,
                       backgroundColor: bgColor,
                     ),
                     ...locaComicController.comic.value.categories
                         .map((e) => PicaTag(
                               text: e,
                               type: 'category',
-                              style: tagStyle,
                               backgroundColor: bgColor,
                             ))
                   ],
@@ -263,13 +260,11 @@ class _LocalComicPageState extends State<LocalComicPage>
                     PicaTag(
                       text: "Tags".tr,
                       type: '',
-                      style: tagStyle,
                       backgroundColor: bgColor2,
                     ),
                     ...locaComicController.comic.value.tags.map((e) => PicaTag(
                           text: e,
                           type: 'tag',
-                          style: tagStyle,
                           backgroundColor: bgColor2,
                         ))
                   ],

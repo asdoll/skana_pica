@@ -1,10 +1,13 @@
+import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/api/managers/image_cache_manager.dart';
 import 'package:skana_pica/pages/pica_replies.dart';
 import 'package:skana_pica/util/leaders.dart';
+import 'package:skana_pica/util/widgetplugin.dart';
 import 'package:skana_pica/widgets/pica_like.dart';
 
 class PicaCommentTile extends StatelessWidget {
@@ -24,12 +27,14 @@ class PicaCommentTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
         padding: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
-        child: Card(
-          child: Column(
+        child: moonCard(
+          backgroundColor: context.moonTheme?.tokens.colors.frieza10,
+          padding: EdgeInsets.all(0),
+          content: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(
-                height: 16,
+                height: 8,
               ),
               Row(
                 children: [
@@ -48,13 +53,10 @@ class PicaCommentTile extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        comment.name,
-                        style: Get.theme.textTheme.bodyMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
+                      Text(comment.name).appHeader(),
                       Text(DateFormat.yMMMd(Get.locale.toString())
-                          .format(DateTime.parse(comment.time))),
+                              .format(DateTime.parse(comment.time)))
+                          .small(),
                     ],
                   )
                 ],
@@ -62,22 +64,9 @@ class PicaCommentTile extends StatelessWidget {
               SizedBox(
                 height: 16,
               ),
-              Row(
-                children: [
-                  SizedBox(
-                    width: 8,
-                  ),
-                  Expanded(
-                    child: Text(
-                      comment.text,
-                      style: Get.theme.textTheme.bodyMedium,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 8,
-                  ),
-                ],
-              ),
+              Expanded(
+                child: Text(comment.text).subHeader(),
+              ).paddingHorizontal(20),
               SizedBox(
                 height: 8,
               ),
@@ -92,14 +81,14 @@ class PicaCommentTile extends StatelessWidget {
                     isReply: isReply,
                     commentComicId: isReply ? parentComment : comicId,
                   ),
-                  Text(comment.likes.toString()),
+                  Text(comment.likes.toString()).subHeader(),
                   if (!isReply)
                     SizedBox(
                       width: 8,
                     ),
                   if (!isReply)
-                    IconButton(
-                      onPressed: () {
+                    MoonButton.icon(
+                      onTap: () {
                         Go.to(
                             PicaRepliesPage(
                               comment: comment,
@@ -108,11 +97,11 @@ class PicaCommentTile extends StatelessWidget {
                             preventDuplicates: false);
                       },
                       icon: Icon(
-                        Icons.mode_comment_rounded,
+                        BootstrapIcons.chat_square_text,
                         size: 16,
                       ),
                     ),
-                  if (!isReply) Text(comment.reply.toString()),
+                  if (!isReply) Text(comment.reply.toString()).subHeader(),
                   SizedBox(
                     width: 16,
                   ),

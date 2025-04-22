@@ -16,6 +16,7 @@ import 'package:skana_pica/pages/setting/setting_page.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/widgetplugin.dart';
 import 'package:bootstrap_icons/bootstrap_icons.dart';
+import 'package:skana_pica/widgets/icons.dart';
 import 'package:skana_pica/widgets/pica_comic_list.dart';
 
 class Mains extends StatefulWidget {
@@ -71,20 +72,12 @@ class _MainsState extends State<Mains> {
             ])))
           : Scaffold(
               key: homeKey,
-              appBar: AppBar(
-                  title: Text((homeController.pageIndex.value == 0)
+              appBar: appBar(
+                  title: (homeController.pageIndex.value == 0)
                       ? categoriesController
                           .mainPageTags[homeController.tagIndex.value].tr
-                      : pages[homeController.pageIndex.value].tr)
-                      .appHeader()
-                      .paddingRight(8),
-                  shape: Border(
-                    bottom: BorderSide(
-                      color: Get.theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                      width: 0.2,
-                    ),
-                  ),
-                  leading: null),
+                      : pages[homeController.pageIndex.value].tr,
+                  leading: NormalDrawerButton(onTap: () => homeKey.currentState?.openDrawer())),              
               drawer: MoonDrawer(
                   width: context.width > 200 ? 200 : null,
                   child: ListView(children: [

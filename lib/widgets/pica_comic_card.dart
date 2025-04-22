@@ -1,3 +1,4 @@
+import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moon_design/moon_design.dart';
@@ -36,10 +37,10 @@ class _PicaComicCardState extends State<PicaComicCard> {
               menuItemCrossAxisAlignment: CrossAxisAlignment.start,
           leading: PicaImage(
             comic.cover,
-            width: 80,
-            height: 120,
+            width: 100,
+            height: 150,
             fit: BoxFit.cover,
-          ).rounded(8.0).paddingTop(6),
+          ).rounded(8.0),
           label: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -54,38 +55,38 @@ class _PicaComicCardState extends State<PicaComicCard> {
               ),
               Padding(
                 padding: const EdgeInsets.all(4.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
+                child:
                     Text(
-                      comic.author.atMost(),
+                      comic.author,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
+                      style: TextStyle(
+                        color: context.moonTheme?.tokens.colors.trunks.applyDarkMode(),
+                      ),
                     ).small(),
-                  ],
-                ),
               ),
               Row(children: [
                     Icon(
-                      Icons.favorite_outline,
-                      size: 12,
+                      BootstrapIcons.heart,
+                      size: 11,
                       color: context.moonTheme?.tokens.colors.piccolo,
-                    ),
+                    ).paddingTop(2),
                     const SizedBox(
                       width: 2,
                     ),
                     Text(
                       comic.likes.toString(),
-                    ),
+                      strutStyle: const StrutStyle(forceStrutHeight: true, leading: 0),
+                    ).small(),
                     const SizedBox(
                       width: 6,
                     ),
                     if (comic.epsCount != null || comic.pages != null)
                       Icon(
-                        Icons.sticky_note_2_outlined,
-                        size: 12,
+                        BootstrapIcons.journal_text,
+                        size: 11,
                         color: context.moonTheme?.tokens.colors.piccolo,
-                      ),
+                      ).paddingTop(2),
                     if (comic.epsCount != null || comic.pages != null)
                       const SizedBox(
                         width: 2,
@@ -93,7 +94,8 @@ class _PicaComicCardState extends State<PicaComicCard> {
                     if (comic.epsCount != null || comic.pages != null)
                       Text(
                         '${comic.epsCount != null ? "${comic.epsCount}E/" : ""}${comic.pages != null ? "${comic.pages}P" : ""}',
-                      ),
+                        strutStyle: const StrutStyle(forceStrutHeight: true, leading: 0),
+                      ).small(),
                     if (comic.epsCount != null || comic.pages != null)
                       const SizedBox(
                         width: 8,

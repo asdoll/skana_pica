@@ -435,6 +435,11 @@ class Messages extends Translations {
           "High Refresh Rate": "高刷新率",
           "History": "历史",
           "Downloads": "下载",
+          "Chinese": "汉化",
+          "Show": "显示",
+          "Hide": "隐藏",
+          "Please select at least one episode": "请至少选择一个",
+          "Replies": "回复",
 
 //below are translation with parameters
           "at_page": "第@page/@total页",
@@ -653,6 +658,11 @@ class Messages extends Translations {
           "High Refresh Rate": "高刷新率",
           "History": "歷史",
           "Downloads": "下載",
+          "Chinese": "漢化",
+          "Show": "顯示",
+          "Hide": "隱藏",
+          "Please select at least one episode": "請至少選擇一個",
+          "Replies": "回復",
 
 //below are translation with parameters
           "at_page": "第@page/@total頁",

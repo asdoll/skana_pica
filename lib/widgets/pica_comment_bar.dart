@@ -1,5 +1,7 @@
+import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/controller/comment.dart';
 
 class PicaCommentBar extends StatelessWidget {
@@ -15,17 +17,15 @@ class PicaCommentBar extends StatelessWidget {
         Get.put(ReplyController(), tag: id + isComic.toString());
     TextEditingController reply = TextEditingController();
 
-    return SearchBar(
+    return MoonFormTextInput(
       controller: reply,
       hintText: "Reply:".tr,
-      trailing: [
-        IconButton(
-          icon: Icon(Icons.send),
-          onPressed: () {
+      trailing: MoonButton.icon(
+          icon: Icon(BootstrapIcons.send),
+          onTap: () {
             replyController.reply(id, reply.text, isComic, masterId: masterId);
           },
         )
-      ],
     );
   }
 }

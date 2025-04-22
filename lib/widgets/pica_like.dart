@@ -1,5 +1,7 @@
+import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/controller/favourite.dart';
 
 double iconSize = 30;
@@ -18,24 +20,24 @@ class _PicaFavorButtonState extends State<PicaFavorButton> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => IconButton(
+    return Obx(() => MoonButton.icon(
           icon: favorController.isLoading.value &&
                   favorController.lastId.value == widget.id
               ? SizedBox(
                   width: iconSize,
                   height: iconSize,
-                  child: CircularProgressIndicator())
+                  child: MoonCircularLoader(color: context.moonTheme?.tokens.colors.bulma))
               : favorController.favorComics.contains(widget.id)
                   ? Icon(
-                      Icons.bookmark,
-                      color: Colors.red,
+                      BootstrapIcons.bookmark_fill,
+                      color: context.moonTheme?.tokens.colors.chichi,
                       size: iconSize,
                     )
                   : Icon(
-                      Icons.bookmark_border,
+                      BootstrapIcons.bookmark,
                       size: iconSize,
                     ),
-          onPressed: () {
+          onTap: () {
             favorController.favorCall(widget.id);
           },
         ));
@@ -69,21 +71,21 @@ class _PicaLikeButtonState extends State<PicaLikeButton> {
         tag: widget.isComment ? "c${widget.id}" : widget.id);
     likeController.isLike.value = widget.isLike;
     double size = widget.size ?? iconSize;
-    return Obx(() => IconButton(
+    return Obx(() => MoonButton.icon(
           icon: likeController.isLoading.value
               ? SizedBox(
-                  width: size, height: size, child: CircularProgressIndicator())
+                  width: size, height: size, child: MoonCircularLoader(color: context.moonTheme?.tokens.colors.bulma))
               : likeController.isLike.value
                   ? Icon(
-                      Icons.favorite_rounded,
-                      color: Colors.red,
+                      BootstrapIcons.heart_fill,
+                      color: context.moonTheme?.tokens.colors.chichi,
                       size: size,
                     )
-                  : Icon(
-                      Icons.favorite_border_rounded,
+                    : Icon(
+                      BootstrapIcons.heart,
                       size: size,
                     ),
-          onPressed: () {
+          onTap: () {
             if (widget.isComment) {
               likeController.commentLikeCall(widget.id,
                   commentComicId: widget.isReply ? null : widget.commentComicId,
