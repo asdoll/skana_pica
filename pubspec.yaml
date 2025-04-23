@@ -56,8 +56,6 @@ dependencies:
   objectbox: ^4.0.3
   objectbox_flutter_libs: any
   smooth_highlight: ^0.1.2
-  flutter_slidable: ^4.0.0
-  icon_decoration: ^2.1.0
   url_launcher: ^6.3.1
   flutter_displaymode: ^0.6.0
   crypto: ^3.0.6

@@ -1,6 +1,7 @@
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
+import 'package:skana_pica/api/managers/image_cache_manager.dart';
 import 'package:skana_pica/config/base.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/util/tool.dart';
@@ -67,6 +68,10 @@ class MangaSettingsController extends GetxController {
       (int.parse(settings.pica[7]) > 6 ? '5' : settings.pica[7]).obs;
   final preloadDetailsPage = (settings.pica[8] == "1").obs;
   final mainTrigger = false.obs;
+  RxBool streamMenu = false.obs;
+  RxBool imageQualityMenu = false.obs;
+  RxBool searchModeMenu = false.obs;
+  RxBool preloadMenu = false.obs;
 
   List<String> get categories => picacg.categories;
 
@@ -116,5 +121,25 @@ class MangaSettingsController extends GetxController {
     Future.delayed(const Duration(milliseconds: 500), () {
       mainTrigger.value = true;
     });
+  }
+}
+
+class CacheController extends GetxController {
+  RxString cachePeriod = settings.general[7].obs;
+  RxList<bool> restores = [false, false, false].obs;
+  RxBool cacheMenu = false.obs;
+
+  void setCachePeriod(String period) {
+    cachePeriod.value = period;
+    settings.general[7] = period;
+    settings.updateSettings("general");
+  }
+
+  void clearCache() {
+    imagesCacheManager.emptyCache();
+  }
+
+  void restore(String type) {
+    settings.restore(type);
   }
 }

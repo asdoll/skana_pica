@@ -187,9 +187,9 @@ class Messages extends Translations {
           "Initialize App": "Initialize App",
           "Are you sure to initialize app?": "Are you sure to initialize app?",
           "App Initialized": "App Initialized",
-          "H24": "24h",
-          "D7": "7d",
-          "D30": "30d",
+          "H24": "Today",
+          "D7": "This Week",
+          "D30": "This Month",
           "The purpose of this App is only for learning, communication, and personal interest. Any content displayed comes from the internet and is not related to the developer":
               "The purpose of this App is only for learning, communication, and personal interest. Any content displayed comes from the internet and is not related to the developer",
           "If you encounter any problems during use, please first confirm whether it is a problem with your device, and then provide feedback":
@@ -222,6 +222,7 @@ class Messages extends Translations {
           "at_page": "Page @page/@total",
           "block_cate": "Block Category @cate?",
           "continue_page": "Continue:@eps-P@page",
+          "delete": "Delete @name",
         },
         'zh_CN': {
           'Home': '首页',
@@ -396,15 +397,16 @@ class Messages extends Translations {
           "Days": "天",
           "Clear Cache": "清除缓存",
           "Are you sure to clear cache?": "您确定要清除缓存吗？",
-          "Restore": "恢复",
+          "Restore": "初始化",
+          "Restored": "已初始化",
           "Cache Cleared": "缓存已清除",
           "General Settings": "常规设置",
           "Initialize App": "初始化应用",
           "Are you sure to initialize app?": "您确定要初始化应用吗？",
           "App Initialized": "应用已初始化",
-          "H24": "24h",
-          "D7": "7天",
-          "D30": "30天",
+          "H24": "今天",
+          "D7": "本周",
+          "D30": "本月",
           "The purpose of this App is only for learning, communication, and personal interest. Any content displayed comes from the internet and is not related to the developer":
               "本App的开发目的仅为学习交流与个人兴趣, 显示的任何内容均来自网络, 与开发者无关",
           "If you encounter any problems during use, please first confirm whether it is a problem with your device, and then provide feedback":
@@ -449,11 +451,17 @@ class Messages extends Translations {
           "Tap to change": "点击修改",
           "Email": "邮箱",
           "Are you sure to logout?": "您确定要登出吗？",
+          "Password can't be empty": "密码不能为空",
+          "Password not match": "密码不匹配",
+          "Add Category": "添加分类",
+          "Restore Settings": "初始化设置",
+          "Are you sure to restore settings?": "您确定要初始化设置吗？",
 
 //below are translation with parameters
           "at_page": "第@page/@total页",
           "block_cate": '屏蔽分类"@cate?"',
           "continue_page": "继续阅读:@eps-P@page",
+          "delete": "删除@name",
         },
         'zh_TW': {
           'Home': '首頁',
@@ -628,15 +636,16 @@ class Messages extends Translations {
           "Days": "天",
           "Clear Cache": "清除緩存",
           "Are you sure to clear cache?": "您確定要清除緩存嗎？",
-          "Restore": "恢復",
+          "Restore": "初始化",
+          "Restored": "已初始化",
           "Cache Cleared": "緩存已清除",
           "General Settings": "常規設置",
           "Initialize App": "初始化應用",
           "Are you sure to initialize app?": "您確定要初始化應用嗎？",
           "App Initialized": "應用已初始化",
-          "H24": "24h",
-          "D7": "7天",
-          "D30": "30天",
+          "H24": "今天",
+          "D7": "本週",
+          "D30": "本月",
           "The purpose of this App is only for learning, communication, and personal interest. Any content displayed comes from the internet and is not related to the developer":
               "本App的開發目的僅為學習交流與個人興趣, 顯示的任何內容均來自網絡, 與開發者無關",
           "If you encounter any problems during use, please first confirm whether it is a problem with your device, and then provide feedback":
@@ -680,11 +689,17 @@ class Messages extends Translations {
           "Tap to change": "點選修改",
           "Email": "郵箱",
           "Are you sure to logout?": "您確定要登出嗎？",
+          "Password not match": "密碼不匹配",
+          "Password can't be empty": "密碼不能为空",
+          "Add Category": "添加分類",
+          "Restore Settings": "初始化設定",
+          "Are you sure to restore settings?": "您確定要初始化設定嗎？",
 
 //below are translation with parameters
           "at_page": "第@page/@total頁",
           "block_cate": '屏蔽分類"@cate?"',
           "continue_page": "繼續閱讀:@eps-P@page",
+          "delete": "刪除@name",
         },
       };
 }

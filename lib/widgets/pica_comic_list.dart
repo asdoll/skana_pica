@@ -4,14 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/controller/comiclist.dart';
-import 'package:skana_pica/controller/favourite.dart';
 import 'package:skana_pica/controller/main_controller.dart';
 import 'package:skana_pica/controller/profile.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/widgetplugin.dart';
 import 'package:skana_pica/widgets/icons.dart';
 import 'package:skana_pica/widgets/pica_comic_card.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 
 class PicaComicsPage extends StatefulWidget {
   final String keyword;
@@ -50,6 +48,10 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
               controlFinishRefresh: true,
               controlFinishLoad: true,
             );
+    late LeaderboardController leaderboardController;
+    if (widget.keyword == "leaderboard") {
+      leaderboardController = Get.put(LeaderboardController());
+    }
     controller = Get.put(
         ComicListController(
             keyword: widget.keyword,
@@ -70,6 +72,20 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
           ? ErrorLoading(text: "Not Logged In".tr)
           : Column(
               children: [
+                if (widget.keyword == "leaderboard")
+                  Row(crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: leaderboardController.items.map((String value) {
+                    return filledButton(
+                      label: value.tr,
+                      textColor: context.moonTheme?.tokens.colors.bulma,
+                      color: leaderboardController.type.value == value ? context.moonTheme?.tokens.colors.frieza60 : context.moonTheme?.tokens.colors.goku,
+                      onPressed: () {
+                        leaderboardController.type.value = value;
+                        controller.reset();
+                      },
+                    );
+                  }).toList(),).paddingVertical(8),
                 if (controller.total.value > 1)
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -301,34 +317,6 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                                 return Container();
                               }
                             }
-                            if (widget.keyword == "bookmarks" &&
-                                widget.type == "me") {
-                              return Slidable(
-                                endActionPane: ActionPane(
-                                    motion: const ScrollMotion(),
-                                    extentRatio: 0.2,
-                                    children: [
-                                      SlidableAction(
-                                        backgroundColor: Colors.red,
-                                        icon: Icons.delete,
-                                        borderRadius: BorderRadius.circular(8),
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 4.0),
-                                        onPressed: (context) {
-                                          favorController.favorCall(
-                                              controller.comics[index].id);
-                                          controller.comics.removeAt(index);
-                                          controller.comics.refresh();
-                                        },
-                                      ),
-                                    ]),
-                                child: PicaComicCard(
-                                  controller.comics[index],
-                                  type: "bookmarks",
-                                ),
-                              );
-                            }
-
                             return PicaComicCard(
                               controller.comics[index],
                               type: widget.keyword == "bookmarks"

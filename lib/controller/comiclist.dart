@@ -55,6 +55,13 @@ class ComicListController extends GetxController {
     }
     log.d(
         "keyword: $keyword, page: ${page.value}, sort: ${sort.value}, type: $type");
+    if(keyword == "leaderboard") {
+      try {
+        type = Get.find<LeaderboardController>().type.value;
+      } catch (e) {
+        type = "";
+      }
+    }
     return picaClient
         .getCategoryComics(
             keyword,
@@ -180,3 +187,10 @@ class ComicListController extends GetxController {
   }
 
 }
+
+class LeaderboardController extends GetxController {
+  var items = ["H24", "D7", "D30"];
+  var type = "H24".obs;
+}
+
+LeaderboardController leaderboardController = Get.put(LeaderboardController());

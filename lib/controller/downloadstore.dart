@@ -15,6 +15,7 @@ class DownloadStore extends GetxController {
   RxMap<int, int> total = <int, int>{}.obs;
 
   RxMap<int, bool> stop = <int, bool>{}.obs;
+  RxMap<int, bool> working = <int, bool>{}.obs;
 
   Future<void> restore() async {
     tasks.clear();
@@ -103,6 +104,8 @@ class DownloadStore extends GetxController {
       M.o.updateTaskEps(task);
     }
     if (progress[task.id] == total[task.id]) {
+      working.remove(task.id);
+      working.refresh();
       showToast('${"Download".tr} "${task.comic.target!.title}" ${"Done".tr}');
     }
   }
@@ -146,6 +149,8 @@ class DownloadStore extends GetxController {
     bool isError = false;
     showToast('${"Download".tr} "${task.comic.target!.title}"');
     {
+      working[task.id] = true;
+      working.refresh();
       downloadCacheManager.getSingleFile(task.comic.target!.thumbUrl);
       downloadCacheManager.getSingleFile(task.comic.target!.creatorAvatarUrl);
     }
@@ -154,6 +159,8 @@ class DownloadStore extends GetxController {
       for (int j = 0; j < task.taskEps[i].url.length; j++) {
         if (stop[task.id] == true) {
           stop.remove(task.id);
+          working.remove(task.id);
+          working.refresh();
           return;
         }
         if (task.taskEps[i].progress[j] == 1) {

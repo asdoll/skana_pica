@@ -1,72 +1,5 @@
 import 'package:flutter/material.dart';
-
-/// copied from flutter source
-class _SliderDefaultsM3 extends SliderThemeData {
-  _SliderDefaultsM3(this.context)
-      : super(trackHeight: 4.0);
-
-  final BuildContext context;
-  late final ColorScheme _colors = Theme.of(context).colorScheme;
-
-  @override
-  Color? get activeTrackColor => _colors.primary;
-
-  @override
-  Color? get inactiveTrackColor => _colors.surfaceContainerHighest;
-
-  @override
-  Color? get secondaryActiveTrackColor => _colors.primary.withValues(alpha: 0.54);
-
-  @override
-  Color? get disabledActiveTrackColor => _colors.onSurface.withValues(alpha: 0.38);
-
-  @override
-  Color? get disabledInactiveTrackColor => _colors.onSurface.withValues(alpha: 0.12);
-
-  @override
-  Color? get disabledSecondaryActiveTrackColor => _colors.onSurface.withValues(alpha: 0.12);
-
-  @override
-  Color? get activeTickMarkColor => _colors.onPrimary.withValues(alpha: 0.38);
-
-  @override
-  Color? get inactiveTickMarkColor => _colors.onSurfaceVariant.withValues(alpha: 0.38);
-
-  @override
-  Color? get disabledActiveTickMarkColor => _colors.onSurface.withValues(alpha: 0.38);
-
-  @override
-  Color? get disabledInactiveTickMarkColor => _colors.onSurface.withValues(alpha: 0.38);
-
-  @override
-  Color? get thumbColor => _colors.primary;
-
-  @override
-  Color? get disabledThumbColor => Color.alphaBlend(_colors.onSurface.withValues(alpha: 0.38), _colors.surface);
-
-  @override
-  Color? get overlayColor => WidgetStateColor.resolveWith((Set<WidgetState> states) {
-    if (states.contains(WidgetState.hovered)) {
-      return _colors.primary.withValues(alpha: 0.08);
-    }
-    if (states.contains(WidgetState.focused)) {
-      return _colors.primary.withValues(alpha: 0.12);
-    }
-    if (states.contains(WidgetState.dragged)) {
-      return _colors.primary.withValues(alpha: 0.12);
-    }
-
-    return Colors.transparent;
-  });
-
-  @override
-  TextStyle? get valueIndicatorTextStyle => Theme.of(context).textTheme.labelMedium!.copyWith(
-    color: _colors.onPrimary,
-  );
-
-  @override
-  SliderComponentShape? get valueIndicatorShape => const DropSliderValueIndicatorShape();
-}
+import 'package:moon_design/moon_design.dart';
 
 class CustomSlider extends StatefulWidget {
   const CustomSlider({required this.min, required this.max, required this.value, required this.divisions, required this.onChanged, this.reversed = false, super.key});
@@ -108,8 +41,6 @@ class _CustomSliderState extends State<CustomSlider> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final theme = _SliderDefaultsM3(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
       child: LayoutBuilder(
@@ -150,7 +81,7 @@ class _CustomSliderState extends State<CustomSlider> {
                             width: double.infinity,
                             height: 6,
                             decoration: BoxDecoration(
-                                color: theme.inactiveTrackColor,
+                                color: context.moonTheme?.tokens.colors.trunks,
                                 borderRadius: const BorderRadius.all(Radius.circular(10))
                             ),
                           ),
@@ -167,7 +98,7 @@ class _CustomSliderState extends State<CustomSlider> {
                                   width: 4,
                                   height: 4,
                                   decoration: BoxDecoration(
-                                    color: colorScheme.surface.withRed(10),
+                                    color: context.moonTheme?.tokens.colors.frieza60,
                                     shape: BoxShape.circle,
                                   ),
                                 ));
@@ -187,7 +118,7 @@ class _CustomSliderState extends State<CustomSlider> {
                             width: constrains.maxWidth * ((value - widget.min) / (widget.max - widget.min)),
                             height: 8,
                             decoration: BoxDecoration(
-                                color: theme.activeTrackColor,
+                                color: context.moonTheme?.tokens.colors.frieza60,
                                 borderRadius: const BorderRadius.all(Radius.circular(10))
                             ),
                           ),
@@ -200,11 +131,11 @@ class _CustomSliderState extends State<CustomSlider> {
                         right: !widget.reversed ? null : constrains.maxWidth * ((value - widget.min) / (widget.max - widget.min))-11,
                         child: Center(
                           child: Container(
-                            width: 22,
-                            height: 22,
+                            width: 20,
+                            height: 20,
                             decoration: BoxDecoration(
-                              color: theme.activeTrackColor,
-                              shape: BoxShape.circle,
+                              color: context.moonTheme?.tokens.colors.frieza,
+                              borderRadius: const BorderRadius.all(Radius.circular(8))
                             ),
                           ),
                         ),

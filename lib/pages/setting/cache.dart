@@ -1,9 +1,12 @@
+import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:skana_pica/api/managers/image_cache_manager.dart';
+import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/config/setting.dart';
+import 'package:skana_pica/controller/setting_controller.dart';
 import 'package:skana_pica/pages/setting/setting_page.dart';
 import 'package:skana_pica/util/leaders.dart';
+import 'package:skana_pica/util/widgetplugin.dart';
 
 class CacheSetting extends StatelessWidget {
   static const route = "${SettingPage.route}/cache";
@@ -13,191 +16,115 @@ class CacheSetting extends StatelessWidget {
   Widget build(BuildContext context) {
     CacheController cacheController = Get.put(CacheController());
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Cache & Restore'.tr),
+      appBar: appBar(
+        title: "Cache & Restore".tr,
       ),
       body: Obx(
         () => ListView(
           children: [
-            ListTile(
-              title: Text('Clear Cache Period'.tr),
-              trailing: DropdownButton(
-                  items: [
-                    DropdownMenuItem(
-                      value: '1',
-                      child: Text('1 ${"Day".tr}'),
+            moonListTile(
+              title: "Clear Cache Period".tr,
+              trailing: MoonDropdown(
+                show: cacheController.cacheMenu.value,
+                onTapOutside: () => cacheController.cacheMenu.value = false,
+                content: Column(
+                  children: [
+                    MoonMenuItem(
+                      onTap: () {
+                        cacheController.cacheMenu.value = false;
+                        cacheController.setCachePeriod("1");
+                      },
+                      label: Text('1 ${"Day".tr}'),
                     ),
-                    DropdownMenuItem(
-                      value: '3',
-                      child: Text('3 ${"Days".tr}'),
+                    MoonMenuItem(
+                      onTap: () {
+                        cacheController.cacheMenu.value = false;
+                        cacheController.setCachePeriod("3");
+                      },
+                      label: Text('3 ${"Days".tr}'),
                     ),
-                    DropdownMenuItem(
-                      value: '7',
-                      child: Text('7 ${"Days".tr}'),
+                    MoonMenuItem(
+                      onTap: () {
+                        cacheController.cacheMenu.value = false;
+                        cacheController.setCachePeriod("7");
+                      },
+                      label: Text('7 ${"Days".tr}'),
                     ),
-                    DropdownMenuItem(
-                      value: '30',
-                      child: Text('30 ${"Days".tr}'),
+                    MoonMenuItem(
+                      onTap: () {
+                        cacheController.cacheMenu.value = false;
+                        cacheController.setCachePeriod("30");
+                      },
+                      label: Text('30 ${"Days".tr}'),
                     ),
                   ],
-                  onChanged: (String? value) {
-                    if (value != null) {
-                      cacheController.setCachePeriod(value);
-                    }
-                  },
-                  value: cacheController.cachePeriod.value),
+                ),
+                child: filledButton(
+                  label: "${cacheController.cachePeriod.value} ${"Days".tr}",
+                  onPressed: () => cacheController.cacheMenu.value =
+                      !cacheController.cacheMenu.value,
+                ),
+              ),
             ),
-            ListTile(
-              title: Text('Clear Cache'.tr),
-              leading: Icon(Icons.delete),
+            moonListTile(
+              title: "Clear Cache".tr,
+              leading: Icon(BootstrapIcons.trash3),
               onTap: () {
-                showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                          title: Text('Clear Cache'.tr),
-                          content: Text('Are you sure to clear cache?'.tr),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Get.back();
-                              },
-                              child: Text('Cancel'.tr),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                cacheController.clearCache();
-                                showToast("Cache Cleared".tr);
-                                Get.back();
-                              },
-                              child: Text('Ok'.tr),
-                            ),
-                          ],
-                        ));
+                alertDialog(context, "Clear Cache".tr,
+                    "Are you sure to clear cache?".tr, [
+                  outlinedButton(
+                      onPressed: () => Get.back(), label: "Cancel".tr),
+                  filledButton(
+                      onPressed: () {
+                        cacheController.clearCache();
+                        showToast("Cache Cleared".tr);
+                        Get.back();
+                      },
+                      label: "Ok".tr)
+                ]);
               },
             ),
-            ListTile(
-              title: Text('Restore'.tr),
-              leading: Icon(Icons.restore),
+            moonListTile(
+              title: "Restore Settings".tr,
+              leading: Icon(BootstrapIcons.clock_history),
               onTap: () {
-                showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                          title: Text('Restore'.tr),
-                          content: Obx(() => Wrap(
-                                spacing: 3,
-                                runSpacing: 3,
-                                children: [
-                                  ChoiceChip(
-                                      label: Text("General Settings".tr),
-                                      selected: cacheController.restores[0],
-                                      onSelected: (selected) {
-                                        cacheController.restores[0] = selected;
-                                        cacheController.restores.refresh();
-                                      }),
-                                  ChoiceChip(
-                                      label: Text("Manga Settings".tr),
-                                      selected: cacheController.restores[1],
-                                      onSelected: (selected) {
-                                        cacheController.restores[1] = selected;
-                                        cacheController.restores.refresh();
-                                      }),
-                                  ChoiceChip(
-                                      label: Text("Read Settings".tr),
-                                      selected: cacheController.restores[2],
-                                      onSelected: (selected) {
-                                        cacheController.restores[2] = selected;
-                                        cacheController.restores.refresh();
-                                      }),
-                                ],
-                              )),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Get.back();
-                                cacheController.restores.value = [
-                                  false,
-                                  false,
-                                  false
-                                ];
-                                cacheController.restores.refresh();
-                              },
-                              child: Text('Cancel'.tr),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Get.back();
-                                for (int i = 0;
-                                    i < cacheController.restores.length;
-                                    i++) {
-                                  if (cacheController.restores[i]) {
-                                    cacheController.restore(
-                                        ["general", "pica", "read"][i]);
-                                  }
-                                }
-                                cacheController.restores.value = [
-                                  false,
-                                  false,
-                                  false
-                                ];
-                                cacheController.restores.refresh();
-                                showToast("Restored".tr);
-                              },
-                              child: Text('Ok'.tr),
-                            ),
-                          ],
-                        ));
+                alertDialog(context, "Restore Settings".tr,
+                    "Are you sure to restore settings?".tr, [
+                  outlinedButton(
+                      onPressed: () => Get.back(), label: "Cancel".tr),
+                  filledButton(
+                      onPressed: () {
+                        cacheController.restore("general");
+                        cacheController.restore("pica");
+                        cacheController.restore("read");
+                        showToast("Restored".tr);
+                        Get.back();
+                      },
+                      label: "Ok".tr)
+                ]);
               },
             ),
-            ListTile(
-              title: Text("Initialize App".tr),
-              leading: Icon(Icons.warning),
+            moonListTile(
+              title: "Initialize App".tr,
+              leading: Icon(BootstrapIcons.exclamation_circle),
               onTap: () {
-                showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                          title: Text('Initialize App'.tr),
-                          content: Text('Are you sure to initialize app?'.tr),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Get.back();
-                              },
-                              child: Text('Cancel'.tr),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                clearAppdata();
-                                showToast("App Initialized".tr);
-                                Get.back();
-                              },
-                              child: Text('Ok'.tr),
-                            ),
-                          ],
-                        ));
+                alertDialog(context, "Initialize App".tr,
+                    "Are you sure to initialize app?".tr, [
+                  outlinedButton(
+                      onPressed: () => Get.back(), label: "Cancel".tr),
+                  filledButton(
+                      onPressed: () {
+                        clearAppdata();
+                        showToast("App Initialized".tr);
+                        Get.back();
+                      },
+                      label: "Ok".tr)
+                ]);
               },
             ),
           ],
         ),
       ),
     );
-  }
-}
-
-class CacheController extends GetxController {
-  RxString cachePeriod = settings.general[7].obs;
-  RxList<bool> restores = [false, false, false].obs;
-
-  void setCachePeriod(String period) {
-    cachePeriod.value = period;
-    settings.general[7] = period;
-    settings.updateSettings("general");
-  }
-
-  void clearCache() {
-    imagesCacheManager.emptyCache();
-  }
-
-  void restore(String type) {
-    settings.restore(type);
   }
 }

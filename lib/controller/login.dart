@@ -9,6 +9,9 @@ class LoginController extends GetxController {
   var isLoading = false.obs;
   var isLogin = false.obs;
   var error = "".obs;
+  RxBool hideOldPassword = false.obs;
+  RxBool hideNewPassword = false.obs;
+  RxBool hideConfirmPassword = false.obs;
 
   Future<bool> picalogin(String account, String password, {bool start = false}) async {
     if (account.isEmpty || password.isEmpty) {

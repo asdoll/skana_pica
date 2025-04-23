@@ -21,7 +21,6 @@ import 'package:skana_pica/controller/searchhistory.dart';
 import 'package:skana_pica/controller/setting_controller.dart';
 import 'package:skana_pica/controller/updater.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
-import 'package:skana_pica/pages/me_page.dart';
 import 'package:skana_pica/pages/pica_list_comics.dart';
 import 'package:skana_pica/pages/pica_login.dart';
 import 'package:skana_pica/pages/pica_results.dart';
@@ -127,7 +126,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             GetPage(name: Mains.route, page: () => Mains()),
             GetPage(name: PicaLoginPage.route, page: () => PicaLoginPage()),
             GetPage(name: SettingPage.route, page: () => SettingPage()),
-            GetPage(name: MePage.route, page: () => MePage()),
             GetPage(name: PicaSearchPage.route, page: () => PicaSearchPage()),
             GetPage(
                 name: PicaResultsPage.route,

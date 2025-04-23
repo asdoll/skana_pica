@@ -198,7 +198,7 @@ class DefaultHeaderFooter {
 
   static Widget progressIndicator(BuildContext context, {Color? color}) {
     return SpinKitFadingFour(
-      size: 40,
+      size: 30,
       color: color ?? context.moonTheme?.tokens.colors.bulma,
     );
   }

@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:moon_design/moon_design.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:skana_pica/api/managers/image_cache_manager.dart';
@@ -11,7 +13,9 @@ import 'package:skana_pica/pages/pica_comic.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/controller/log.dart';
 import 'package:skana_pica/util/tool.dart';
+import 'package:skana_pica/util/widgetplugin.dart';
 import 'package:skana_pica/widgets/custom_slider.dart';
+import 'package:skana_pica/widgets/icons.dart';
 import 'package:skana_pica/widgets/pica_image.dart';
 import 'package:photo_view/photo_view.dart';
 
@@ -33,6 +37,11 @@ class _PicaReadPageState extends State<PicaReadPage> {
   late ItemScrollController itemScrollController;
   late ItemPositionsListener itemPositionsListener;
   late PageController pageController;
+  bool showOrientation = false;
+  bool showAutoNextPage = false;
+  bool showEpisodes = false;
+  bool showSave = false;
+  bool showShare = false;
 
   @override
   void initState() {
@@ -66,7 +75,7 @@ class _PicaReadPageState extends State<PicaReadPage> {
             keepPage: true);
       }
     } catch (e) {
-      showToast( "Internal Error".tr);
+      showToast("Internal Error".tr);
       Get.until((route) => Get.currentRoute == Mains.route);
       pageController = PageController(initialPage: 1);
       return const SizedBox();
@@ -112,9 +121,9 @@ class _PicaReadPageState extends State<PicaReadPage> {
         child: comicStore.barVisible.value
             ? Material(
                 borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16)),
-                surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(12)),
+                surfaceTintColor: context.moonTheme?.tokens.colors.beerus,
                 elevation: 3,
                 key: const ValueKey("bottom_tool_bar"),
                 child: SizedBox(
@@ -129,26 +138,30 @@ class _PicaReadPageState extends State<PicaReadPage> {
                           const SizedBox(
                             width: 8,
                           ),
-                          IconButton.filledTonal(
-                              onPressed: comicStore.currentEps.value == 0 ||
+                          MoonButton.icon(
+                              backgroundColor: context.moonTheme?.tokens.colors.frieza60,
+                              onTap: comicStore.currentEps.value == 0 ||
                                       comicStore.epsList.length < 2
                                   ? null
                                   : () => comicStore.prevPage(
                                       controller: pageController,
                                       duo: comicStore.readMode.value > 4),
-                              icon: const Icon(Icons.first_page)),
+                              icon:
+                                  const Icon(BootstrapIcons.chevron_bar_left)),
                           Expanded(
                             child: buildSlider(comicStore),
                           ),
-                          IconButton.filledTonal(
-                              onPressed: comicStore.currentEps.value ==
+                          MoonButton.icon(
+                              backgroundColor: context.moonTheme?.tokens.colors.frieza60,
+                              onTap: comicStore.currentEps.value ==
                                           comicStore.epsList.length - 1 ||
                                       comicStore.epsList.length < 2
                                   ? null
                                   : () => comicStore.nextChapter(
                                       controller: pageController,
                                       duo: comicStore.readMode.value > 4),
-                              icon: const Icon(Icons.last_page)),
+                              icon:
+                                  const Icon(BootstrapIcons.chevron_bar_right)),
                           const SizedBox(
                             width: 8,
                           ),
@@ -161,9 +174,10 @@ class _PicaReadPageState extends State<PicaReadPage> {
                           ),
                           const Spacer(),
                           if (Platform.isAndroid)
-                            Tooltip(
-                              message: "Orientation".tr,
-                              child: IconButton(
+                            MoonTooltip(
+                              show: showOrientation,
+                              content: Text("Orientation".tr),
+                              child: MoonButton.icon(
                                 icon: Icon(
                                   comicStore.orientation.value == 0
                                       ? Icons.screen_rotation
@@ -171,44 +185,46 @@ class _PicaReadPageState extends State<PicaReadPage> {
                                           ? Icons.screen_lock_portrait
                                           : Icons.screen_lock_landscape,
                                 ),
-                                onPressed: () {
-                                  comicStore.setOrientation();
-                                },
+                                onTap: () => comicStore.setOrientation(),
                               ),
                             ),
-                          Tooltip(
-                            message: "Auto next page".tr,
-                            child: IconButton(
+                          MoonTooltip(
+                            show: showAutoNextPage,
+                            content: Text("Auto next page".tr),
+                            child: MoonButton.icon(
                               icon: comicStore.autoPageTurning.value
-                                  ? const Icon(Icons.timer)
-                                  : const Icon(Icons.timer_sharp),
-                              onPressed: () => comicStore.setAutoPageTurning(),
+                                  ? const Icon(BootstrapIcons.stopwatch_fill)
+                                  : const Icon(BootstrapIcons.stopwatch),
+                              onTap: () => comicStore.setAutoPageTurning(),
                             ),
                           ),
                           if (comicStore.epsList.length > 1)
-                            Tooltip(
-                              message: "Episodes".tr,
-                              child: IconButton(
-                                icon: const Icon(Icons.library_books),
-                                onPressed: () => openEpsDrawer(comicStore),
+                            MoonTooltip(
+                              show: showEpisodes,
+                              content: Text("Episodes".tr),
+                              child: MoonButton.icon(
+                                icon: const Icon(BootstrapIcons.collection),
+                                onTap: () => openEpsDrawer(comicStore),
                               ),
                             ),
-                          Tooltip(
-                            message: "Save".tr,
-                            child: IconButton(
-                              icon: const Icon(Icons.download),
-                              onPressed: () => saveCurrentImage(comicStore),
+                          MoonTooltip(
+                            show: showSave,
+                            content: Text("Save".tr),
+                            child: MoonButton.icon(
+                              icon: const Icon(BootstrapIcons.floppy),
+                              onTap: () => saveCurrentImage(comicStore),
                             ),
                           ),
-                          Tooltip(
-                            message: "Share".tr,
-                            child: IconButton(
-                              icon: const Icon(Icons.share),
-                              onPressed: () => share(comicStore),
+                          MoonTooltip(
+                            show: showShare,
+                            content: Text("Share".tr),
+                            child: MoonButton.icon(
+                              icon: const Icon(BootstrapIcons.share),
+                              onTap: () => share(comicStore),
                             ),
                           ),
                           const SizedBox(
-                            width: 5,
+                            width: 12,
                           )
                         ],
                       )
@@ -322,7 +338,7 @@ class _PicaReadPageState extends State<PicaReadPage> {
         key: ValueKey("top_tool_bar_switcher"),
         child: comicStore.barVisible.value
             ? Material(
-                surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
+                surfaceTintColor: context.moonTheme?.tokens.colors.beerus,
                 elevation: 3,
                 key: const ValueKey("top_tool_bar"),
                 shadowColor:
@@ -333,14 +349,7 @@ class _PicaReadPageState extends State<PicaReadPage> {
                     children: [
                       Padding(
                         padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                        child: Tooltip(
-                          message: "Back".tr,
-                          child: IconButton(
-                            iconSize: 25,
-                            icon: const Icon(Icons.arrow_back_outlined),
-                            onPressed: () => Get.back(),
-                          ),
-                        ),
+                        child: NormalBackButton(),
                       ),
                       Expanded(
                         child: Container(
@@ -352,33 +361,29 @@ class _PicaReadPageState extends State<PicaReadPage> {
                             child: Text(
                               comicStore.comic.value.title,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 20),
-                            ),
+                            ).appHeader(),
                           ),
                         ),
                       ),
+                      SizedBox(width: 8),
                       Container(
                         height: 25,
                         padding: const EdgeInsets.fromLTRB(6, 2, 6, 0),
                         decoration: BoxDecoration(
-                          color:
-                              Theme.of(context).colorScheme.tertiaryContainer,
+                          color: context.moonTheme?.tokens.colors.frieza60,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(comicStore.epsList.length > 1
-                            ? "E${comicStore.currentEps.value + 1}:P${comicStore.currentIndex.value + 1}"
-                            : "P${comicStore.currentIndex.value + 1}"),
+                                ? "E${comicStore.currentEps.value + 1}:P${comicStore.currentIndex.value + 1}"
+                                : "P${comicStore.currentIndex.value + 1}")
+                            .subHeader(),
                       ),
                       //const Spacer(),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                        child: Tooltip(
-                          message: "Read Settings".tr,
-                          child: IconButton(
-                            iconSize: 25,
-                            icon: const Icon(Icons.settings),
-                            onPressed: () => showSettings(context, comicStore),
-                          ),
+                        child: MoonButton.icon(
+                          icon: const Icon(BootstrapIcons.gear),
+                          onTap: () => showSettings(context, comicStore),
                         ),
                       ),
                     ],
@@ -553,7 +558,8 @@ class _PicaReadPageState extends State<PicaReadPage> {
                         Expanded(
                           child: Slider(
                             key: ValueKey("animation_duration_slider"),
-                            value: comicStore.animationDuration.value.toDouble(),
+                            value:
+                                comicStore.animationDuration.value.toDouble(),
                             min: 100,
                             max: 500,
                             divisions: 20,
@@ -565,8 +571,8 @@ class _PicaReadPageState extends State<PicaReadPage> {
                       ],
                     ),
                   ),
-                  trailing: Text(
-                      "${comicStore.animationDuration.value} ${"ms".tr}"),
+                  trailing:
+                      Text("${comicStore.animationDuration.value} ${"ms".tr}"),
                 )
               ],
             ).paddingOnly(top: 16),
@@ -593,8 +599,8 @@ class _PicaReadPageState extends State<PicaReadPage> {
         children: [
           Text(
             text,
-            style: TextStyle(
-              fontSize: 14,
+            style: Get.context?.moonTheme?.tokens.typography.heading.text16
+                .copyWith(
               foreground: Paint()
                 ..style = PaintingStyle.stroke
                 ..strokeWidth = 1.4
@@ -606,8 +612,8 @@ class _PicaReadPageState extends State<PicaReadPage> {
           ),
           Text(
             text,
-            style: TextStyle(
-              fontSize: 14,
+            style: Get.context?.moonTheme?.tokens.typography.heading.text16
+                .copyWith(
               color: comicStore.useDarkBackground.value ? Colors.white : null,
             ),
           ),

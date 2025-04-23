@@ -40,10 +40,12 @@ class _PicaCatComicsPageState extends State<PicaCatComicsPage> {
             : widget.id == "latest"
                 ? "Latest".tr
                 : widget.id == "bookmarks"
-                    ? "Bookmarks".tr
+                    ? "Bookmarks".tr: 
+                    widget.id == "leaderboard"
+                    ? "Leaderboard".tr
                     : widget.id),
       body: PicaComicsPage(
-          keyword: widget.id, type: widget.type, scrollController: scrollController),
+          keyword: widget.id, type: widget.id == "leaderboard" ? "H24" : widget.type, scrollController: scrollController),
     );
   }
 }

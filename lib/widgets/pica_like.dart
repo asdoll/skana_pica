@@ -3,13 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/controller/favourite.dart';
+import 'package:skana_pica/widgets/icons.dart';
 
 double iconSize = 30;
 
 class PicaFavorButton extends StatefulWidget {
   final String id;
+  final bool filled;
 
-  const PicaFavorButton(this.id, {super.key});
+  const PicaFavorButton(this.id, {super.key, this.filled = true});
 
   @override
   State<PicaFavorButton> createState() => _PicaFavorButtonState();
@@ -26,7 +28,7 @@ class _PicaFavorButtonState extends State<PicaFavorButton> {
               ? SizedBox(
                   width: iconSize,
                   height: iconSize,
-                  child: MoonCircularLoader(color: context.moonTheme?.tokens.colors.bulma))
+                  child: DefaultHeaderFooter.progressIndicator(context))
               : favorController.favorComics.contains(widget.id)
                   ? Icon(
                       BootstrapIcons.bookmark_fill,
@@ -34,8 +36,9 @@ class _PicaFavorButtonState extends State<PicaFavorButton> {
                       size: iconSize,
                     )
                   : Icon(
-                      BootstrapIcons.bookmark,
+                      widget.filled ? BootstrapIcons.bookmark_fill : BootstrapIcons.bookmark,
                       size: iconSize,
+                      color: widget.filled? Colors.grey : null
                     ),
           onTap: () {
             favorController.favorCall(widget.id);
@@ -74,7 +77,7 @@ class _PicaLikeButtonState extends State<PicaLikeButton> {
     return Obx(() => MoonButton.icon(
           icon: likeController.isLoading.value
               ? SizedBox(
-                  width: size, height: size, child: MoonCircularLoader(color: context.moonTheme?.tokens.colors.bulma))
+                  width: size, height: size, child: DefaultHeaderFooter.progressIndicator(context))
               : likeController.isLike.value
                   ? Icon(
                       BootstrapIcons.heart_fill,

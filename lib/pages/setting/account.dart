@@ -114,7 +114,7 @@ class _AccountPageState extends State<AccountPage> {
                                       MoonTextInput(
                                         controller: controller,
                                         hintText: "Slogan".tr,
-                                      ).paddingVertical(8),
+                                      ).paddingBottom(16),
                                       Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.end,
@@ -126,7 +126,9 @@ class _AccountPageState extends State<AccountPage> {
                                           filledButton(
                                               label: "Save".tr,
                                               onPressed: () {
-                                                FocusManager.instance.primaryFocus?.unfocus();
+                                                FocusManager
+                                                    .instance.primaryFocus
+                                                    ?.unfocus();
                                                 if (controller.text
                                                     .trim()
                                                     .isEmpty) {
@@ -152,7 +154,7 @@ class _AccountPageState extends State<AccountPage> {
                 moonListTile(
                     title: "Change Password".tr,
                     onTap: () {
-                      showDialog(
+                      showMoonModal(
                           context: context,
                           builder: (context) {
                             TextEditingController oldPasswordController =
@@ -161,61 +163,156 @@ class _AccountPageState extends State<AccountPage> {
                                 TextEditingController();
                             TextEditingController confirmPasswordController =
                                 TextEditingController();
-                            return AlertDialog(
-                              title: Text("Change Password".tr),
-                              content: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  TextField(
-                                    controller: oldPasswordController,
-                                    decoration: InputDecoration(
-                                        border: OutlineInputBorder(),
-                                        labelText: "Old Password".tr),
-                                  ),
-                                  TextField(
-                                    controller: newPasswordController,
-                                    decoration: InputDecoration(
-                                        border: OutlineInputBorder(),
-                                        labelText: "New Password".tr),
-                                  ),
-                                  TextField(
-                                    controller: confirmPasswordController,
-                                    decoration: InputDecoration(
-                                        border: OutlineInputBorder(),
-                                        labelText: "Confirm Password".tr),
-                                  ),
-                                ],
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    Get.back();
-                                  },
-                                  child: Text("Cancel".tr),
+                            return Obx(() => Dialog(
+                                child: ListView(shrinkWrap: true, children: [
+                              MoonAlert(
+                                label: Text("Change Password".tr).header(),
+                                verticalGap: 16,
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    MoonTextInput(
+                                      controller: oldPasswordController,
+                                      hintText: "Old Password".tr,
+                                      keyboardType:
+                                          TextInputType.visiblePassword,
+                                      obscureText: loginController.hideOldPassword.value,
+                                      hasFloatingLabel: true,
+                                      onTapOutside: (PointerDownEvent _) =>
+                                          FocusManager.instance.primaryFocus
+                                              ?.unfocus(),
+                                      leading: const Icon(
+                                        MoonIcons.security_password_24_light,
+                                        size: 24,
+                                      ),
+                                      trailing: MouseRegion(
+                                        cursor: SystemMouseCursors.click,
+                                        child: GestureDetector(
+                                          child: IntrinsicWidth(
+                                            child: Align(
+                                              alignment: Alignment.centerRight,
+                                              child: Text(
+                                                loginController.hideOldPassword.value
+                                                    ? "Show".tr
+                                                    : "Hide".tr,
+                                                style: TextStyle(
+                                                  decoration:
+                                                      TextDecoration.underline,
+                                                  color: Colors.grey,
+                                                ),
+                                              ).underlineSmall(),
+                                            ),
+                                          ),
+                                          onTap: () => setState(() =>
+                                              loginController.hideOldPassword.value =
+                                                  !loginController.hideOldPassword.value),
+                                        ),
+                                      ),
+                                    ).paddingBottom(8),
+                                    MoonTextInput(
+                                      controller: newPasswordController,
+                                      hintText: "New Password".tr,
+                                      obscureText: loginController.hideNewPassword.value,
+                                      leading: const Icon(
+                                        MoonIcons.security_password_24_light,
+                                        size: 24,
+                                      ),
+                                      trailing: MouseRegion(
+                                        cursor: SystemMouseCursors.click,
+                                        child: GestureDetector(
+                                          child: IntrinsicWidth(
+                                            child: Align(
+                                              alignment: Alignment.centerRight,
+                                              child: Text(
+                                                loginController.hideNewPassword.value
+                                                    ? "Show".tr
+                                                    : "Hide".tr,
+                                                style: TextStyle(
+                                                  decoration:
+                                                      TextDecoration.underline,
+                                                  color: Colors.grey,
+                                                ),
+                                              ).underlineSmall(),
+                                            ),
+                                          ),
+                                          onTap: () => setState(() =>
+                                              loginController.hideNewPassword.value =
+                                                  !loginController.hideNewPassword.value),
+                                        ),
+                                      ),
+                                    ).paddingBottom(8),
+                                    MoonTextInput(
+                                      controller: confirmPasswordController,
+                                      hintText: "Confirm Password".tr,
+                                      obscureText: loginController.hideConfirmPassword.value,
+                                      leading: const Icon(
+                                        MoonIcons.security_password_24_light,
+                                        size: 24,
+                                      ),
+                                      trailing: MouseRegion(
+                                        cursor: SystemMouseCursors.click,
+                                        child: GestureDetector(
+                                          child: IntrinsicWidth(
+                                            child: Align(
+                                              alignment: Alignment.centerRight,
+                                              child: Text(
+                                                loginController.hideConfirmPassword.value
+                                                    ? "Show".tr
+                                                    : "Hide".tr,
+                                                style: TextStyle(
+                                                  decoration:
+                                                      TextDecoration.underline,
+                                                  color: Colors.grey,
+                                                ),
+                                              ).underlineSmall(),
+                                            ),
+                                          ),
+                                          onTap: () => setState(() =>
+                                              loginController.hideConfirmPassword.value =
+                                                  !loginController.hideConfirmPassword.value),
+                                        ),
+                                      ),
+                                    ).paddingBottom(16),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        outlinedButton(
+                                          onPressed: () {
+                                            Get.back();
+                                          },
+                                          label: "Cancel".tr,
+                                        ).paddingRight(8),
+                                        filledButton(
+                                          onPressed: () {
+                                            if (oldPasswordController.text.isEmpty ||
+                                                newPasswordController
+                                                    .text.isEmpty ||
+                                                confirmPasswordController
+                                                    .text.isEmpty) {
+                                              showToast(
+                                                  "Password can't be empty".tr);
+                                              return;
+                                            }
+                                            if (newPasswordController.text !=
+                                                confirmPasswordController
+                                                    .text) {
+                                              showToast(
+                                                  "Password not match".tr);
+                                              return;
+                                            }
+                                            Get.back();
+                                            profileController.updatePassword(
+                                                oldPasswordController.text,
+                                                newPasswordController.text);
+                                          },
+                                          label: "Change".tr,
+                                        ).paddingRight(8),
+                                      ],
+                                    ),
+                                  ],
                                 ),
-                                TextButton(
-                                  onPressed: () {
-                                    if (oldPasswordController.text.isEmpty ||
-                                        newPasswordController.text.isEmpty ||
-                                        confirmPasswordController
-                                            .text.isEmpty) {
-                                      showToast("Password can't be empty".tr);
-                                      return;
-                                    }
-                                    if (newPasswordController.text !=
-                                        confirmPasswordController.text) {
-                                      showToast("Password not match".tr);
-                                      return;
-                                    }
-                                    Get.back();
-                                    profileController.updatePassword(
-                                        oldPasswordController.text,
-                                        newPasswordController.text);
-                                  },
-                                  child: Text("Change".tr),
-                                ),
-                              ],
-                            );
+                              )
+                            ])));
                           });
                     }),
               if (loginController.isLogin.value)

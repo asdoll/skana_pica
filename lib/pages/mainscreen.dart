@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/controller/categories.dart';
+import 'package:skana_pica/controller/comiclist.dart' show leaderboardController;
 import 'package:skana_pica/controller/main_controller.dart';
 import 'package:skana_pica/controller/profile.dart';
 import 'package:skana_pica/controller/setting_controller.dart'
     show mangaSettingsController;
-import 'package:skana_pica/pages/leaderboard.dart';
+import 'package:skana_pica/pages/pica_cats.dart';
 import 'package:skana_pica/pages/pica_download.dart';
 import 'package:skana_pica/pages/pica_history.dart';
 import 'package:skana_pica/pages/pica_login.dart';
@@ -87,12 +88,13 @@ class _MainsState extends State<Mains> {
                           categoriesController.mainPageTags[i], null, i),
                     const Divider(),
                     buildButton('Search'.tr, BootstrapIcons.search, 1),
-                    buildButton('Leaderboard'.tr, BootstrapIcons.list_stars, 2),
-                    buildButton('Bookmarks'.tr, BootstrapIcons.bookmark, 3),
+                    buildButton('Categories'.tr, BootstrapIcons.app, 2),
+                    buildButton('Leaderboard'.tr, BootstrapIcons.list_stars, 3),
+                    buildButton('Bookmarks'.tr, BootstrapIcons.bookmark, 4),
                     const Divider(),
-                    buildButton('History'.tr, BootstrapIcons.clock_history, 4),
-                    buildButton('Downloads'.tr, BootstrapIcons.download, 5),
-                    buildButton('Settings'.tr, BootstrapIcons.gear, 6),
+                    buildButton('History'.tr, BootstrapIcons.clock_history, 5),
+                    buildButton('Downloads'.tr, BootstrapIcons.download, 6),
+                    buildButton('Settings'.tr, BootstrapIcons.gear, 7),
                   ]).paddingSymmetric(horizontal: 8)),
               //floatingActionButton: GoTop(),
               body: (homeController.pageIndex.value == 0 &&
@@ -137,10 +139,11 @@ class _MainsState extends State<Mains> {
                                       ? PicaComicsPage(keyword: categoriesController.mainPageTags[homeController.tagIndex.value], type: "search", addToHistory: false, fromDrawer: true)
                                       : switch (homeController.pageIndex.value) {
                                           1 => PicaSearchPage(),
-                                          2 => LeaderboardPage(),
-                                          3 => PicaComicsPage(keyword: "bookmarks", type: "me"),
-                                          4 => PicaHistoryPage(),
-                                          5 => PicaDownloadPage(),
+                                          2 => PicaCatsPage(),
+                                          3 => PicaComicsPage(keyword: "leaderboard", type: leaderboardController.type.value, fromDrawer: true),
+                                          4 => PicaComicsPage(keyword: "bookmarks", type: "me",fromDrawer: true,),
+                                          5 => PicaHistoryPage(),
+                                          6 => PicaDownloadPage(),
                                           _ => SettingPage(),
                                         },
             ),
@@ -196,7 +199,11 @@ class _MainsState extends State<Mains> {
         onTap: () {
           closeDrawer();
           homeController.pageIndex.value = index;
-          globalScrollController.jumpTo(0);
+          try{
+            globalScrollController.jumpTo(0);
+          }catch(e){
+            //ignore
+          }
         },
       );
     }

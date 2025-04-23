@@ -2,7 +2,6 @@ import 'package:get/get.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/blocker.dart';
-import 'package:skana_pica/pages/home_page.dart';
 
 late CategoriesController categoriesController;
 
@@ -58,7 +57,6 @@ class CategoriesController extends GetxController {
     tags.removeWhere((element) => element.trim().isEmpty);
     mainPageTags.addAll(tags);
     mainPageTags.refresh();
-    reloadMainPage();
   }
 
   void toggleMainPageTag(String tag) {
@@ -70,7 +68,6 @@ class CategoriesController extends GetxController {
     settings.pica[9] = mainPageTags.join(";");
     settings.updateSettings("pica");
     mainPageTags.refresh();
-    reloadMainPage();
   }
 
   void addMainPageTag(String tag) {
@@ -82,7 +79,6 @@ class CategoriesController extends GetxController {
     settings.pica[9] = mainPageTags.join(";");
     settings.updateSettings("pica");
     mainPageTags.refresh();
-    reloadMainPage();
   }
 
   void removeMainPageTag(String tag) {
@@ -94,24 +90,14 @@ class CategoriesController extends GetxController {
     settings.pica[9] = mainPageTags.join(";");
     settings.updateSettings("pica");
     mainPageTags.refresh();
-    reloadMainPage();
   }
 
   void saveMainPageTags() {
     mainPageTags.refresh();
     settings.pica[9] = mainPageTags.join(";");
     settings.updateSettings("pica");
-    reloadMainPage();
   }
 
-  void reloadMainPage() {
-    try {
-      HomePageController homePageController = Get.find();
-      homePageController.reload( callback: true);
-    } catch (e) {
-      //just ignore
-    }
-  }
 }
 
 final fixedCategories = ["Random", "Latest", "Leaderboard", "Bookmarks"];

@@ -130,7 +130,7 @@ Future<T?> alertDialog<T>(BuildContext context, String title, String content,
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(content).paddingBottom(16),
+                    if (content.isNotEmpty) Text(content).paddingBottom(16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: actions

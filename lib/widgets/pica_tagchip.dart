@@ -1,3 +1,4 @@
+import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moon_design/moon_design.dart';
@@ -116,10 +117,26 @@ ChoiceChip picaChoiceChip(
     ).small(),
     selected: selected,
     onSelected: onSelected,
-    selectedColor: selectedColor?.applyDarkMode(reverse: true, percent: 40) ?? Get.context!.moonTheme?.tokens.colors.cell
+    selectedColor: selectedColor?.applyDarkMode(reverse: true, percent: 40) ?? Get.context!.moonTheme?.tokens.colors.hit
         .applyDarkMode(reverse: true, percent: 40),
     backgroundColor: backgroundColor ?? Get.context!.moonTheme?.tokens.colors.cell60,
     disabledColor: disabledColor ?? Get.context!.moonTheme?.tokens.colors.cell60,
     checkmarkColor: Get.context!.moonTheme?.tokens.colors.bulma,
   );
 }
+
+Chip picaDeleteChip({required String text, required Function() onDeleted, Color? backgroundColor}) {
+  return Chip(
+    label: Text(
+      text,
+      style: Get.context!.moonTheme?.tokens.typography.heading.text12.apply(
+        color: Get.context!.moonTheme?.tokens.colors.bulma,
+      ),
+    ).small(),
+    backgroundColor: backgroundColor ?? Get.context!.moonTheme?.tokens.colors.cell60,
+    deleteIcon: const Icon(BootstrapIcons.x),
+    onDeleted: onDeleted,
+  );
+}
+
+

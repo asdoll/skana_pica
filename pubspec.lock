@@ -363,14 +363,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.2"
-  flutter_slidable:
-    dependency: "direct main"
-    description:
-      name: flutter_slidable
-      sha256: ab7dbb16f783307c9d7762ede2593ce32c220ba2ba0fd540a3db8e9a3acba71a
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.0.0"
   flutter_spinkit:
     dependency: "direct main"
     description:
@@ -461,14 +453,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.2"
-  icon_decoration:
-    dependency: "direct main"
-    description:
-      name: icon_decoration
-      sha256: "3553d73cc1e7e9c0e54c1b21788de89961a92996693bdf0c942a1a4b7f5bb45d"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.0"
   image_gallery_saver_plus:
     dependency: "direct main"
     description:
