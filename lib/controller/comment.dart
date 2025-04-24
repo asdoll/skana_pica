@@ -3,7 +3,7 @@ import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/controller/comicstore.dart';
 import 'package:skana_pica/util/leaders.dart';
-import 'package:skana_pica/util/log.dart';
+import 'package:skana_pica/controller/log.dart';
 
 class CommentController extends GetxController {
   Rx<PicaComment> comment = PicaComment.error().obs;
@@ -56,7 +56,7 @@ class ReplyController extends GetxController {
     picaClient.comment(id, content, !isComic).then((value) {
       isLoading.value = false;
       if (!value) {
-        toast( "Failed to reply".tr);
+        showToast( "Failed to reply".tr);
         return;
       }
       if (isComic) {

@@ -1,17 +1,23 @@
 import 'dart:io';
+import 'dart:math';
 
+import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:moon_design/moon_design.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:skana_pica/api/managers/image_cache_manager.dart';
+import 'package:skana_pica/controller/comicstore.dart' show readModes;
 import 'package:skana_pica/controller/local_comicstore.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
 import 'package:skana_pica/pages/pica_comic.dart';
 import 'package:skana_pica/util/leaders.dart';
-import 'package:skana_pica/util/log.dart';
+import 'package:skana_pica/controller/log.dart';
 import 'package:skana_pica/util/tool.dart';
+import 'package:skana_pica/util/widgetplugin.dart';
 import 'package:skana_pica/widgets/custom_slider.dart';
+import 'package:skana_pica/widgets/icons.dart';
 import 'package:skana_pica/widgets/pica_image.dart';
 import 'package:photo_view/photo_view.dart';
 
@@ -66,7 +72,7 @@ class _LocalReadPageState extends State<LocalReadPage> {
             keepPage: true);
       }
     } catch (e) {
-      toast( "Internal Error".tr);
+      showToast("Internal Error".tr);
       Get.until((route) => Get.currentRoute == Mains.route);
       pageController = PageController(initialPage: 1);
       return const SizedBox();
@@ -91,7 +97,8 @@ class _LocalReadPageState extends State<LocalReadPage> {
     );
   }
 
-  Widget buildBottomToolBar(LocalComicStore localComicStore, BuildContext context) {
+  Widget buildBottomToolBar(
+      LocalComicStore localComicStore, BuildContext context) {
     return Positioned(
       bottom: 0,
       left: 0,
@@ -114,7 +121,7 @@ class _LocalReadPageState extends State<LocalReadPage> {
                 borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(16),
                     topRight: Radius.circular(16)),
-                surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
+                surfaceTintColor: context.moonTheme?.tokens.colors.beerus,
                 elevation: 3,
                 key: const ValueKey("bottom_tool_bar"),
                 child: SizedBox(
@@ -129,26 +136,32 @@ class _LocalReadPageState extends State<LocalReadPage> {
                           const SizedBox(
                             width: 8,
                           ),
-                          IconButton.filledTonal(
-                              onPressed: localComicStore.dldEps.value == 0 ||
+                          MoonButton.icon(
+                              backgroundColor:
+                                  context.moonTheme?.tokens.colors.piccolo,
+                              onTap: localComicStore.dldEps.value == 0 ||
                                       localComicStore.eps.length < 2
                                   ? null
                                   : () => localComicStore.prevPage(
                                       controller: pageController,
                                       duo: localComicStore.readMode.value > 4),
-                              icon: const Icon(Icons.first_page)),
+                              icon:
+                                  const Icon(BootstrapIcons.chevron_bar_left)),
                           Expanded(
                             child: buildSlider(localComicStore),
                           ),
-                          IconButton.filledTonal(
-                              onPressed: localComicStore.dldEps.value ==
+                          MoonButton.icon(
+                              backgroundColor:
+                                  context.moonTheme?.tokens.colors.piccolo,
+                              onTap: localComicStore.dldEps.value ==
                                           localComicStore.eps.length - 1 ||
                                       localComicStore.eps.length < 2
                                   ? null
                                   : () => localComicStore.nextChapter(
                                       controller: pageController,
                                       duo: localComicStore.readMode.value > 4),
-                              icon: const Icon(Icons.last_page)),
+                              icon:
+                                  const Icon(BootstrapIcons.chevron_bar_right)),
                           const SizedBox(
                             width: 8,
                           ),
@@ -163,7 +176,7 @@ class _LocalReadPageState extends State<LocalReadPage> {
                           if (Platform.isAndroid)
                             Tooltip(
                               message: "Orientation".tr,
-                              child: IconButton(
+                              child: MoonButton.icon(
                                 icon: Icon(
                                   localComicStore.orientation.value == 0
                                       ? Icons.screen_rotation
@@ -171,40 +184,38 @@ class _LocalReadPageState extends State<LocalReadPage> {
                                           ? Icons.screen_lock_portrait
                                           : Icons.screen_lock_landscape,
                                 ),
-                                onPressed: () {
-                                  localComicStore.setOrientation();
-                                },
+                                onTap: () => localComicStore.setOrientation(),
                               ),
                             ),
                           Tooltip(
                             message: "Auto next page".tr,
-                            child: IconButton(
+                            child: MoonButton.icon(
                               icon: localComicStore.autoPageTurning.value
-                                  ? const Icon(Icons.timer)
-                                  : const Icon(Icons.timer_sharp),
-                              onPressed: () => localComicStore.setAutoPageTurning(),
+                                  ? const Icon(BootstrapIcons.stopwatch_fill)
+                                  : const Icon(BootstrapIcons.stopwatch),
+                              onTap: () => localComicStore.setAutoPageTurning(),
                             ),
                           ),
                           if (localComicStore.eps.length > 1)
                             Tooltip(
                               message: "Episodes".tr,
-                              child: IconButton(
-                                icon: const Icon(Icons.library_books),
-                                onPressed: () => openEpsDrawer(localComicStore),
+                              child: MoonButton.icon(
+                                icon: const Icon(BootstrapIcons.collection),
+                                onTap: () => openEpsDrawer(localComicStore),
                               ),
                             ),
                           Tooltip(
                             message: "Save".tr,
-                            child: IconButton(
-                              icon: const Icon(Icons.download),
-                              onPressed: () => saveCurrentImage(localComicStore),
+                            child: MoonButton.icon(
+                              icon: const Icon(BootstrapIcons.floppy),
+                              onTap: () => saveCurrentImage(localComicStore),
                             ),
                           ),
                           Tooltip(
                             message: "Share".tr,
-                            child: IconButton(
-                              icon: const Icon(Icons.share),
-                              onPressed: () => share(localComicStore),
+                            child: MoonButton.icon(
+                              icon: const Icon(BootstrapIcons.share),
+                              onTap: () => share(localComicStore),
                             ),
                           ),
                           const SizedBox(
@@ -226,50 +237,62 @@ class _LocalReadPageState extends State<LocalReadPage> {
   }
 
   void openEpsDrawer(LocalComicStore comicStore) {
-    showModalBottomSheet(
+    showMoonModalBottomSheet(
+        borderRadius: BorderRadius.all(Radius.circular(8)),
         context: context,
         builder: (context) {
-          return Obx(() => SizedBox(
-                height: 300,
-                child: ListView.builder(
-                  itemCount: comicStore.eps.length,
-                  itemBuilder: (context, i) {
-                    return ListTile(
-                      title: Text(comicStore.comic.value.eps[comicStore.eps[i].eps]),
-                      subtitle: Text(
-                          "${comicStore.eps[i].url.length} ${"Pages".tr}"),
-                      trailing: comicStore.dldEps.value == i
-                          ? const Icon(Icons.check)
-                          : null,
-                      onTap: () {
-                        comicStore.setPage(i, 0);
-                        if (comicStore.readMode.value != 4) {
-                          pageController.jumpToPage(1);
-                        } else {
-                          itemScrollController.scrollTo(
-                              index: 1,
-                              duration: Duration(
-                                  milliseconds:
-                                      comicStore.animationDuration.value),
-                              curve: Curves.easeInOut);
-                        }
-                        Get.back();
-                      },
-                    );
-                  },
-                ).paddingOnly(top: 16),
-              ));
+          return Obx(() => SafeArea(
+                  child: SizedBox(
+                height: max(300, context.height / 3),
+                child: Scaffold(
+                  body: ListView.builder(
+                    itemCount: comicStore.eps.length + 1,
+                    itemBuilder: (context, i) {
+                      if (i == comicStore.eps.length) {
+                        return SizedBox(height: 32);
+                      }
+                      return moonListTile(
+                        title:
+                            comicStore.comic.value.eps[comicStore.eps[i].eps],
+                        subtitle:
+                            "${comicStore.eps[i].url.length} ${"Pages".tr}",
+                        trailing: comicStore.dldEps.value == i
+                            ? const Icon(BootstrapIcons.check_lg)
+                            : null,
+                        onTap: () {
+                          comicStore.setPage(i, 0);
+                          if (comicStore.readMode.value != 4) {
+                            pageController.jumpToPage(1);
+                          } else {
+                            itemScrollController.scrollTo(
+                                index: 1,
+                                duration: Duration(
+                                    milliseconds:
+                                        comicStore.animationDuration.value),
+                                curve: Curves.easeInOut);
+                          }
+                          Get.back();
+                        },
+                      );
+                    },
+                  ).paddingOnly(top: 16),
+                ),
+              )));
         });
   }
 
   void saveCurrentImage(LocalComicStore comicStore) {
-    saveImage(comicStore.eps[comicStore.dldEps.value]
-        .url[comicStore.currentIndex.value], fromDld: true);
+    saveImage(
+        comicStore
+            .eps[comicStore.dldEps.value].url[comicStore.currentIndex.value],
+        fromDld: true);
   }
 
   void share(LocalComicStore comicStore) {
-    shareImage(comicStore.eps[comicStore.dldEps.value]
-        .url[comicStore.currentIndex.value], fromDld: true);
+    shareImage(
+        comicStore
+            .eps[comicStore.dldEps.value].url[comicStore.currentIndex.value],
+        fromDld: true);
   }
 
   Widget buildSlider(LocalComicStore comicStore) {
@@ -284,11 +307,8 @@ class _LocalReadPageState extends State<LocalReadPage> {
         min: 1,
         reversed:
             comicStore.readMode.value == 6 || comicStore.readMode.value == 2,
-        max: comicStore.eps[comicStore.dldEps.value].url.length
-                .toDouble() +
-            1,
-        divisions:
-            comicStore.eps[comicStore.dldEps.value].url.length - 1,
+        max: comicStore.eps[comicStore.dldEps.value].url.length.toDouble() + 1,
+        divisions: comicStore.eps[comicStore.dldEps.value].url.length - 1,
         onChanged: (i) {
           if (comicStore.readMode.value == 4) {
             itemScrollController.scrollTo(
@@ -322,7 +342,7 @@ class _LocalReadPageState extends State<LocalReadPage> {
         key: ValueKey("top_tool_bar_switcher"),
         child: comicStore.barVisible.value
             ? Material(
-                surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
+                surfaceTintColor: context.moonTheme?.tokens.colors.beerus,
                 elevation: 3,
                 key: const ValueKey("top_tool_bar"),
                 shadowColor:
@@ -333,14 +353,7 @@ class _LocalReadPageState extends State<LocalReadPage> {
                     children: [
                       Padding(
                         padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                        child: Tooltip(
-                          message: "Back".tr,
-                          child: IconButton(
-                            iconSize: 25,
-                            icon: const Icon(Icons.arrow_back_outlined),
-                            onPressed: () => Get.back(),
-                          ),
-                        ),
+                        child: NormalBackButton(),
                       ),
                       Expanded(
                         child: Container(
@@ -352,33 +365,32 @@ class _LocalReadPageState extends State<LocalReadPage> {
                             child: Text(
                               comicStore.comic.value.title,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 20),
-                            ),
+                            ).appHeader(),
                           ),
                         ),
                       ),
+                      SizedBox(width: 8),
                       Container(
                         height: 25,
                         padding: const EdgeInsets.fromLTRB(6, 2, 6, 0),
                         decoration: BoxDecoration(
                           color:
-                              Theme.of(context).colorScheme.tertiaryContainer,
+                              context.moonTheme?.tokens.colors.frieza60,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(comicStore.eps.length > 1
                             ? "E${comicStore.eps[comicStore.dldEps.value].eps + 1}:P${comicStore.currentIndex.value + 1}"
-                            : "P${comicStore.currentIndex.value + 1}"),
+                            : "P${comicStore.currentIndex.value + 1}").subHeader(),
                       ),
                       //const Spacer(),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                         child: Tooltip(
                           message: "Read Settings".tr,
-                          child: IconButton(
-                            iconSize: 25,
-                            icon: const Icon(Icons.settings),
-                            onPressed: () => showSettings(context, comicStore),
-                          ),
+                          child: MoonButton.icon(
+                          icon: const Icon(BootstrapIcons.gear),
+                          onTap: () => showSettings(context, comicStore),
+                        ),
                         ),
                       ),
                     ],
@@ -402,184 +414,225 @@ class _LocalReadPageState extends State<LocalReadPage> {
     );
   }
 
-  void showSettings(BuildContext context, LocalComicStore comicStore) {
-    showModalBottomSheet(
+ void showSettings(BuildContext context, LocalComicStore comicStore) {
+    showMoonModalBottomSheet(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
       context: context,
+      transitionDuration: const Duration(milliseconds: 200),
       builder: (context) {
-        return Obx(
-          () => SizedBox(
-            height: 300,
-            child: ListView(
-              children: [
-                ListTile(
-                  title: Text("Read Mode".tr),
-                  trailing: DropdownButton<int>(
-                      items: [
-                        DropdownMenuItem(
-                          value: 1,
-                          child: Text("Left to Right".tr),
-                        ),
-                        DropdownMenuItem(
-                          value: 2,
-                          child: Text("Right to Left".tr),
-                        ),
-                        DropdownMenuItem(
-                          value: 3,
-                          child: Text("Top to Bottom".tr),
-                        ),
-                        DropdownMenuItem(
-                          value: 4,
-                          child: Text("Top to Bottom(Scroll view)".tr),
-                        ),
-                        DropdownMenuItem(
-                          value: 5,
-                          child: Text("Duo Page".tr),
-                        ),
-                        DropdownMenuItem(
-                          value: 6,
-                          child: Text("Duo Page(reversed)".tr),
-                        ),
-                      ],
-                      value: comicStore.readMode.value,
-                      onChanged: (i) {
-                        comicStore.setReadMode(i as int);
-                        if (i < 4) {
-                          pageController = PageController(
-                              initialPage: comicStore.currentIndex.value + 1);
-                        } else if (i == 4) {
-                          itemScrollController.scrollTo(
-                              index: comicStore.currentIndex.value + 1,
-                              duration: Duration(
-                                  milliseconds:
-                                      comicStore.animationDuration.value),
-                              curve: Curves.easeInOut);
-                        } else {
-                          pageController = PageController(
-                              initialPage:
-                                  (comicStore.currentIndex.value ~/ 2) + 1);
-                        }
-                      }),
-                ),
-                ListTile(
-                  title: Text("Auto Page Turning Interval".tr),
-                  subtitle: SizedBox(
-                    height: 105,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Slider(
-                            key: ValueKey("auto_page_turning_interval_slider"),
-                            value: comicStore.autoPageTurningInterval.value
-                                .toDouble(),
-                            min: 1,
-                            max: 20,
-                            divisions: 19,
-                            onChanged: (i) {
-                              comicStore.setAutoPageTurningInterval(i.toInt());
-                            },
+        return Obx(() => SafeArea(
+                child: SizedBox(
+              height: max(300, context.height / 3),
+              child: Scaffold(
+                body: ListView(
+                  children: [
+                    moonListTile(
+                      title: "Read Mode".tr,
+                      trailing: MoonDropdown(
+                          content: Column(
+                            children: [
+                              MoonMenuItem(
+                                label: Text("Left to Right".tr),
+                                onTap: () {
+                                  comicStore.setReadMode(1);
+                                  pageController = PageController(
+                                      initialPage:
+                                          comicStore.currentIndex.value + 1);
+                                },
+                              ),
+                              MoonMenuItem(
+                                label: Text("Right to Left".tr),
+                                onTap: () {
+                                  comicStore.setReadMode(2);
+                                  pageController = PageController(
+                                      initialPage:
+                                          comicStore.currentIndex.value + 1);
+                                },
+                              ),
+                              MoonMenuItem(
+                                label: Text("Top to Bottom".tr),
+                                onTap: () {
+                                  comicStore.setReadMode(3);
+                                  pageController = PageController(
+                                      initialPage:
+                                          comicStore.currentIndex.value + 1);
+                                },
+                              ),
+                              MoonMenuItem(
+                                label: Text("Top to Bottom(Scroll view)".tr),
+                                onTap: () {
+                                  comicStore.setReadMode(4);
+                                  itemScrollController.scrollTo(
+                                      index: comicStore.currentIndex.value + 1,
+                                      duration: Duration(
+                                          milliseconds: comicStore
+                                              .animationDuration.value),
+                                      curve: Curves.easeInOut);
+                                },
+                              ),
+                              MoonMenuItem(
+                                label: Text("Duo Page".tr),
+                                onTap: () {
+                                  comicStore.setReadMode(5);
+                                  pageController = PageController(
+                                      initialPage:
+                                          (comicStore.currentIndex.value ~/ 2) +
+                                              1);
+                                },
+                              ),
+                              MoonMenuItem(
+                                label: Text("Duo Page(reversed)".tr),
+                                onTap: () {
+                                  comicStore.setReadMode(6);
+                                  pageController = PageController(
+                                      initialPage:
+                                          (comicStore.currentIndex.value ~/ 2) +
+                                              1);
+                                },
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
+                          show: comicStore.readModeMenu.value,
+                          onTapOutside: () =>
+                              comicStore.readModeMenu.value = false,
+                          child: filledButton(
+                              label:
+                                  readModes[comicStore.readMode.value - 1].tr,
+                              onPressed: () => comicStore.readModeMenu.value =
+                                  !comicStore.readModeMenu.value)),
                     ),
-                  ),
-                  trailing: Text(
-                      "${comicStore.autoPageTurningInterval.value} ${"s".tr}"),
-                ),
-                ListTile(
-                  title: Text("Image Layout".tr),
-                  subtitle: Text(comicStore.imageLayout.value == 0
-                      ? "Contained".tr
-                      : "Covered".tr),
-                  trailing: Switch(
-                    value: comicStore.imageLayout.value == 1,
-                    onChanged: (value) {
-                      comicStore.setImageLayout(value ? 1 : 0);
-                    },
-                  ),
-                ),
-                ListTile(
-                  title: Text("Limit Image Width".tr),
-                  subtitle: Text(comicStore.limitImageWidth.value
-                      ? "Enabled".tr
-                      : "Disabled".tr),
-                  trailing: Switch(
-                    value: comicStore.limitImageWidth.value,
-                    onChanged: (value) {
-                      comicStore.setLimitImageWidth(value);
-                    },
-                  ),
-                ),
-                ListTile(
-                  title: Text("Tap to Next Page Threshold".tr),
-                  subtitle: SizedBox(
-                    height: 105,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Slider(
-                            key: ValueKey("tap_threshold_slider"),
-                            value: comicStore.tapThreshold.value.toDouble(),
-                            min: 1,
-                            max: 50,
-                            divisions: 49,
-                            onChanged: (i) {
-                              comicStore.setTapThreshold(i.toInt());
-                            },
-                          ),
+                    moonListTile(
+                      title: "Auto Page Turning Interval".tr,
+                      subtitleWidget: SizedBox(
+                        height: 105,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Slider(
+                                activeColor: context.moonTheme?.tokens.colors.piccolo,
+                                key: ValueKey(
+                                    "auto_page_turning_interval_slider"),
+                                value: comicStore.autoPageTurningInterval.value
+                                    .toDouble(),
+                                min: 1,
+                                max: 20,
+                                divisions: 19,
+                                onChanged: (i) {
+                                  comicStore
+                                      .setAutoPageTurningInterval(i.toInt());
+                                },
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
+                      trailing: Text(
+                              "${comicStore.autoPageTurningInterval.value} ${"s".tr}")
+                          .small(),
                     ),
-                  ),
-                  trailing: Text("${comicStore.tapThreshold.value}%"),
-                ),
-                ListTile(
-                  title: Text("Dark Background".tr),
-                  subtitle: Text(comicStore.useDarkBackground.value
-                      ? "Enabled".tr
-                      : "Disabled".tr),
-                  trailing: Switch(
-                    value: comicStore.useDarkBackground.value,
-                    onChanged: (value) {
-                      comicStore.setDarkBackground(value);
-                    },
-                  ),
-                ),
-                ListTile(
-                  title: Text("Animation Duration".tr),
-                  subtitle: SizedBox(
-                    height: 105,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Slider(
-                            key: ValueKey("animation_duration_slider"),
-                            value: comicStore.animationDuration.value.toDouble(),
-                            min: 100,
-                            max: 500,
-                            divisions: 20,
-                            onChanged: (i) {
-                              comicStore.setAnimationDuration(i.toInt());
-                            },
-                          ),
+                    moonListTile(
+                      title: "Image Layout".tr,
+                      subtitle: comicStore.imageLayout.value == 0
+                          ? "Contained".tr
+                          : "Covered".tr,
+                      trailing: MoonSwitch(
+                        value: comicStore.imageLayout.value == 1,
+                        onChanged: (value) {
+                          comicStore.setImageLayout(value ? 1 : 0);
+                        },
+                      ),
+                    ),
+                    moonListTile(
+                      title: "Limit Image Width".tr,
+                      subtitle: comicStore.limitImageWidth.value
+                          ? "Enabled".tr
+                          : "Disabled".tr,
+                      trailing: MoonSwitch(
+                        value: comicStore.limitImageWidth.value,
+                        onChanged: (value) {
+                          comicStore.setLimitImageWidth(value);
+                        },
+                      ),
+                    ),
+                    moonListTile(
+                      title: "Tap to Next Page Threshold".tr,
+                      subtitleWidget: SizedBox(
+                        height: 105,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Slider(
+                                activeColor: context.moonTheme?.tokens.colors.piccolo,
+                                key: ValueKey("tap_threshold_slider"),
+                                value: comicStore.tapThreshold.value.toDouble(),
+                                min: 1,
+                                max: 50,
+                                divisions: 49,
+                                onChanged: (i) {
+                                  comicStore.setTapThreshold(i.toInt());
+                                },
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
+                      trailing:
+                          Text("${comicStore.tapThreshold.value}%").small(),
                     ),
-                  ),
-                  trailing: Text(
-                      "${comicStore.animationDuration.value} ${"ms".tr}"),
-                )
-              ],
-            ).paddingOnly(top: 16),
-          ),
-        );
+                    moonListTile(
+                      title: "Dark Background".tr,
+                      subtitle: comicStore.useDarkBackground.value
+                          ? "Enabled".tr
+                          : "Disabled".tr,
+                      trailing: MoonSwitch(
+                        value: comicStore.useDarkBackground.value,
+                        onChanged: (value) {
+                          comicStore.setDarkBackground(value);
+                        },
+                      ),
+                    ),
+                    moonListTile(
+                      title: "Animation Duration".tr,
+                      subtitleWidget: SizedBox(
+                        height: 105,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Slider(
+                                activeColor: context.moonTheme?.tokens.colors.piccolo,
+                                key: ValueKey("animation_duration_slider"),
+                                value: comicStore.animationDuration.value
+                                    .toDouble(),
+                                min: 100,
+                                max: 500,
+                                divisions: 20,
+                                onChanged: (i) {
+                                  comicStore.setAnimationDuration(i.toInt());
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      trailing: Text(
+                              "${comicStore.animationDuration.value} ${"ms".tr}")
+                          .small(),
+                    ),
+                    SizedBox(height: 32),
+                  ],
+                ).paddingOnly(top: 16),
+              ),
+            )));
       },
     );
   }
 
   Widget buildPageInfoText(LocalComicStore comicStore, BuildContext context) {
-    var epName = comicStore.comic.value.eps[comicStore.eps[comicStore.dldEps.value].eps].isEmpty
+    var epName = comicStore.comic.value
+            .eps[comicStore.eps[comicStore.dldEps.value].eps].isEmpty
         ? "E1"
-        : comicStore.comic.value.eps[comicStore.eps[comicStore.dldEps.value].eps];
+        : comicStore
+            .comic.value.eps[comicStore.eps[comicStore.dldEps.value].eps];
     if (epName.length > 8) {
       epName = "${epName.substring(0, 8)}...";
     }
@@ -593,8 +646,8 @@ class _LocalReadPageState extends State<LocalReadPage> {
         children: [
           Text(
             text,
-            style: TextStyle(
-              fontSize: 14,
+            style: Get.context?.moonTheme?.tokens.typography.heading.text16
+                .copyWith(
               foreground: Paint()
                 ..style = PaintingStyle.stroke
                 ..strokeWidth = 1.4
@@ -606,8 +659,8 @@ class _LocalReadPageState extends State<LocalReadPage> {
           ),
           Text(
             text,
-            style: TextStyle(
-              fontSize: 14,
+            style: Get.context?.moonTheme?.tokens.typography.heading.text16
+                .copyWith(
               color: comicStore.useDarkBackground.value ? Colors.white : null,
             ),
           ),
@@ -629,9 +682,7 @@ class _LocalReadPageState extends State<LocalReadPage> {
         if (positions.isNotEmpty &&
             positions.first.index > 0 &&
             positions.first.index <
-                comicStore
-                        .eps[comicStore.dldEps.value].url.length +
-                    1) {
+                comicStore.eps[comicStore.dldEps.value].url.length + 1) {
           comicStore.currentIndex.value = positions.first.index - 1;
         }
       });
@@ -639,8 +690,7 @@ class _LocalReadPageState extends State<LocalReadPage> {
       return ScrollablePositionedList.builder(
         itemScrollController: itemScrollController,
         itemPositionsListener: itemPositionsListener,
-        itemCount:
-            comicStore.eps[comicStore.dldEps.value].url.length + 2,
+        itemCount: comicStore.eps[comicStore.dldEps.value].url.length + 2,
         addSemanticIndexes: false,
         initialScrollIndex: comicStore.currentIndex.value + 1,
         itemBuilder: (context, i) {
@@ -678,9 +728,7 @@ class _LocalReadPageState extends State<LocalReadPage> {
             }
           }
 
-          if (i ==
-              comicStore.eps[comicStore.dldEps.value].url.length +
-                  1) {
+          if (i == comicStore.eps[comicStore.dldEps.value].url.length + 1) {
             if (comicStore.dldEps.value < comicStore.eps.length) {
               return Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -717,14 +765,10 @@ class _LocalReadPageState extends State<LocalReadPage> {
         reverse: comicStore.readMode.value == 2,
         scrollDirection:
             comicStore.readMode.value == 3 ? Axis.vertical : Axis.horizontal,
-        itemCount:
-            comicStore.eps[comicStore.dldEps.value].url.length + 2,
+        itemCount: comicStore.eps[comicStore.dldEps.value].url.length + 2,
         builder: (BuildContext context, int index) {
           if (index == 0 ||
-              index ==
-                  comicStore.eps[comicStore.dldEps.value].url
-                          .length +
-                      1) {
+              index == comicStore.eps[comicStore.dldEps.value].url.length + 1) {
             return PhotoViewGalleryPageOptions.customChild(
               child: const SizedBox(),
             );
@@ -732,8 +776,8 @@ class _LocalReadPageState extends State<LocalReadPage> {
 
           return PhotoViewGalleryPageOptions(
             filterQuality: FilterQuality.medium,
-            imageProvider: localProvider(comicStore
-                .eps[comicStore.dldEps.value].url[index - 1]),
+            imageProvider: localProvider(
+                comicStore.eps[comicStore.dldEps.value].url[index - 1]),
             initialScale: comicStore.imageLayout.value == 0
                 ? PhotoViewComputedScale.contained
                 : PhotoViewComputedScale.covered,
@@ -788,11 +832,10 @@ class _LocalReadPageState extends State<LocalReadPage> {
           child: SizedBox(
             width: 20.0,
             height: 20.0,
-            child: CircularProgressIndicator(
-              backgroundColor: Get.theme.colorScheme.surfaceContainerHigh,
-              value: event == null || event.expectedTotalBytes == null
-                  ? null
-                  : event.cumulativeBytesLoaded / event.expectedTotalBytes!,
+            child: event == null || event.expectedTotalBytes == null ? CircularProgressIndicator(
+              color: context.moonTheme?.tokens.colors.piccolo,
+            ) : MoonCircularProgress(
+              value: event.cumulativeBytesLoaded / event.expectedTotalBytes!,
             ),
           ),
         ),
@@ -800,8 +843,7 @@ class _LocalReadPageState extends State<LocalReadPage> {
           if (i == 0) {
             comicStore.prevChapter(controller: pageController);
           } else if (i ==
-              comicStore.eps[comicStore.dldEps.value].url.length +
-                  1) {
+              comicStore.eps[comicStore.dldEps.value].url.length + 1) {
             comicStore.nextChapter(controller: pageController);
           } else {
             comicStore.setPage(comicStore.dldEps.value, i - 1);
@@ -813,8 +855,7 @@ class _LocalReadPageState extends State<LocalReadPage> {
     Widget buildComicImageOrEmpty(
         {required int imageIndex, required BoxFit fit}) {
       if (imageIndex < 0 ||
-          imageIndex >=
-              comicStore.eps[comicStore.dldEps.value].url.length) {
+          imageIndex >= comicStore.eps[comicStore.dldEps.value].url.length) {
         return const SizedBox();
       }
 
@@ -828,12 +869,8 @@ class _LocalReadPageState extends State<LocalReadPage> {
 
     Widget buildType56() {
       int calcItemCount() {
-        int count =
-            comicStore.eps[comicStore.dldEps.value].url.length ~/
-                2;
-        if (comicStore.eps[comicStore.dldEps.value].url.length %
-                2 !=
-            0) {
+        int count = comicStore.eps[comicStore.dldEps.value].url.length ~/ 2;
+        if (comicStore.eps[comicStore.dldEps.value].url.length % 2 != 0) {
           count++;
         }
         return count + 2;

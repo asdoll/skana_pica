@@ -1,11 +1,17 @@
+import 'package:bootstrap_icons/bootstrap_icons.dart' show BootstrapIcons;
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/history.dart';
 import 'package:skana_pica/controller/profile.dart';
 import 'package:skana_pica/util/leaders.dart';
+import 'package:skana_pica/util/widgetplugin.dart';
+import 'package:skana_pica/widgets/icons.dart';
 import 'package:skana_pica/widgets/pica_comic_card.dart';
+
+import '../controller/setting_controller.dart';
 
 class PicaHistoryPage extends StatefulWidget {
   const PicaHistoryPage({super.key});
@@ -26,151 +32,205 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
     ScrollController scrollController = ScrollController();
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text("My History".tr),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () => Get.back(),
+      floatingActionButton: MoonButton.icon(
+        buttonSize: MoonButtonSize.lg,
+        showBorder: true,
+        borderColor: Get.context?.moonTheme?.buttonTheme.colors.borderColor
+            .withValues(alpha: 0.5),
+        backgroundColor: Get.context?.moonTheme?.tokens.colors.zeno,
+        onTap: () {
+          alertDialog(context, 'Clear History'.tr, 'Clear all history?'.tr, [
+            outlinedButton(label: 'Cancel'.tr, onPressed: () => Get.back()),
+            filledButton(
+                label: 'Clear'.tr,
+                onPressed: () {
+                  controller.removeHistory();
+                  Get.back();
+                })
+          ]);
+        },
+        icon: Icon(
+          BootstrapIcons.trash3,
+          color: Colors.white,
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.delete),
-            onPressed: () {
-              showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      title: Text('Clear History'.tr),
-                      content: Text('Clear all history?'.tr),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Get.back();
-                          },
-                          child: Text('Cancel'.tr),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            controller.removeHistory();
-                            Get.back();
-                          },
-                          child: Text('Clear'.tr),
-                        ),
-                      ],
-                    );
-                  });
-            },
-          ),
-        ],
       ),
       body: Obx(
         () => Column(
           children: [
-            if (appdata.pica[6] == "1")
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                      onPressed: () {
-                        showDialog(
-                            context: context,
-                            builder: (context) {
-                              return AlertDialog(
-                                title: Text('Jump to Page'.tr),
-                                content: TextField(
-                                  controller: pageJumpController,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                      border: OutlineInputBorder(),
-                                      labelText: 'Page Number'.tr),
-                                  onSubmitted: (value) {
-                                    int? pageNumber = int.tryParse(value);
-                                    if (pageNumber != null &&
-                                        pageNumber >= 0 &&
-                                        pageNumber <
-                                            controller.totalPage.value) {
-                                      scrollController.animateTo(0,
-                                          duration:
-                                              const Duration(microseconds: 200),
-                                          curve: Curves.ease);
-                                      controller.toPage(index: pageNumber);
-                                      Get.back();
-                                    } else {
-                                      toast('Invalid Page Number'.tr);
-                                    }
-                                  },
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      Get.back();
-                                    },
-                                    child: Text('Cancel'.tr),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      int? pageNumber = int.tryParse(
-                                          pageJumpController.value.text);
-                                      if (pageNumber != null &&
-                                          pageNumber >= 0 &&
-                                          pageNumber <
-                                              controller.totalPage.value) {
-                                        scrollController.animateTo(0,
-                                            duration: const Duration(
-                                                microseconds: 200),
-                                            curve: Curves.ease);
-                                        controller.toPage(index: pageNumber);
-                                        Get.back();
-                                      } else {
-                                        toast('Invalid Page Number'.tr);
-                                      }
-                                    },
-                                    child: Text('Ok'.tr),
-                                  ),
-                                ],
-                              );
-                            });
-                      },
-                      child: Text(
-                          'at_page'.trParams({
-                            'page': (controller.page.value + 1).toString(),
-                            'total': controller.totalPage.toString()
-                          }),
-                          style: Get.textTheme.bodyMedium)),
-                  TextButton(
-                      onPressed: (controller.page.value == 0)
-                          ? null
-                          : () {
-                              scrollController.animateTo(0,
-                                  duration: const Duration(microseconds: 200),
-                                  curve: Curves.ease);
-                              controller.toPage(
-                                  index: controller.page.value - 1);
-                            },
-                      child: Text("Prev Page".tr)),
-                  TextButton(
-                      onPressed: (controller.page.value ==
-                              controller.totalPage.value - 1)
-                          ? null
-                          : () {
-                              scrollController.animateTo(0,
-                                  duration: const Duration(microseconds: 200),
-                                  curve: Curves.ease);
-                              controller.toPage(
-                                  index: controller.page.value + 1);
-                            },
-                      child: Text("Next Page".tr)),
-                ],
-              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                    onPressed: controller.totalPage.value <= 1
+                        ? null
+                        : () {
+                            showMoonModal(
+                                context: context,
+                                builder: (context) {
+                                  return Dialog(
+                                      child: ListView(
+                                    shrinkWrap: true,
+                                    children: [
+                                      MoonAlert(
+                                          borderColor: Get.context?.moonTheme
+                                              ?.buttonTheme.colors.borderColor
+                                              .withValues(alpha: 0.5),
+                                          showBorder: true,
+                                          label:
+                                              Text('Jump to Page'.tr).header(),
+                                          verticalGap: 16,
+                                          content: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              MoonFormTextInput(
+                                                controller: pageJumpController,
+                                                keyboardType:
+                                                    TextInputType.number,
+                                                hintText: "Page Number".tr,
+                                                validator: (value) {
+                                                  if (value == null ||
+                                                      value.isEmpty ||
+                                                      int.tryParse(value) ==
+                                                          null ||
+                                                      int.tryParse(value)! <
+                                                          1 ||
+                                                      int.tryParse(value)! >
+                                                          controller
+                                                              .total.value) {
+                                                    return 'Invalid Page Number'
+                                                        .tr;
+                                                  }
+                                                  return null;
+                                                },
+                                                onSubmitted: (value) {
+                                                  int? pageNumber =
+                                                      int.tryParse(value);
+                                                  if (pageNumber != null &&
+                                                      pageNumber >= 0 &&
+                                                      pageNumber <
+                                                          controller.totalPage
+                                                              .value) {
+                                                    scrollController.animateTo(
+                                                        0,
+                                                        duration:
+                                                            const Duration(
+                                                                microseconds:
+                                                                    200),
+                                                        curve: Curves.ease);
+                                                    controller.toPage(
+                                                        index: pageNumber);
+                                                    Get.back();
+                                                  } else {
+                                                    showToast(
+                                                        'Invalid Page Number'
+                                                            .tr);
+                                                  }
+                                                },
+                                              ).paddingBottom(16),
+                                              Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.end,
+                                                  children: [
+                                                    filledButton(
+                                                      label: "Cancel".tr,
+                                                      onPressed: () =>
+                                                          Get.back(),
+                                                    ).paddingRight(8),
+                                                    filledButton(
+                                                      label: "Ok".tr,
+                                                      onPressed: () {
+                                                        FocusManager.instance
+                                                            .primaryFocus
+                                                            ?.unfocus();
+                                                        int? pageNumber =
+                                                            int.tryParse(
+                                                                pageJumpController
+                                                                    .value
+                                                                    .text);
+                                                        if (pageNumber !=
+                                                                null &&
+                                                            pageNumber >= 0 &&
+                                                            pageNumber <
+                                                                controller
+                                                                    .totalPage
+                                                                    .value) {
+                                                          scrollController.animateTo(
+                                                              0,
+                                                              duration:
+                                                                  const Duration(
+                                                                      microseconds:
+                                                                          200),
+                                                              curve:
+                                                                  Curves.ease);
+                                                          controller.toPage(
+                                                              index:
+                                                                  pageNumber);
+                                                          Get.back();
+                                                        } else {
+                                                          showToast(
+                                                              'Invalid Page Number'
+                                                                  .tr);
+                                                        }
+                                                      },
+                                                    ).paddingRight(8),
+                                                  ]),
+                                            ],
+                                          )),
+                                    ],
+                                  ));
+                                });
+                          },
+                    child: Text('at_page'.trParams({
+                      'page': (controller.page.value + 1).toString(),
+                      'total': controller.totalPage.toString()
+                    })).subHeader()),
+                Expanded(child: SizedBox()),
+                filledButton(
+                  color: context.moonTheme?.tokens.colors.cell60,
+                  label: "Prev Page".tr,
+                  applyDarkMode: true,
+                  onPressed: (controller.page.value <= 1)
+                      ? null
+                      : () {
+                          scrollController.animateTo(0,
+                              duration: const Duration(microseconds: 200),
+                              curve: Curves.ease);
+                          controller.toPage(index: controller.page.value - 1);
+                        },
+                ),
+                SizedBox(width: 4),
+                filledButton(
+                  color: context.moonTheme?.tokens.colors.cell60,
+                  label: "Next Page".tr,
+                  applyDarkMode: true,
+                  onPressed: (controller.page.value + 1 >=
+                          controller.totalPage.value)
+                      ? null
+                      : () {
+                          scrollController.animateTo(0,
+                              duration: const Duration(microseconds: 200),
+                              curve: Curves.ease);
+                          controller.toPage(index: controller.page.value + 1);
+                        },
+                ),
+                SizedBox(width: 16),
+              ],
+            ),
             SizedBox(
-              height: 10,
+              height: 4,
             ),
             Expanded(
               child: EasyRefresh(
+                header: DefaultHeaderFooter.header(context),
+                footer: DefaultHeaderFooter.footer(context),
+                refreshOnStartHeader:
+                    DefaultHeaderFooter.refreshHeader(context),
                 controller: easyRefreshController,
                 scrollController: scrollController,
-                onLoad: (appdata.pica[6] == "1")
+                onLoad: (mangaSettingsController.picaPageViewMode.value)
                     ? null
                     : () async {
                         if (controller.page.value ==
@@ -191,7 +251,7 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
                 onRefresh: () async {
                   if (controller.history.isEmpty) {
                     controller
-                        .init(isList: appdata.pica[6] == "1")
+                        .init(isList: settings.pica[6] == "1")
                         .then((value) {
                       if (value) {
                         easyRefreshController.finishRefresh();
@@ -216,7 +276,7 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
                 refreshOnStart: true,
                 child: ListView.builder(
                   controller: scrollController,
-                  itemCount: (appdata.pica[6] == "1")
+                  itemCount: (settings.pica[6] == "1")
                       ? controller.comics.length + 1
                       : controller.comics.length,
                   itemBuilder: (context, index) {
@@ -254,15 +314,19 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
                             ),
                           ));
                     }
-                    if(!profileController.isLogin.value){
+                    if (!profileController.isLogin.value) {
                       return InkWell(
-                        onTap: () => toast("Not Logged In".tr),
+                        onTap: () => showToast("Not Logged In".tr),
                         child: IgnorePointer(
-                          child: PicaComicCard(controller.comics[index],type: "history",),
+                          child: PicaComicCard(
+                            controller.comics[index],
+                            type: "history",
+                          ),
                         ),
                       );
                     }
-                    return PicaComicCard(controller.comics[index],type: "history");
+                    return PicaComicCard(controller.comics[index],
+                        type: "history");
                   },
                 ),
               ),

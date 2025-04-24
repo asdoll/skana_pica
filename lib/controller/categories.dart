@@ -2,7 +2,6 @@ import 'package:get/get.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/blocker.dart';
-import 'package:skana_pica/pages/home_page.dart';
 
 late CategoriesController categoriesController;
 
@@ -32,8 +31,8 @@ class CategoriesController extends GetxController {
     } else {
       blocker.blockedCategories.add(index);
     }
-    appdata.pica[5] = blocker.blockedCategories.join(";");
-    appdata.updateSettings("picacg");
+    settings.pica[5] = blocker.blockedCategories.join(";");
+    settings.updateSettings("picacg");
     fetchCategories();
   }
 
@@ -54,11 +53,10 @@ class CategoriesController extends GetxController {
 
   void fetchMainPageTags() {
     mainPageTags.clear();
-    List<String> tags = appdata.pica[9].split(";");
+    List<String> tags = settings.pica[9].split(";");
     tags.removeWhere((element) => element.trim().isEmpty);
     mainPageTags.addAll(tags);
     mainPageTags.refresh();
-    reloadMainPage();
   }
 
   void toggleMainPageTag(String tag) {
@@ -67,10 +65,9 @@ class CategoriesController extends GetxController {
     } else {
       mainPageTags.add(tag);
     }
-    appdata.pica[9] = mainPageTags.join(";");
-    appdata.updateSettings("pica");
+    settings.pica[9] = mainPageTags.join(";");
+    settings.updateSettings("pica");
     mainPageTags.refresh();
-    reloadMainPage();
   }
 
   void addMainPageTag(String tag) {
@@ -79,10 +76,9 @@ class CategoriesController extends GetxController {
     } else {
       mainPageTags.add(tag);
     }
-    appdata.pica[9] = mainPageTags.join(";");
-    appdata.updateSettings("pica");
+    settings.pica[9] = mainPageTags.join(";");
+    settings.updateSettings("pica");
     mainPageTags.refresh();
-    reloadMainPage();
   }
 
   void removeMainPageTag(String tag) {
@@ -91,27 +87,17 @@ class CategoriesController extends GetxController {
     } else {
       return;
     }
-    appdata.pica[9] = mainPageTags.join(";");
-    appdata.updateSettings("pica");
+    settings.pica[9] = mainPageTags.join(";");
+    settings.updateSettings("pica");
     mainPageTags.refresh();
-    reloadMainPage();
   }
 
   void saveMainPageTags() {
     mainPageTags.refresh();
-    appdata.pica[9] = mainPageTags.join(";");
-    appdata.updateSettings("pica");
-    reloadMainPage();
+    settings.pica[9] = mainPageTags.join(";");
+    settings.updateSettings("pica");
   }
 
-  void reloadMainPage() {
-    try {
-      HomePageController homePageController = Get.find();
-      homePageController.reload( callback: true);
-    } catch (e) {
-      //just ignore
-    }
-  }
 }
 
 final fixedCategories = ["Random", "Latest", "Leaderboard", "Bookmarks"];

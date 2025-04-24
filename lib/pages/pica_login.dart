@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/controller/login.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
+import 'package:skana_pica/util/leaders.dart';
+import 'package:skana_pica/util/widgetplugin.dart';
+import 'package:skana_pica/widgets/icons.dart';
 
 class PicaLoginPage extends StatefulWidget {
   static const route = "${Mains.route}picalogin";
@@ -15,81 +19,106 @@ class PicaLoginPage extends StatefulWidget {
 class _PicaLoginPageState extends State<PicaLoginPage> {
   TextEditingController accountController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  bool _hidePassword = true;
 
   @override
   Widget build(BuildContext context) {
     LoginController loginController = Get.put(LoginController());
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Login".tr),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () => Get.back(),
-        ),
-      ),
+      appBar: appBar(title: "Login".tr),
       body: Obx(() {
         if (loginController.isLoading.isTrue) {
           return Center(
-            child: CircularProgressIndicator(
-              color: Get.theme.colorScheme.onPrimary,
-            ),
+            child: DefaultHeaderFooter.progressIndicator(context),
           );
         } else {
-          return Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+          return Center(
+            child: ListView(
+              shrinkWrap: true,
               children: [
-                Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Column(
+                Center(
+                  child: moonCard(
+                    title: "Login to your Pica Account".tr,
+                    content: Column(
                       children: [
-                        Text(
-                          "Login".tr,
+                        MoonTextInputGroup(
+                    children: [
+                      MoonFormTextInput(
+                        textInputSize: MoonTextInputSize.lg,
+                        controller: accountController,
+                        hasFloatingLabel: true,
+                        hintText: "Account".tr,
+                        onTapOutside: (PointerDownEvent _) =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
+                        leading: const Icon(
+                          MoonIcons.generic_search_24_light,
+                          size: 24,
                         ),
-                        SizedBox(height: 8),
-                        Text(
-                          "Login to your Pica Account".tr,
+                        trailing: MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                            child: const Icon(
+                              MoonIcons.controls_close_small_24_light,
+                              size: 24,
+                            ),
+                            onTap: () => accountController.clear(),
+                          ),
                         ),
+                      ),
+                      MoonFormTextInput(
+                        textInputSize: MoonTextInputSize.lg,
+                        controller: passwordController,
+                        keyboardType: TextInputType.visiblePassword,
+                        obscureText: _hidePassword,
+                        hasFloatingLabel: true,
+                        hintText: "Password".tr,
+                        onTapOutside: (PointerDownEvent _) =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
+                        leading: const Icon(
+                          MoonIcons.security_password_24_light,
+                          size: 24,
+                        ),
+                        trailing: MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                            child: IntrinsicWidth(
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: Text(
+                                  _hidePassword ? "Show".tr : "Hide".tr,
+                                  style: TextStyle(
+                                    decoration: TextDecoration.underline,
+                                    color: Colors.grey,
+                                  ),
+                                ).underlineSmall(),
+                              ),
+                            ),
+                            onTap: () =>
+                                setState(() => _hidePassword = !_hidePassword),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ).paddingTop(16),
                         SizedBox(height: 16),
-                        TextField(
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: "Account".tr,
-                          ),
-                          controller: accountController,
-                        ),
-                        SizedBox(height: 8),
-                        TextField(
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: "Password".tr,
-                          ),
-                          controller: passwordController,
-                          obscureText: true,
-                          maxLines: 1,
-                        ),
-                        SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () {
-                            loginController.picalogin(accountController.text,
-                                passwordController.text, start: widget.start);
-                          },
-                          child: Text("Login".tr),
-                        ),
-                        SizedBox(height: 8),
-                        if (loginController.error.isNotEmpty)
-                          Text(
-                            loginController.error.value.tr,
-                            style: TextStyle(color: Colors.red),
-                          ),
+                        
                       ],
                     ),
+                    actions: [filledButton(
+                      onPressed: () {
+                        if(accountController.text.isEmpty || passwordController.text.isEmpty) {
+                          showToast("Please enter account and password".tr);
+                          return;
+                        }
+                        loginController.picalogin(accountController.text,
+                            passwordController.text, start: widget.start);
+                      },
+                      label: "Login".tr,
+                    )]
                   ),
                 ),
               ],
-            ),
+            )
           );
         }
       }),

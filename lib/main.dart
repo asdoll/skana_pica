@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
@@ -16,21 +15,21 @@ import 'package:skana_pica/controller/categories.dart';
 import 'package:skana_pica/controller/downloadstore.dart';
 import 'package:skana_pica/controller/favourite.dart';
 import 'package:skana_pica/controller/history.dart';
+import 'package:skana_pica/controller/main_controller.dart';
 import 'package:skana_pica/controller/profile.dart';
 import 'package:skana_pica/controller/searchhistory.dart';
+import 'package:skana_pica/controller/setting_controller.dart';
 import 'package:skana_pica/controller/updater.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
-import 'package:skana_pica/pages/me_page.dart';
 import 'package:skana_pica/pages/pica_list_comics.dart';
 import 'package:skana_pica/pages/pica_login.dart';
 import 'package:skana_pica/pages/pica_results.dart';
 import 'package:skana_pica/pages/pica_search.dart';
 import 'package:skana_pica/pages/setting/manga.dart';
-import 'package:skana_pica/pages/setting/theme.dart';
 import 'package:skana_pica/pages/setting/setting_page.dart';
-import 'package:skana_pica/util/leaders.dart';
-import 'package:skana_pica/util/log.dart';
-import 'package:skana_pica/util/theme.dart';
+import 'package:skana_pica/controller/log.dart';
+import 'package:skana_pica/controller/theme_controller.dart';
+import 'package:skana_pica/util/tool.dart';
 import 'package:skana_pica/util/translate.dart';
 
 Future<void> main() async {
@@ -41,7 +40,7 @@ Future<void> main() async {
     };
     initLogger();
     await Base.init();
-    await appdata.init();
+    await settings.init();
     await ComicSource.init();
     await M.init();
     //init global controllers
@@ -52,18 +51,22 @@ Future<void> main() async {
     searchHistoryController.init();
     blocker = Get.put(Blocker(), permanent: true);
     blocker.init();
+    tc = Get.put(ThemeController(), permanent: true);
     categoriesController = Get.put(CategoriesController(), permanent: true);
     categoriesController.init();
     profileController = Get.put(ProfileController(), permanent: true);
     profileController.fetch();
     visitHistoryController = Get.put(VisitHistoryController(), permanent: true);
+    visitHistoryController.init();
     downloadStore = Get.put(DownloadStore(), permanent: true);
     downloadStore.restore();
     updater = Get.put(Updater(), permanent: true);
     updater.init();
     boardController = Get.put(BoardController(), permanent: true);
     boardController.init();
-    runApp(const MyApp());
+    homeController = Get.put(HomeController(), permanent: true);
+    mangaSettingsController = Get.put(MangaSettingsController(), permanent: true);
+    runApp(MyApp());
   }, (e, s) {
     log.e("Uncaught Error", error: "$e\n$s");
   });
@@ -81,7 +84,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    if(Platform.isAndroid && appdata.highRefreshRate) {
+    if(Platform.isAndroid && settings.highRefreshRate) {
       FlutterDisplayMode.setHighRefreshRate();
     }
   }
@@ -92,9 +95,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       valueListenable: appValueNotifier.theme,
       builder: (context, value, child) {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+        resetOrientation();
         return GetMaterialApp(
-          navigatorKey: Leader.rootNavigatorKey,
-          navigatorObservers: [BotToastNavigatorObserver()],
           supportedLocales: [
             Locale('en', 'US'),
             Locale('zh', 'CN'),
@@ -107,7 +109,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           ],
           theme: value,
           locale: Base.locale,
-          builder: BotToastInit(),
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: TextScaler.linear(1.0)),
+            child: child!,
+          ),
           home: AnnotatedRegion<SystemUiOverlayStyle>(
             value: SystemUiOverlayStyle(
               systemNavigationBarColor: Colors.transparent,
@@ -121,7 +127,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             GetPage(name: Mains.route, page: () => Mains()),
             GetPage(name: PicaLoginPage.route, page: () => PicaLoginPage()),
             GetPage(name: SettingPage.route, page: () => SettingPage()),
-            GetPage(name: MePage.route, page: () => MePage()),
             GetPage(name: PicaSearchPage.route, page: () => PicaSearchPage()),
             GetPage(
                 name: PicaResultsPage.route,
@@ -131,7 +136,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 name: PicaCatComicsPage.route,
                 page: () => PicaCatComicsPage(
                     id: Get.parameters['id']!, type: Get.parameters['type']!)),
-            GetPage(name: AppearancePage.route, page: () => AppearancePage()),
             GetPage(
                 name: MangaSettingPage.route, page: () => MangaSettingPage()),
           ],

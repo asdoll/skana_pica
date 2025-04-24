@@ -1,0 +1,1 @@
+/home/yhlu/Documents/git/skana_pica/build/app/intermediates/cxx/Debug/v62373d5/obj/arm64-v8a

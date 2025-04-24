@@ -9,6 +9,9 @@ class LoginController extends GetxController {
   var isLoading = false.obs;
   var isLogin = false.obs;
   var error = "".obs;
+  RxBool hideOldPassword = false.obs;
+  RxBool hideNewPassword = false.obs;
+  RxBool hideConfirmPassword = false.obs;
 
   Future<bool> picalogin(String account, String password, {bool start = false}) async {
     if (account.isEmpty || password.isEmpty) {
@@ -21,7 +24,7 @@ class LoginController extends GetxController {
         isLoading.value = false;
         isLogin.value = false;
         error.value = handleError(value.errorMessageWithoutNull);
-        toast("Login failed".tr);
+        showToast("Login failed".tr);
         return false;
       } else {
         picacg.data['token'] = value.data;
@@ -31,7 +34,7 @@ class LoginController extends GetxController {
         isLoading.value = false;
         isLogin.value = true;
         error.value = "";
-        toast("Login success".tr);
+        showToast("Login success".tr);
         if(start){
           profileController.firstLaunchFinished();
         }
@@ -69,5 +72,6 @@ class LoginController extends GetxController {
 
   void logout() {
     profileController.logout();
+    init();
   }
 }

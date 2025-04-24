@@ -14,7 +14,7 @@ class Base {
   /// **Warning: The end of String is not '/'**
   static late final String dataPath;
 
-  static const String version = "1.0.3";
+  static const String version = "1.0.4";
 
   static Future<void> init() async {
     cachePath = (await getApplicationCacheDirectory()).path;
@@ -27,7 +27,7 @@ class Base {
         deviceLocale.scriptCode == "Hant") {
       deviceLocale = const Locale("zh", "TW");
     }
-    return switch (appdata.general[2]) {
+    return switch (settings.general[2]) {
       "cn" => const Locale("zh", "CN"),
       "tw" => const Locale("zh", "TW"),
       "en" => const Locale("en", "US"),

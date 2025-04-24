@@ -5,7 +5,7 @@ import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/comicstore.dart';
 import 'package:skana_pica/controller/comment.dart';
 import 'package:skana_pica/util/leaders.dart';
-import 'package:skana_pica/util/log.dart';
+import 'package:skana_pica/controller/log.dart';
 
 late FavorController favorController;
 
@@ -13,7 +13,7 @@ class FavorController extends GetxController {
   RxList<String> favorComics = <String>[].obs;
   RxBool isLoading = false.obs;
   RxString lastId = "".obs;
-  String sort = appdata.pica[4] == "da" ? "da" : "dd";
+  String sort = settings.pica[4] == "da" ? "da" : "dd";
 
   void addFavor(String id) {
     if (favorComics.contains(id)) {
@@ -45,7 +45,7 @@ class FavorController extends GetxController {
         isLoading.value = false;
         return;
       }
-      toast("Network Error".tr);
+      showToast("Network Error".tr);
       isLoading.value = false;
     });
   }
@@ -53,7 +53,7 @@ class FavorController extends GetxController {
   Future<void> fetch() async {
     favorComics.clear();
     int pages = 1;
-    picaClient.getFavorites(1, appdata.pica[4] != "da").then((value) {
+    picaClient.getFavorites(1, settings.pica[4] != "da").then((value) {
       if (value.error) {
         return;
       }
@@ -62,7 +62,7 @@ class FavorController extends GetxController {
         favorComics.add(e.id);
       }
       for (int i = 2; i <= pages; i++) {
-        picaClient.getFavorites(i, appdata.pica[4] != "da").then((value) {
+        picaClient.getFavorites(i, settings.pica[4] != "da").then((value) {
           if (value.error) {
             return;
           }
@@ -87,7 +87,7 @@ class FavorController extends GetxController {
     favorComics.refresh();
     isLoading.value = false;
     lastId.value = "";
-    sort = appdata.pica[4] == "da" ? "da" : "dd";
+    sort = settings.pica[4] == "da" ? "da" : "dd";
   }
 }
 
@@ -129,7 +129,7 @@ class BookmarksController extends GetxController {
         isLoading.value = false;
         return;
       }
-      toast("Network Error".tr);
+      showToast("Network Error".tr);
       isLoading.value = false;
     });
   }
@@ -142,7 +142,7 @@ class BookmarksController extends GetxController {
     lastId.value = "bookmarks";
     bookmarks.clear();
     int pages = 1;
-    picaClient.getFavorites(1, appdata.pica[4] != "da").then((value) {
+    picaClient.getFavorites(1, settings.pica[4] != "da").then((value) {
       if (value.error) {
         isLoading.value = false;
         return;
@@ -150,7 +150,7 @@ class BookmarksController extends GetxController {
       pages = value.subData ?? 1;
       bookmarks.addAll(value.data);
       for (int i = 2; i <= pages; i++) {
-        picaClient.getFavorites(i, appdata.pica[4] != "da").then((value) {
+        picaClient.getFavorites(i, settings.pica[4] != "da").then((value) {
           if (value.error) {
             isLoading.value = false;
             return;
@@ -177,7 +177,7 @@ class LikeController extends GetxController {
     isLoading.value = true;
     picaClient.likeOrUnlikeComic(id).then((value) {
       if (!value) {
-        toast("Network Error".tr);
+        showToast("Network Error".tr);
         isLoading.value = false;
         return false;
       }
@@ -194,7 +194,7 @@ class LikeController extends GetxController {
     isLoading.value = true;
     picaClient.likeOrUnlikeComment(id).then((value) {
       if (!value) {
-        toast("Network Error".tr);
+        showToast("Network Error".tr);
         isLoading.value = false;
         return false;
       }

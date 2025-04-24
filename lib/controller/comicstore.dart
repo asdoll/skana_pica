@@ -14,7 +14,7 @@ import 'package:skana_pica/controller/downloadstore.dart';
 import 'package:skana_pica/controller/favourite.dart';
 import 'package:skana_pica/controller/history.dart';
 import 'package:skana_pica/util/leaders.dart';
-import 'package:skana_pica/util/log.dart';
+import 'package:skana_pica/controller/log.dart';
 
 class ComicStore extends GetxController {
   RxList<PicaEpsImages> epsList = <PicaEpsImages>[].obs;
@@ -28,25 +28,27 @@ class ComicStore extends GetxController {
 
   RxInt currentIndex = 0.obs;
 
-  RxBool useDarkBackground = appdata.useDarkBackground.obs;
+  RxBool useDarkBackground = settings.useDarkBackground.obs;
 
-  RxInt readMode = int.parse(appdata.read[2]).obs;
+  RxInt readMode = int.parse(settings.read[2]).obs;
 
-  RxInt imageLayout = int.parse(appdata.read[1]).obs;
+  RxBool readModeMenu = false.obs;
 
-  RxBool limitImageWidth = (appdata.read[0] == "1").obs;
+  RxInt imageLayout = int.parse(settings.read[1]).obs;
 
-  RxInt tapThreshold = int.parse(appdata.read[4]).obs;
+  RxBool limitImageWidth = (settings.read[0] == "1").obs;
+
+  RxInt tapThreshold = int.parse(settings.read[4]).obs;
 
   RxBool autoPageTurning = false.obs;
 
-  RxInt autoPageTurningInterval = int.parse(appdata.read[6]).obs;
+  RxInt autoPageTurningInterval = int.parse(settings.read[6]).obs;
 
-  RxInt orientation = int.parse(appdata.read[5]).obs;
+  RxInt orientation = int.parse(settings.read[5]).obs;
 
   RxBool barVisible = false.obs;
 
-  RxInt animationDuration = int.parse(appdata.read[7]).obs;
+  RxInt animationDuration = int.parse(settings.read[7]).obs;
 
   PageController? autoPagingPageController;
 
@@ -63,7 +65,7 @@ class ComicStore extends GetxController {
     isLoading.value = true;
     picaClient.getComicInfo(id).then((value) {
       if (value.error) {
-        toast("Failed to load data".tr);
+        showToast("Failed to load data".tr);
         comic.value = PicaComicItem.error(id);
         isLoading.value = false;
         comic.refresh();
@@ -100,7 +102,7 @@ class ComicStore extends GetxController {
   void toggleLike() {
     picaClient.likeOrUnlikeComic(comic.value.id).then((value) {
       if (!value) {
-        toast("Network Error".tr);
+        showToast("Network Error".tr);
         return;
       }
       comic.value.isLiked = !comic.value.isLiked;
@@ -119,7 +121,7 @@ class ComicStore extends GetxController {
   void toggleFavorite() {
     picaClient.favouriteOrUnfavouriteComic(comic.value.id).then((value) {
       if (!value) {
-        toast("Network Error".tr);
+        showToast("Network Error".tr);
         return;
       }
       if (comic.value.isFavourite) {
@@ -203,8 +205,8 @@ class ComicStore extends GetxController {
       return;
     }
     epsList[eps].loaded = index;
-    int preLength = int.parse(appdata.pica[7]);
-    if (appdata.read[2] == "5" || appdata.read[2] == "6") {
+    int preLength = int.parse(settings.pica[7]);
+    if (settings.read[2] == "5" || settings.read[2] == "6") {
       preLength *= 2;
     }
     for (int i = index;
@@ -321,45 +323,46 @@ class ComicStore extends GetxController {
   }
 
   void fastPreLoad() {
-    if (appdata.pica[8] == "1") {
+    if (settings.pica[8] == "1") {
       preLoad();
     }
   }
 
   void setDarkBackground(bool dark) {
     useDarkBackground.value = dark;
-    appdata.useDarkBackground = dark;
+    settings.useDarkBackground = dark;
   }
 
   void setReadMode(int mode) {
     readMode.value = mode;
-    appdata.read[2] = mode.toString();
-    appdata.updateSettings("read");
+    settings.read[2] = mode.toString();
+    settings.updateSettings("read");
   }
 
   void setImageLayout(int layout) {
     imageLayout.value = layout;
-    appdata.read[1] = layout.toString();
-    appdata.updateSettings("read");
-    toast("Re-enter to take effect".tr);
+    settings.read[1] = layout.toString();
+    settings.updateSettings("read");
+    showToast("Re-enter to take effect".tr);
   }
 
   void setLimitImageWidth(bool limit) {
     limitImageWidth.value = limit;
-    appdata.read[0] = limit ? "1" : "0";
-    appdata.updateSettings("read");
-    toast("Re-enter to take effect".tr);
+    settings.read[0] = limit ? "1" : "0";
+    settings.updateSettings("read");
+    showToast("Re-enter to take effect".tr);
   }
 
   void setTapThreshold(int threshold) {
     tapThreshold.value = threshold;
-    appdata.read[4] = threshold.toString();
-    appdata.updateSettings("read");
+    settings.read[4] = threshold.toString();
+    settings.updateSettings("read");
   }
 
   void setAutoPageTurning() {
     autoPageTurning.value = !autoPageTurning.value;
     if (autoPageTurning.value) {
+      
       autoPageTurningStart(
           autoPagingPageController, autoPagingScrollController);
     } else {
@@ -369,14 +372,14 @@ class ComicStore extends GetxController {
 
   void setAutoPageTurningInterval(int interval) {
     autoPageTurningInterval.value = interval;
-    appdata.read[6] = interval.toString();
-    appdata.updateSettings("read");
+    settings.read[6] = interval.toString();
+    settings.updateSettings("read");
   }
 
   void setOrientation() {
     orientation.value = (orientation.value + 1) % 3;
-    appdata.read[5] = orientation.toString();
-    appdata.updateSettings("read");
+    settings.read[5] = orientation.toString();
+    settings.updateSettings("read");
     orientationChanged();
   }
 
@@ -400,14 +403,15 @@ class ComicStore extends GetxController {
 
   void setAnimationDuration(int duration) {
     animationDuration.value = duration;
-    appdata.read[7] = duration.toString();
-    appdata.updateSettings("read");
+    settings.read[7] = duration.toString();
+    settings.updateSettings("read");
   }
 
   void autoPageTurningStart(
       PageController? controller, ItemScrollController? scrollController) {
     autoPagingPageController = controller;
     autoPagingScrollController = scrollController;
+    showToast("Auto page turning started".tr);
     autoPageTurningTask();
   }
 
@@ -438,6 +442,7 @@ class ComicStore extends GetxController {
 
   void autoPageTurningStop() {
     autoPageTurning.value = false;
+    showToast("Auto page turning stopped".tr);
   }
 
   void selectDownloads(int index) {
@@ -465,3 +470,5 @@ class ComicStore extends GetxController {
     downloadStore.download(downloadStore.createTask(comic.value, selected, epsList));
   }
 }
+
+final readModes = ["Left to Right", "Right to Left", "Top to Bottom", "Top to Bottom(Scroll view)", "Duo Page", "Duo Page(reversed)"];

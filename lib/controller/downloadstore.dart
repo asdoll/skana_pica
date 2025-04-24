@@ -5,7 +5,7 @@ import 'package:skana_pica/api/managers/image_cache_manager.dart';
 import 'package:skana_pica/api/models/objectbox_models.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/util/leaders.dart';
-import 'package:skana_pica/util/log.dart';
+import 'package:skana_pica/controller/log.dart';
 
 late DownloadStore downloadStore;
 
@@ -15,6 +15,7 @@ class DownloadStore extends GetxController {
   RxMap<int, int> total = <int, int>{}.obs;
 
   RxMap<int, bool> stop = <int, bool>{}.obs;
+  RxMap<int, bool> working = <int, bool>{}.obs;
 
   Future<void> restore() async {
     tasks.clear();
@@ -103,7 +104,9 @@ class DownloadStore extends GetxController {
       M.o.updateTaskEps(task);
     }
     if (progress[task.id] == total[task.id]) {
-      toast('${"Download".tr} "${task.comic.target!.title}" ${"Done".tr}');
+      working.remove(task.id);
+      working.refresh();
+      showToast('${"Download".tr} "${task.comic.target!.title}" ${"Done".tr}');
     }
   }
 
@@ -144,8 +147,10 @@ class DownloadStore extends GetxController {
 
   void download(DownloadTask task) {
     bool isError = false;
-    toast('${"Download".tr} "${task.comic.target!.title}"');
+    showToast('${"Download".tr} "${task.comic.target!.title}"');
     {
+      working[task.id] = true;
+      working.refresh();
       downloadCacheManager.getSingleFile(task.comic.target!.thumbUrl);
       downloadCacheManager.getSingleFile(task.comic.target!.creatorAvatarUrl);
     }
@@ -154,6 +159,8 @@ class DownloadStore extends GetxController {
       for (int j = 0; j < task.taskEps[i].url.length; j++) {
         if (stop[task.id] == true) {
           stop.remove(task.id);
+          working.remove(task.id);
+          working.refresh();
           return;
         }
         if (task.taskEps[i].progress[j] == 1) {
@@ -175,7 +182,7 @@ class DownloadStore extends GetxController {
       }
     }
     if (isError) {
-      toast("Download Error".tr);
+      showToast("Download Error".tr);
     }
   }
 
@@ -199,5 +206,6 @@ class DownloadStore extends GetxController {
 class DownloadPageController extends GetxController {
   int perPage = 20;
   RxInt page = 0.obs;
-  RxBool isList = (appdata.pica[6] == "1").obs;
+  RxBool isList = (settings.pica[6] == "1").obs;
+  
 }

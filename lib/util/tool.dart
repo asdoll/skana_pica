@@ -77,6 +77,13 @@ extension StringExtension on String {
     return res;
   }
 
+  String atMost({int max = 13}) {
+    if (length > max) {
+      return "${substring(0, max)}...";
+    }
+    return this;
+  }
+
   String get nums => _nums();
 
   String setValueAt(String value, int index) {
@@ -150,7 +157,7 @@ String getExtensionName(String url) {
 void saveImage(String url, {bool fromDld = false}) async {
   if (Platform.isIOS && (await Permission.photosAddOnly.status.isDenied)) {
     if (await Permission.storage.request().isDenied) {
-      toast("Permission denied".tr);
+      showToast("Permission denied".tr);
       return;
     }
   }
@@ -164,7 +171,7 @@ void saveImage(String url, {bool fromDld = false}) async {
     }
     await ImageGallerySaverPlus.saveImage(await file.readAsBytes(),
         quality: 100, name: fileName);
-    toast("$fileName ${"Saved".tr}");
+    showToast("$fileName ${"Saved".tr}");
   }
 }
 
@@ -182,9 +189,9 @@ void shareImage(String url, {bool fromDld = false}) async {
 }
 
 void resetOrientation() {
-  if (appdata.general[6] == '0') {
+  if (settings.general[6] == '0') {
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
-  } else if (appdata.general[6] == '1') {
+  } else if (settings.general[6] == '1') {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
@@ -211,7 +218,7 @@ String getLastTime(VisitHistory? history) {
     return "";
   }
   DateTime Date = DateTime.fromMillisecondsSinceEpoch(time);
-  return DateFormat.yMMMd(Get.locale.toString()).add_Hm().format(Date);
+  return DateFormat.yMd(Get.locale.toString()).add_Hm().format(Date);
 }
 
 extension TimeExts on DateTime {

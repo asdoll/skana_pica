@@ -8,32 +8,32 @@ class SearchHistoryController extends GetxController {
 
   void removeHistory(String keyword) {
     searchHistory.remove(keyword);
-    appdata.searchHistory.remove(keyword);
-    appdata.writeHistory();
+    settings.searchHistory.remove(keyword);
+    settings.writeHistory();
     searchHistory.refresh();
   }
 
   void clearHistory() {
     searchHistory.clear();
-    appdata.searchHistory.clear();
-    appdata.writeHistory();
+    settings.searchHistory.clear();
+    settings.writeHistory();
     searchHistory.refresh();
   }
 
   void addHistory(String keyword) {
     if (searchHistory.contains(keyword)) {
       searchHistory.remove(keyword);
-      appdata.searchHistory.remove(keyword);
+      settings.searchHistory.remove(keyword);
     }
     searchHistory.add(keyword);
-    appdata.searchHistory.add(keyword);
-    appdata.writeHistory();
+    settings.searchHistory.add(keyword);
+    settings.writeHistory();
     searchHistory.refresh();
   }
 
   void init() {
     searchHistory.clear();
-    searchHistory.addAll(appdata.searchHistory);
+    searchHistory.addAll(settings.searchHistory);
     searchHistory.refresh();
   }
 }

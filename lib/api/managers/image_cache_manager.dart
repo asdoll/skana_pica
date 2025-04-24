@@ -55,7 +55,7 @@ class ImagesCacheManager extends CacheManager with ImageCacheManager {
   ImagesCacheManager()
       : super(Config(
           key,
-          stalePeriod: Duration(days: appdata.cachePeriod),
+          stalePeriod: Duration(days: settings.cachePeriod),
           repo: JsonCacheInfoRepository(databaseName: key),
           fileSystem: IOFileSystem(key),
           fileService: DioFileService(),

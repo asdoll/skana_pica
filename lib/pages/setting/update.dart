@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import 'package:skana_pica/controller/updater.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/tool.dart';
+import 'package:skana_pica/util/widgetplugin.dart';
+import 'package:skana_pica/widgets/icons.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class UpdatePage extends StatefulWidget {
@@ -21,53 +23,54 @@ class _UpdatePageState extends State<UpdatePage> {
     updater.controller = controller;
     
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Check updates'.tr),
+      appBar: appBar(
+        title: 'Check updates'.tr,
       ),
       body: Obx(() => EasyRefresh(
           controller: controller,
+          header: DefaultHeaderFooter.header(context),
+          footer: DefaultHeaderFooter.footer(context),
           onRefresh: () async {
             await updater.check();
           },
           refreshOnStart: updater.result.value != Result.yes,
           child: ListView(
             children: [
-              ListTile(
-                title: Text('Current Version'.tr),
-                subtitle: Text(updater.getCurrentVersion()),
+              moonListTile(
+                title: 'Current Version'.tr,
+                subtitle: updater.getCurrentVersion(),
               ),
               if (updater.result.value == Result.yes)
-                ListTile(
-                  title: Text('Latest Version'.tr),
-                  subtitle: Text(updater.updateVersion.value),
+                moonListTile(
+                  title: 'Latest Version'.tr,
+                  subtitle: updater.updateVersion.value,
                 ),
               if (updater.result.value == Result.yes)
-                ListTile(
-                  title: Text('Release Date'.tr),
-                  subtitle: Text(updater.updateDate.isNotEmpty
+                moonListTile(
+                  title: 'Release Date'.tr,
+                  subtitle: updater.updateDate.isNotEmpty
                       ? DateTime.parse(updater.updateDate.value).toShortTime()
                       : ""),
+              if (updater.result.value == Result.yes)
+                moonListTile(
+                  title: 'Release Notes'.tr,
+                  subtitle: updater.updateDescription.value,
                 ),
               if (updater.result.value == Result.yes)
-                ListTile(
-                  title: Text('Release Notes'.tr),
-                  subtitle: Text(updater.updateDescription.value),
-                ),
-              if (updater.result.value == Result.yes)
-                ListTile(
-                  title: Text('Download'.tr),
+                moonListTile(
+                  title: 'Download'.tr,
                   onTap: () async {
                     if (updater.updateUrl.isEmpty) {
-                      toast('No download link'.tr);
+                      showToast('No download link'.tr);
                       return;
                     }
                     await launchUrlString(updater.updateUrl.value);
                   },
                 ),
-              ListTile(
-                title: Text('Check for updates'.tr),
+              moonListTile(
+                title: 'Check for updates'.tr,
                 onTap: () async {
-                  await updater.check();
+                  controller.callRefresh(force: true);
                 },
               ),
             ],
