@@ -98,7 +98,7 @@ class _CustomSliderState extends State<CustomSlider> {
                                   width: 4,
                                   height: 4,
                                   decoration: BoxDecoration(
-                                    color: context.moonTheme?.tokens.colors.frieza60,
+                                    color: context.moonTheme?.tokens.colors.piccolo,
                                     shape: BoxShape.circle,
                                   ),
                                 ));
@@ -118,7 +118,7 @@ class _CustomSliderState extends State<CustomSlider> {
                             width: constrains.maxWidth * ((value - widget.min) / (widget.max - widget.min)),
                             height: 8,
                             decoration: BoxDecoration(
-                                color: context.moonTheme?.tokens.colors.frieza60,
+                                color: context.moonTheme?.tokens.colors.piccolo,
                                 borderRadius: const BorderRadius.all(Radius.circular(10))
                             ),
                           ),
@@ -134,8 +134,8 @@ class _CustomSliderState extends State<CustomSlider> {
                             width: 20,
                             height: 20,
                             decoration: BoxDecoration(
-                              color: context.moonTheme?.tokens.colors.frieza,
-                              borderRadius: const BorderRadius.all(Radius.circular(8))
+                              color: context.moonTheme?.tokens.colors.piccolo,
+                              shape: BoxShape.circle,
                             ),
                           ),
                         ),

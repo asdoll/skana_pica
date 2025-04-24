@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:get/get.dart';
+import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/managers/image_cache_manager.dart'
     show downloadCacheManager, imagesCacheManager;
@@ -114,8 +115,9 @@ class _PicaImageState extends State<PicaImage> {
                   height: height,
                   width: width,
                   child: Center(
-                    child: CircularProgressIndicator(
-                      value: progress.progress,
+                    child: MoonCircularProgress(
+                      value: progress.progress!,
+                      color: context.moonTheme?.tokens.colors.piccolo,
                     ),
                   ),
                 )

@@ -64,6 +64,7 @@ class ThemeManager {
 ThemeData getTheme(bool isDark) {
   return (isDark
           ? ThemeData.dark().copyWith(
+            primaryColor: MoonTheme(tokens: MoonTokens.dark).tokens.colors.piccolo,
               textTheme: GoogleFonts.notoSansTextTheme(
                 Get.theme.textTheme
               ),
@@ -76,6 +77,7 @@ ThemeData getTheme(bool isDark) {
               scaffoldBackgroundColor:
                   MoonTheme(tokens: MoonTokens.light).tokens.colors.bulma)
           : ThemeData.light().copyWith(
+            primaryColor: MoonTheme(tokens: MoonTokens.light).tokens.colors.piccolo,
               textTheme: GoogleFonts.notoSansTextTheme(
                 Get.theme.textTheme
               ),

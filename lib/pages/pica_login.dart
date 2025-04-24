@@ -5,6 +5,7 @@ import 'package:skana_pica/controller/login.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/widgetplugin.dart';
+import 'package:skana_pica/widgets/icons.dart';
 
 class PicaLoginPage extends StatefulWidget {
   static const route = "${Mains.route}picalogin";
@@ -28,9 +29,7 @@ class _PicaLoginPageState extends State<PicaLoginPage> {
       body: Obx(() {
         if (loginController.isLoading.isTrue) {
           return Center(
-            child: CircularProgressIndicator(
-              color: Get.theme.colorScheme.onPrimary,
-            ),
+            child: DefaultHeaderFooter.progressIndicator(context),
           );
         } else {
           return Center(

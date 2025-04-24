@@ -216,6 +216,7 @@ Widget filledButton(
 Widget moonListTile(
     {required String title,
     String? subtitle,
+    Widget? subtitleWidget,
     VoidCallback? onTap,
     Widget? leading,
     Widget? trailing}) {
@@ -227,7 +228,7 @@ Widget moonListTile(
             : MoonColors.light.gohan,
         onTap: onTap ?? () {},
         label: Text(title).header(),
-        content: subtitle == null ? null : Text(subtitle).subHeader(),
+        content: subtitle == null ? subtitleWidget : Text(subtitle).subHeader(),
         leading: leading,
         trailing: trailing,
       ).paddingSymmetric(vertical: 2, horizontal: 8));

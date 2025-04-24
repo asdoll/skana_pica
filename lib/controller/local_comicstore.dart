@@ -21,6 +21,8 @@ class LocalComicStore extends GetxController {
 
   RxInt readMode = int.parse(settings.read[2]).obs;
 
+  RxBool readModeMenu = false.obs;
+
   RxInt imageLayout = int.parse(settings.read[1]).obs;
 
   RxBool limitImageWidth = (settings.read[0] == "1").obs;

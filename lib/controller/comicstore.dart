@@ -32,6 +32,8 @@ class ComicStore extends GetxController {
 
   RxInt readMode = int.parse(settings.read[2]).obs;
 
+  RxBool readModeMenu = false.obs;
+
   RxInt imageLayout = int.parse(settings.read[1]).obs;
 
   RxBool limitImageWidth = (settings.read[0] == "1").obs;
@@ -360,6 +362,7 @@ class ComicStore extends GetxController {
   void setAutoPageTurning() {
     autoPageTurning.value = !autoPageTurning.value;
     if (autoPageTurning.value) {
+      
       autoPageTurningStart(
           autoPagingPageController, autoPagingScrollController);
     } else {
@@ -408,6 +411,7 @@ class ComicStore extends GetxController {
       PageController? controller, ItemScrollController? scrollController) {
     autoPagingPageController = controller;
     autoPagingScrollController = scrollController;
+    showToast("Auto page turning started".tr);
     autoPageTurningTask();
   }
 
@@ -438,6 +442,7 @@ class ComicStore extends GetxController {
 
   void autoPageTurningStop() {
     autoPageTurning.value = false;
+    showToast("Auto page turning stopped".tr);
   }
 
   void selectDownloads(int index) {
@@ -465,3 +470,5 @@ class ComicStore extends GetxController {
     downloadStore.download(downloadStore.createTask(comic.value, selected, epsList));
   }
 }
+
+final readModes = ["Left to Right", "Right to Left", "Top to Bottom", "Top to Bottom(Scroll view)", "Duo Page", "Duo Page(reversed)"];

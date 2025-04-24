@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:flutter/material.dart';
@@ -37,11 +38,6 @@ class _PicaReadPageState extends State<PicaReadPage> {
   late ItemScrollController itemScrollController;
   late ItemPositionsListener itemPositionsListener;
   late PageController pageController;
-  bool showOrientation = false;
-  bool showAutoNextPage = false;
-  bool showEpisodes = false;
-  bool showSave = false;
-  bool showShare = false;
 
   @override
   void initState() {
@@ -139,7 +135,8 @@ class _PicaReadPageState extends State<PicaReadPage> {
                             width: 8,
                           ),
                           MoonButton.icon(
-                              backgroundColor: context.moonTheme?.tokens.colors.frieza60,
+                              backgroundColor:
+                                  context.moonTheme?.tokens.colors.piccolo,
                               onTap: comicStore.currentEps.value == 0 ||
                                       comicStore.epsList.length < 2
                                   ? null
@@ -152,7 +149,8 @@ class _PicaReadPageState extends State<PicaReadPage> {
                             child: buildSlider(comicStore),
                           ),
                           MoonButton.icon(
-                              backgroundColor: context.moonTheme?.tokens.colors.frieza60,
+                              backgroundColor:
+                                  context.moonTheme?.tokens.colors.piccolo,
                               onTap: comicStore.currentEps.value ==
                                           comicStore.epsList.length - 1 ||
                                       comicStore.epsList.length < 2
@@ -174,9 +172,8 @@ class _PicaReadPageState extends State<PicaReadPage> {
                           ),
                           const Spacer(),
                           if (Platform.isAndroid)
-                            MoonTooltip(
-                              show: showOrientation,
-                              content: Text("Orientation".tr),
+                            Tooltip(
+                              message: "Orientation".tr,
                               child: MoonButton.icon(
                                 icon: Icon(
                                   comicStore.orientation.value == 0
@@ -188,9 +185,8 @@ class _PicaReadPageState extends State<PicaReadPage> {
                                 onTap: () => comicStore.setOrientation(),
                               ),
                             ),
-                          MoonTooltip(
-                            show: showAutoNextPage,
-                            content: Text("Auto next page".tr),
+                          Tooltip(
+                            message: "Auto next page".tr,
                             child: MoonButton.icon(
                               icon: comicStore.autoPageTurning.value
                                   ? const Icon(BootstrapIcons.stopwatch_fill)
@@ -199,25 +195,22 @@ class _PicaReadPageState extends State<PicaReadPage> {
                             ),
                           ),
                           if (comicStore.epsList.length > 1)
-                            MoonTooltip(
-                              show: showEpisodes,
-                              content: Text("Episodes".tr),
+                            Tooltip(
+                              message: "Episodes".tr,
                               child: MoonButton.icon(
                                 icon: const Icon(BootstrapIcons.collection),
                                 onTap: () => openEpsDrawer(comicStore),
                               ),
                             ),
-                          MoonTooltip(
-                            show: showSave,
-                            content: Text("Save".tr),
+                          Tooltip(
+                            message: "Save".tr,
                             child: MoonButton.icon(
                               icon: const Icon(BootstrapIcons.floppy),
                               onTap: () => saveCurrentImage(comicStore),
                             ),
                           ),
-                          MoonTooltip(
-                            show: showShare,
-                            content: Text("Share".tr),
+                          Tooltip(
+                            message: "Share".tr,
                             child: MoonButton.icon(
                               icon: const Icon(BootstrapIcons.share),
                               onTap: () => share(comicStore),
@@ -242,39 +235,46 @@ class _PicaReadPageState extends State<PicaReadPage> {
   }
 
   void openEpsDrawer(ComicStore comicStore) {
-    showModalBottomSheet(
+    showMoonModalBottomSheet(
+        borderRadius: BorderRadius.all(Radius.circular(8)),
         context: context,
         builder: (context) {
-          return Obx(() => SizedBox(
-                height: 300,
-                child: ListView.builder(
-                  itemCount: comicStore.epsList.length,
-                  itemBuilder: (context, i) {
-                    return ListTile(
-                      title: Text(comicStore.epsList[i].eps),
-                      subtitle: Text(
-                          "${comicStore.epsList[i].imageUrl.length} ${"Pages".tr}"),
-                      trailing: comicStore.currentEps.value == i
-                          ? const Icon(Icons.check)
-                          : null,
-                      onTap: () {
-                        comicStore.setPage(i, 0);
-                        if (comicStore.readMode.value != 4) {
-                          pageController.jumpToPage(1);
-                        } else {
-                          itemScrollController.scrollTo(
-                              index: 1,
-                              duration: Duration(
-                                  milliseconds:
-                                      comicStore.animationDuration.value),
-                              curve: Curves.easeInOut);
-                        }
-                        Get.back();
-                      },
-                    );
-                  },
-                ).paddingOnly(top: 16),
-              ));
+          return Obx(() => SafeArea(
+                  child: SizedBox(
+                height: max(300, context.height / 3),
+                child: Scaffold(
+                  body: ListView.builder(
+                    itemCount: comicStore.epsList.length+1,
+                    itemBuilder: (context, i) {
+                      if (i == comicStore.epsList.length) {
+                        return SizedBox(height: 32);
+                      }
+                      return moonListTile(
+                        title: comicStore.epsList[i].eps,
+                        subtitle:
+                            "${comicStore.epsList[i].imageUrl.length} ${"Pages".tr}",
+                        trailing: comicStore.currentEps.value == i
+                            ? const Icon(BootstrapIcons.check_lg)
+                            : null,
+                        onTap: () {
+                          comicStore.setPage(i, 0);
+                          if (comicStore.readMode.value != 4) {
+                            pageController.jumpToPage(1);
+                          } else {
+                            itemScrollController.scrollTo(
+                                index: 1,
+                                duration: Duration(
+                                    milliseconds:
+                                        comicStore.animationDuration.value),
+                                curve: Curves.easeInOut);
+                          }
+                          Get.back();
+                        },
+                      );
+                    },
+                  ).paddingOnly(top: 16),
+                ),
+              )));
         });
   }
 
@@ -408,176 +408,214 @@ class _PicaReadPageState extends State<PicaReadPage> {
   }
 
   void showSettings(BuildContext context, ComicStore comicStore) {
-    showModalBottomSheet(
+    showMoonModalBottomSheet(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
       context: context,
+      transitionDuration: const Duration(milliseconds: 200),
       builder: (context) {
-        return Obx(
-          () => SizedBox(
-            height: 300,
-            child: ListView(
-              children: [
-                ListTile(
-                  title: Text("Read Mode".tr),
-                  trailing: DropdownButton<int>(
-                      items: [
-                        DropdownMenuItem(
-                          value: 1,
-                          child: Text("Left to Right".tr),
-                        ),
-                        DropdownMenuItem(
-                          value: 2,
-                          child: Text("Right to Left".tr),
-                        ),
-                        DropdownMenuItem(
-                          value: 3,
-                          child: Text("Top to Bottom".tr),
-                        ),
-                        DropdownMenuItem(
-                          value: 4,
-                          child: Text("Top to Bottom(Scroll view)".tr),
-                        ),
-                        DropdownMenuItem(
-                          value: 5,
-                          child: Text("Duo Page".tr),
-                        ),
-                        DropdownMenuItem(
-                          value: 6,
-                          child: Text("Duo Page(reversed)".tr),
-                        ),
-                      ],
-                      value: comicStore.readMode.value,
-                      onChanged: (i) {
-                        comicStore.setReadMode(i as int);
-                        if (i < 4) {
-                          pageController = PageController(
-                              initialPage: comicStore.currentIndex.value + 1);
-                        } else if (i == 4) {
-                          itemScrollController.scrollTo(
-                              index: comicStore.currentIndex.value + 1,
-                              duration: Duration(
-                                  milliseconds:
-                                      comicStore.animationDuration.value),
-                              curve: Curves.easeInOut);
-                        } else {
-                          pageController = PageController(
-                              initialPage:
-                                  (comicStore.currentIndex.value ~/ 2) + 1);
-                        }
-                      }),
-                ),
-                ListTile(
-                  title: Text("Auto Page Turning Interval".tr),
-                  subtitle: SizedBox(
-                    height: 105,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Slider(
-                            key: ValueKey("auto_page_turning_interval_slider"),
-                            value: comicStore.autoPageTurningInterval.value
-                                .toDouble(),
-                            min: 1,
-                            max: 20,
-                            divisions: 19,
-                            onChanged: (i) {
-                              comicStore.setAutoPageTurningInterval(i.toInt());
-                            },
+        return Obx(() => SafeArea(
+                child: SizedBox(
+              height: max(300, context.height / 3),
+              child: Scaffold(
+                body: ListView(
+                  children: [
+                    moonListTile(
+                      title: "Read Mode".tr,
+                      trailing: MoonDropdown(
+                          content: Column(
+                            children: [
+                              MoonMenuItem(
+                                label: Text("Left to Right".tr),
+                                onTap: () {
+                                  comicStore.setReadMode(1);
+                                  pageController = PageController(
+                                      initialPage:
+                                          comicStore.currentIndex.value + 1);
+                                },
+                              ),
+                              MoonMenuItem(
+                                label: Text("Right to Left".tr),
+                                onTap: () {
+                                  comicStore.setReadMode(2);
+                                  pageController = PageController(
+                                      initialPage:
+                                          comicStore.currentIndex.value + 1);
+                                },
+                              ),
+                              MoonMenuItem(
+                                label: Text("Top to Bottom".tr),
+                                onTap: () {
+                                  comicStore.setReadMode(3);
+                                  pageController = PageController(
+                                      initialPage:
+                                          comicStore.currentIndex.value + 1);
+                                },
+                              ),
+                              MoonMenuItem(
+                                label: Text("Top to Bottom(Scroll view)".tr),
+                                onTap: () {
+                                  comicStore.setReadMode(4);
+                                  itemScrollController.scrollTo(
+                                      index: comicStore.currentIndex.value + 1,
+                                      duration: Duration(
+                                          milliseconds: comicStore
+                                              .animationDuration.value),
+                                      curve: Curves.easeInOut);
+                                },
+                              ),
+                              MoonMenuItem(
+                                label: Text("Duo Page".tr),
+                                onTap: () {
+                                  comicStore.setReadMode(5);
+                                  pageController = PageController(
+                                      initialPage:
+                                          (comicStore.currentIndex.value ~/ 2) +
+                                              1);
+                                },
+                              ),
+                              MoonMenuItem(
+                                label: Text("Duo Page(reversed)".tr),
+                                onTap: () {
+                                  comicStore.setReadMode(6);
+                                  pageController = PageController(
+                                      initialPage:
+                                          (comicStore.currentIndex.value ~/ 2) +
+                                              1);
+                                },
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
+                          show: comicStore.readModeMenu.value,
+                          onTapOutside: () =>
+                              comicStore.readModeMenu.value = false,
+                          child: filledButton(
+                              label:
+                                  readModes[comicStore.readMode.value - 1].tr,
+                              onPressed: () => comicStore.readModeMenu.value =
+                                  !comicStore.readModeMenu.value)),
                     ),
-                  ),
-                  trailing: Text(
-                      "${comicStore.autoPageTurningInterval.value} ${"s".tr}"),
-                ),
-                ListTile(
-                  title: Text("Image Layout".tr),
-                  subtitle: Text(comicStore.imageLayout.value == 0
-                      ? "Contained".tr
-                      : "Covered".tr),
-                  trailing: Switch(
-                    value: comicStore.imageLayout.value == 1,
-                    onChanged: (value) {
-                      comicStore.setImageLayout(value ? 1 : 0);
-                    },
-                  ),
-                ),
-                ListTile(
-                  title: Text("Limit Image Width".tr),
-                  subtitle: Text(comicStore.limitImageWidth.value
-                      ? "Enabled".tr
-                      : "Disabled".tr),
-                  trailing: Switch(
-                    value: comicStore.limitImageWidth.value,
-                    onChanged: (value) {
-                      comicStore.setLimitImageWidth(value);
-                    },
-                  ),
-                ),
-                ListTile(
-                  title: Text("Tap to Next Page Threshold".tr),
-                  subtitle: SizedBox(
-                    height: 105,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Slider(
-                            key: ValueKey("tap_threshold_slider"),
-                            value: comicStore.tapThreshold.value.toDouble(),
-                            min: 1,
-                            max: 50,
-                            divisions: 49,
-                            onChanged: (i) {
-                              comicStore.setTapThreshold(i.toInt());
-                            },
-                          ),
+                    moonListTile(
+                      title: "Auto Page Turning Interval".tr,
+                      subtitleWidget: SizedBox(
+                        height: 105,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Slider(
+                                activeColor: context.moonTheme?.tokens.colors.piccolo,
+                                key: ValueKey(
+                                    "auto_page_turning_interval_slider"),
+                                value: comicStore.autoPageTurningInterval.value
+                                    .toDouble(),
+                                min: 1,
+                                max: 20,
+                                divisions: 19,
+                                onChanged: (i) {
+                                  comicStore
+                                      .setAutoPageTurningInterval(i.toInt());
+                                },
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
+                      trailing: Text(
+                              "${comicStore.autoPageTurningInterval.value} ${"s".tr}")
+                          .small(),
                     ),
-                  ),
-                  trailing: Text("${comicStore.tapThreshold.value}%"),
-                ),
-                ListTile(
-                  title: Text("Dark Background".tr),
-                  subtitle: Text(comicStore.useDarkBackground.value
-                      ? "Enabled".tr
-                      : "Disabled".tr),
-                  trailing: Switch(
-                    value: comicStore.useDarkBackground.value,
-                    onChanged: (value) {
-                      comicStore.setDarkBackground(value);
-                    },
-                  ),
-                ),
-                ListTile(
-                  title: Text("Animation Duration".tr),
-                  subtitle: SizedBox(
-                    height: 105,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Slider(
-                            key: ValueKey("animation_duration_slider"),
-                            value:
-                                comicStore.animationDuration.value.toDouble(),
-                            min: 100,
-                            max: 500,
-                            divisions: 20,
-                            onChanged: (i) {
-                              comicStore.setAnimationDuration(i.toInt());
-                            },
-                          ),
+                    moonListTile(
+                      title: "Image Layout".tr,
+                      subtitle: comicStore.imageLayout.value == 0
+                          ? "Contained".tr
+                          : "Covered".tr,
+                      trailing: MoonSwitch(
+                        value: comicStore.imageLayout.value == 1,
+                        onChanged: (value) {
+                          comicStore.setImageLayout(value ? 1 : 0);
+                        },
+                      ),
+                    ),
+                    moonListTile(
+                      title: "Limit Image Width".tr,
+                      subtitle: comicStore.limitImageWidth.value
+                          ? "Enabled".tr
+                          : "Disabled".tr,
+                      trailing: MoonSwitch(
+                        value: comicStore.limitImageWidth.value,
+                        onChanged: (value) {
+                          comicStore.setLimitImageWidth(value);
+                        },
+                      ),
+                    ),
+                    moonListTile(
+                      title: "Tap to Next Page Threshold".tr,
+                      subtitleWidget: SizedBox(
+                        height: 105,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Slider(
+                                activeColor: context.moonTheme?.tokens.colors.piccolo,
+                                key: ValueKey("tap_threshold_slider"),
+                                value: comicStore.tapThreshold.value.toDouble(),
+                                min: 1,
+                                max: 50,
+                                divisions: 49,
+                                onChanged: (i) {
+                                  comicStore.setTapThreshold(i.toInt());
+                                },
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
+                      trailing:
+                          Text("${comicStore.tapThreshold.value}%").small(),
                     ),
-                  ),
-                  trailing:
-                      Text("${comicStore.animationDuration.value} ${"ms".tr}"),
-                )
-              ],
-            ).paddingOnly(top: 16),
-          ),
-        );
+                    moonListTile(
+                      title: "Dark Background".tr,
+                      subtitle: comicStore.useDarkBackground.value
+                          ? "Enabled".tr
+                          : "Disabled".tr,
+                      trailing: MoonSwitch(
+                        value: comicStore.useDarkBackground.value,
+                        onChanged: (value) {
+                          comicStore.setDarkBackground(value);
+                        },
+                      ),
+                    ),
+                    moonListTile(
+                      title: "Animation Duration".tr,
+                      subtitleWidget: SizedBox(
+                        height: 105,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Slider(
+                                activeColor: context.moonTheme?.tokens.colors.piccolo,
+                                key: ValueKey("animation_duration_slider"),
+                                value: comicStore.animationDuration.value
+                                    .toDouble(),
+                                min: 100,
+                                max: 500,
+                                divisions: 20,
+                                onChanged: (i) {
+                                  comicStore.setAnimationDuration(i.toInt());
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      trailing: Text(
+                              "${comicStore.animationDuration.value} ${"ms".tr}")
+                          .small(),
+                    ),
+                    SizedBox(height: 32),
+                  ],
+                ).paddingOnly(top: 16),
+              ),
+            )));
       },
     );
   }
@@ -794,11 +832,10 @@ class _PicaReadPageState extends State<PicaReadPage> {
           child: SizedBox(
             width: 20.0,
             height: 20.0,
-            child: CircularProgressIndicator(
-              backgroundColor: Get.theme.colorScheme.surfaceContainerHigh,
-              value: event == null || event.expectedTotalBytes == null
-                  ? null
-                  : event.cumulativeBytesLoaded / event.expectedTotalBytes!,
+            child: event == null || event.expectedTotalBytes == null ? CircularProgressIndicator(
+              color: context.moonTheme?.tokens.colors.piccolo,
+            ) : MoonCircularProgress(
+              value: event.cumulativeBytesLoaded / event.expectedTotalBytes!,
             ),
           ),
         ),

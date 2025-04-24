@@ -57,6 +57,7 @@ Future<void> main() async {
     profileController = Get.put(ProfileController(), permanent: true);
     profileController.fetch();
     visitHistoryController = Get.put(VisitHistoryController(), permanent: true);
+    visitHistoryController.init();
     downloadStore = Get.put(DownloadStore(), permanent: true);
     downloadStore.restore();
     updater = Get.put(Updater(), permanent: true);

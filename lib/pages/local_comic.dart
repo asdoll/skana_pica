@@ -341,7 +341,7 @@ class _LocalComicPageState extends State<LocalComicPage>
                   text: "continue_page".trParams({
                       "eps": locaComicController
                           .comic.value.eps[locaComicController.dldEps.value],
-                      "page": locaComicController.currentIndex.value.toString()
+                      "page": (locaComicController.currentIndex.value + 1).toString()
                     }),
                   selected: false,
                   onSelected: (bool value) {

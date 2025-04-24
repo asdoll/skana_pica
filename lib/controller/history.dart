@@ -103,6 +103,16 @@ class VisitHistoryController extends GetxController {
     Get.find<ComicListController>();
   }
 
+  void init() {
+    M.o.getVisitHistory().then((value) {
+      history.clear();
+      for (var e in value) {
+        history[e.comicid] = e;
+      }
+      history.refresh();
+    });
+  }
+
   Future<VisitHistory?> fetchVisitHistory(String id) async {
     var item = await M.o.getVisitHistoryByComic(id);
     if (item != null) {

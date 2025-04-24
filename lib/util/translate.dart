@@ -456,6 +456,8 @@ class Messages extends Translations {
           "Add Category": "添加分类",
           "Restore Settings": "初始化设置",
           "Are you sure to restore settings?": "您确定要初始化设置吗？",
+          "Auto page turning started": "自动翻页开始",
+          "Auto page turning stopped": "自动翻页停止",
 
 //below are translation with parameters
           "at_page": "第@page/@total页",
@@ -694,6 +696,8 @@ class Messages extends Translations {
           "Add Category": "添加分類",
           "Restore Settings": "初始化設定",
           "Are you sure to restore settings?": "您確定要初始化設定嗎？",
+          "Auto page turning started": "自動翻頁開始",
+          "Auto page turning stopped": "自動翻頁停止",
 
 //below are translation with parameters
           "at_page": "第@page/@total頁",

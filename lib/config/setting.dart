@@ -233,7 +233,7 @@ class Appdata {
           "0", //6 page view(1) or unlimited scroll(0)
           "3", //7 preload pages
           "1", //8 preload when enter details page
-          "Leaderboard;Latest;Random;Bookmarks;", //9 main screen display cates
+          "Latest;Random;", //9 main screen display cates
         ];
         categoriesController.init();
         break;
