@@ -1,4 +1,3 @@
-import 'package:easy_refresh/easy_refresh.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
@@ -25,8 +24,9 @@ class ComicListController extends GetxController {
   bool addToHistory;
   String type;
   int lastFetchTime = 0;
-  EasyRefreshController? easyRefreshController;
   RxBool filterMenu = false.obs;
+  RxBool isDrag = false.obs;
+  RxInt loadedPage = 0.obs;
 
   get sortType => settings.pica[4];
 
@@ -37,7 +37,6 @@ class ComicListController extends GetxController {
     this.addToHistory = true,
     this.type = "",
     required this.sortByDefault,
-    this.easyRefreshController,
   });
 
   bool isLoadin() => isLoading.value && DateTime.now().millisecondsSinceEpoch - lastFetchTime < 5000;
@@ -62,6 +61,8 @@ class ComicListController extends GetxController {
         type = "";
       }
     }
+    await Future.delayed(const Duration(milliseconds: 1000));
+
     return picaClient
         .getCategoryComics(
             keyword,
@@ -119,63 +120,65 @@ class ComicListController extends GetxController {
     return false;
   }
 
-  void onLoad() async {
+  Future<void> onLoad() async {
+    isDrag.value = true;
     log.d(
         "keyword: $keyword, page: ${page.value}, total: ${total.value}, isLoading: ${isLoading.value}");
     if (page.value == total.value) {
       log.d("No more data");
-      easyRefreshController?.finishLoad(IndicatorResult.noMore);
       return;
     }
     if (isLoadin()) {
       return;
     }
-    page.value++;
-    easyRefreshController?.finishLoad();
-    easyRefreshController?.finishRefresh();
-    loadData().then((value) {
+    if(page.value <= loadedPage.value) {
+      page.value++;
+    }
+    await loadData().then((value) async {
       if (value.success) {
         total.value = value.subData;
         addWithFilter(value.data);
-        easyRefreshController?.finishLoad();
+        loadedPage.value = page.value;
         isLoading.value = false;
+        isDrag.value = false;
       } else {
         showToast("Failed to load data".tr);
-        easyRefreshController?.finishLoad(IndicatorResult.fail);
         isLoading.value = false;
+        isDrag.value = false;
       }
     });
   }
 
-  void reset() {
+  Future<void> reset({bool drag = false}) async {
+    isDrag.value = drag;
     comics.clear();
-    easyRefreshController?.finishRefresh();
-    easyRefreshController?.finishLoad();
     if(keyword == "leaderboard") {
       page.value = 1;
       total.value = 0;
+      loadedPage.value = 0;
     }
     isLoading.value = false;
-    loadData().then((value) {
+    await loadData().then((value) async {
       if (value.success) {
+        loadedPage.value = 1;
         total.value = value.subData;
         addWithFilter(value.data);
-        easyRefreshController?.finishRefresh();
         isLoading.value = false;
+        isDrag.value = drag;
       } else {
         showToast("Failed to load data".tr);
-        easyRefreshController?.finishRefresh(IndicatorResult.fail);
         isLoading.value = false;
+        isDrag.value = drag;
       }
     });
   }
 
-  void resetWithSort(int sort) {
+  void resetWithSort(int sort) async {
     this.sort.value = sort;
-    reset();
+    await reset();
   }
 
-  void pageFetch(int page) {
+  void pageFetch(int page) async {
     if (isLoadin()) {
       return;
     }
@@ -183,7 +186,7 @@ class ComicListController extends GetxController {
       return;
     }
     this.page.value = page;
-    easyRefreshController?.callRefresh();
+    await reset();
   }
 
 }

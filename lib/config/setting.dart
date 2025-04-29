@@ -27,6 +27,9 @@ class Appdata {
   Map<String, String> cookies = {};
 
   Future<void> init() async {
+    general = generalDefault;
+    pica = picaDefault;
+    read = readDefault;
     s = await SharedPreferences.getInstance();
     secureStorage = FlutterSecureStorage(
         iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
@@ -59,7 +62,9 @@ class Appdata {
     _isSaving = false;
   }
 
-  List<String> general = [
+  List<String> general = [];
+
+  final generalDefault = [
     "0", //0 dark mode 0/1/2 (system/disabled/enable)
     "8", //1 theme color
     "", //2 language empty=system
@@ -71,7 +76,8 @@ class Appdata {
     "1", //8 auto check update
   ];
 
-  List<String> pica = [
+  List<String> pica = [];
+  final picaDefault = [
     "0", //0 Api请求地址, 为0时表示使用哔咔官方Api, 为1表示使用转发服务器
     "original", //1 pica图片质量
     "1", //2 启动时签到
@@ -84,7 +90,8 @@ class Appdata {
     "Leaderboard;Latest;Random;Bookmarks;", //9 main screen display cates
   ];
 
-  List<String> read = [
+  List<String> read = [];
+  final readDefault = [
     "0", //0 限制图片宽度
     "0", //1 阅读器图片布局方式, 0-contain, 1-cover
     "2", //2 翻页方式: 1从左向右,2从右向左,3从上至下,4从上至下(连续),5 duo,6 duo reversed
@@ -121,6 +128,8 @@ class Appdata {
       for (int i = 0; i < g.length && i < general.length; i++) {
         general[i] = g[i];
       }
+    } else {
+      general = generalDefault;
     }
     List<String> p = s.getStringList("pica") ?? [];
     log.t("read pica settings: $p");
@@ -128,6 +137,8 @@ class Appdata {
       for (int i = 0; i < p.length && i < pica.length; i++) {
         pica[i] = p[i];
       }
+    } else {
+      pica = picaDefault;
     }
     List<String> r = s.getStringList("read") ?? [];
     log.t("read read settings: $r");
@@ -135,6 +146,8 @@ class Appdata {
       for (int i = 0; i < r.length && i < read.length; i++) {
         read[i] = r[i];
       }
+    } else {
+      read = readDefault;
     }
   }
 
@@ -210,44 +223,14 @@ class Appdata {
   void restore(String type) {
     switch (type) {
       case "general":
-        general = [
-          "0", //0 dark mode 0/1/2 (system/disabled/enable)
-          "8", //1 theme color
-          "", //2 language empty=system
-          "0", //3 hosts
-          "0", //4 代理设置, 0代表使用系统代理
-          "0", //5 mainscreen default tab
-          "1", //6 default orientation, 0-auto, 1-portrait, 2-landscape
-          "30", //7 cache period
-          "1", //8 high refresh rate
-        ];
+        general = generalDefault;
         break;
       case "pica":
-        pica = [
-          "0", //0 Api请求地址, 为0时表示使用哔咔官方Api, 为1表示使用转发服务器
-          "original", //1 pica图片质量
-          "1", //2 启动时签到
-          "", //3 last punched time
-          "dd", //4 搜索模式
-          "", //5 blocked category
-          "0", //6 page view(1) or unlimited scroll(0)
-          "3", //7 preload pages
-          "1", //8 preload when enter details page
-          "Latest;Random;", //9 main screen display cates
-        ];
+        pica = picaDefault;
         categoriesController.init();
         break;
       case "read":
-        read = [
-          "0", //0 限制图片宽度
-          "0", //1 阅读器图片布局方式, 0-contain, 1-cover
-          "2", //2 翻页方式: 1从左向右,2从右向左,3从上至下,4从上至下(连续),5 duo,6 duo reversed
-          "1", //3 阅读器背景色 1-dark, 0-light
-          "25", //4 tap to next page threshold
-          "0", //5 orientation, 0-auto, 1-portrait, 2-landscape
-          "5", //6 autoPageTurningInterval
-          "200", //7 animation duration
-        ];
+        read = readDefault;
         break;
     }
     updateSettings(type);
@@ -309,6 +292,14 @@ class Appdata {
   List<String> get blockedCategory => settings.pica[5].split(";");
   set blockedCategory(List<String> value) {
     settings.pica[5] = value.join(";");
+    settings.updateSettings("pica");
+  }
+
+  /// page view or infinite scroll
+  bool get isPageView => settings.pica[6] == "1";
+
+  set isPageView(bool value) {
+    settings.pica[6] = value ? "1" : "0";
     settings.updateSettings("pica");
   }
 

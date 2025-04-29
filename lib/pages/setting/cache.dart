@@ -22,6 +22,7 @@ class CacheSetting extends StatelessWidget {
       body: Obx(
         () => ListView(
           children: [
+            SizedBox(height: 16),
             moonListTile(
               title: "Clear Cache Period".tr,
               trailing: MoonDropdown(

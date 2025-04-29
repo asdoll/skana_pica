@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Response;
 import 'package:moon_design/moon_design.dart';
@@ -18,30 +17,47 @@ late Updater updater;
 
 class Updater extends GetxController {
   Rx<Result> result = Result.timeout.obs;
-  RxString updateUrl = "https://github.com/asdoll/skana_pix/releases".obs;
+  RxString updateUrl =
+      "https://github.com/asdoll/skana_pica/releases/latest".obs;
   RxString updateDescription = "".obs;
   RxString updateVersion = "".obs;
   RxString updateDate = "".obs;
-  EasyRefreshController? controller;
+  RxBool autoCheck = settings.autoCheckUpdate.obs;
 
   void init() {
-    if (settings.autoCheckUpdate) {
-      check();
+    if (autoCheck.value) {
+      check().then((value) {
+        if (value == Result.yes) {
+          alertDialog(
+              Get.context!,
+              "New version available".tr,
+              "${"Description: ".tr} ${updateDescription.value}\n${"Version: ".tr} ${updateVersion.value}\n${"Date: ".tr} ${updateDate.value}",
+              [
+                outlinedButton(onPressed: () => Get.back(), label: "Cancel".tr),
+                filledButton(
+                    onPressed: () {
+                      launchUrlString(updateUrl.value);
+                      Get.back();
+                    },
+                    label: "Update".tr)
+              ]);
+        }
+      });
     }
   }
 
-  Future<Result> check() async {
+  Future<Result> check({bool showResult = false}) async {
     //if (Constants.isGooglePlay) return Result.no;
     final result = await checkUpdate("");
     this.result.value = result;
-    try {
-      if (result == Result.timeout) {
-        controller?.finishRefresh(IndicatorResult.fail);
+    if (showResult) {
+      if (result == Result.yes) {
+        showToast('Update available'.tr);
+      } else if (result == Result.no) {
+        showToast('No update available'.tr);
       } else {
-        controller?.finishRefresh();
+        showToast('Update check failed'.tr);
       }
-    } catch (e) {
-      log.w(e);
     }
     return result;
   }
@@ -67,8 +83,6 @@ class Updater extends GetxController {
           log.i("r:$r l$l");
           if (r > l) {
             updateDate.value = response.data['published_at'];
-            updateUrl.value =
-                response.data['assets'][0]['browser_download_url'];
             updateDescription.value = response.data['body'];
             return Result.yes;
           }
@@ -84,6 +98,11 @@ class Updater extends GetxController {
 
   String getCurrentVersion() {
     return Base.version;
+  }
+
+  void setAutoCheck(bool value) {
+    autoCheck.value = value;
+    settings.autoCheckUpdate = value;
   }
 }
 
@@ -123,62 +142,22 @@ late BoardController boardController;
 class BoardController extends GetxController {
   RxList<BoardInfo> boardList = <BoardInfo>[].obs;
 
-  bool notified = false;
-
   void init() {
     getBoardList();
 
     Duration(seconds: 5).delay(() {
-      if (!notified) {
-        notified = true;
-        if (updater.result.value == Result.yes) {
-          MoonToast.show(
-              toastAlignment: Alignment.center,
-              backgroundColor: MoonColors.dark.gohan,
-              displayDuration: const Duration(seconds: 10),
-              Get.context!,
-              label: Text("New version available".tr,
-                  style: TextStyle(color: MoonColors.light.goku)),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(updater.updateDescription.value).paddingBottom(16),
-                  Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                    TextButton(
-                      onPressed: () {
-                        MoonToast.clearToastQueue();
-                      },
-                      child: Text("Cancel".tr),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        MoonToast.clearToastQueue();
-                        launchUrlString(updater.updateUrl.value);
-                      },
-                      child: Text("Update".tr),
-                    ),
-                  ]),
-                ],
-              ));
-        }
-      }
       BoardInfo? info;
-      // if (kDebugMode) {
-      //   info = boardController.boardList.firstOrNull;
-      // } else {
-        info = boardController.boardList.firstWhere(
-            (element) => element.debug == true,
-            orElse: () => BoardInfo(
-                title: "PLACEHOLDER",
-                content: "",
-                startDate: "",
-                endDate: "",
-                debug: true));
-        if (info.debug ?? true) {
-          info = null;
-        }
-      //}
+      info = boardController.boardList.firstWhere(
+          (element) => element.debug == true,
+          orElse: () => BoardInfo(
+              title: "PLACEHOLDER",
+              content: "",
+              startDate: "",
+              endDate: "",
+              debug: true));
+      if (info.debug ?? true) {
+        info = null;
+      }
       boardController.boardList.clear();
       if (info != null) {
         MoonToast.show(

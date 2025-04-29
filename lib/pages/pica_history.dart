@@ -1,17 +1,14 @@
 import 'package:bootstrap_icons/bootstrap_icons.dart' show BootstrapIcons;
-import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moon_design/moon_design.dart';
-import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/history.dart';
 import 'package:skana_pica/controller/profile.dart';
+import 'package:skana_pica/controller/setting_controller.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/widgetplugin.dart';
-import 'package:skana_pica/widgets/icons.dart';
+import 'package:skana_pica/widgets/custom_indicator.dart';
 import 'package:skana_pica/widgets/pica_comic_card.dart';
-
-import '../controller/setting_controller.dart';
 
 class PicaHistoryPage extends StatefulWidget {
   const PicaHistoryPage({super.key});
@@ -25,11 +22,8 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
   Widget build(BuildContext context) {
     HistoryController controller = Get.put(HistoryController());
     TextEditingController pageJumpController = TextEditingController();
-    EasyRefreshController easyRefreshController = EasyRefreshController(
-      controlFinishRefresh: true,
-      controlFinishLoad: true,
-    );
     ScrollController scrollController = ScrollController();
+    controller.init();
 
     return Scaffold(
       floatingActionButton: MoonButton.icon(
@@ -57,6 +51,7 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
       body: Obx(
         () => Column(
           children: [
+            if(mangaSettingsController.picaPageViewMode.value)
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.end,
@@ -185,14 +180,14 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
                           },
                     child: Text('at_page'.trParams({
                       'page': (controller.page.value + 1).toString(),
-                      'total': controller.totalPage.toString()
+                      'total': controller.totalPage.value == 0 ? "1" : controller.totalPage.toString()
                     })).subHeader()),
                 Expanded(child: SizedBox()),
                 filledButton(
                   color: context.moonTheme?.tokens.colors.cell60,
                   label: "Prev Page".tr,
                   applyDarkMode: true,
-                  onPressed: (controller.page.value <= 1)
+                  onPressed: (controller.page.value == 0)
                       ? null
                       : () {
                           scrollController.animateTo(0,
@@ -223,64 +218,23 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
               height: 4,
             ),
             Expanded(
-              child: EasyRefresh(
-                header: DefaultHeaderFooter.header(context),
-                footer: DefaultHeaderFooter.footer(context),
-                refreshOnStartHeader:
-                    DefaultHeaderFooter.refreshHeader(context),
-                controller: easyRefreshController,
-                scrollController: scrollController,
-                onLoad: (mangaSettingsController.picaPageViewMode.value)
-                    ? null
-                    : () async {
-                        if (controller.page.value ==
-                            controller.totalPage.value - 1) {
-                          easyRefreshController
-                              .finishLoad(IndicatorResult.noMore);
-                          return;
-                        }
-                        controller.toPage().then((value) {
-                          if (value) {
-                            easyRefreshController.finishLoad();
-                          } else {
-                            easyRefreshController
-                                .finishLoad(IndicatorResult.fail);
-                          }
-                        });
-                      },
+              child: BezierIndicator(
                 onRefresh: () async {
                   if (controller.history.isEmpty) {
-                    controller
-                        .init(isList: settings.pica[6] == "1")
-                        .then((value) {
-                      if (value) {
-                        easyRefreshController.finishRefresh();
-                      } else {
-                        easyRefreshController
-                            .finishRefresh(IndicatorResult.fail);
-                      }
-                    });
+                    controller.init();
                   } else {
                     controller
-                        .toPage(index: controller.page.value)
-                        .then((value) {
-                      if (value) {
-                        easyRefreshController.finishRefresh();
-                      } else {
-                        easyRefreshController
-                            .finishRefresh(IndicatorResult.fail);
-                      }
-                    });
+                        .toPage(index: controller.page.value);
                   }
                 },
-                refreshOnStart: true,
                 child: ListView.builder(
                   controller: scrollController,
-                  itemCount: (settings.pica[6] == "1")
-                      ? controller.comics.length + 1
-                      : controller.comics.length,
+                  itemCount: controller.comics.length + 1,
                   itemBuilder: (context, index) {
                     if (index == controller.comics.length) {
+                      if (!mangaSettingsController.picaPageViewMode.value) {
+                        controller.toPage();
+                      }
                       if ((controller.page.value + 1 <
                               controller.totalPage.value) &&
                           !controller.isLoading.value) {
