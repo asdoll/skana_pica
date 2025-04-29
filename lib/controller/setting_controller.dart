@@ -95,8 +95,7 @@ class MangaSettingsController extends GetxController {
 
   void setPicaPageViewMode(bool value) {
     picaPageViewMode.value = value;
-    settings.pica[6] = value ? "1" : "0";
-    settings.updateSettings("pica");
+    settings.isPageView = value;
   }
 
   void toggleAutoCheckIn() {

@@ -24,6 +24,8 @@ class ComicStore extends GetxController {
 
   Rx<PicaComments> comments = PicaComments([], "", 1, 0, 0).obs;
 
+  RxBool isDrag = false.obs;
+
   RxInt currentEps = 0.obs;
 
   RxInt currentIndex = 0.obs;
@@ -54,7 +56,7 @@ class ComicStore extends GetxController {
 
   ItemScrollController? autoPagingScrollController;
 
-  RxMap<int,bool> selectDownload = <int,bool>{}.obs;
+  RxMap<int, bool> selectDownload = <int, bool>{}.obs;
 
   RxBool disableTap = false.obs;
 
@@ -158,39 +160,45 @@ class ComicStore extends GetxController {
     epsList.refresh();
   }
 
-  void fetchComments() {
+  Future<void> fetchComments() async {
     if (isLoading.value) {
+      isDrag.value = false;
       return;
     }
     isLoading.value = true;
-    picaClient.getComments(comic.value.id).then((value) {
+    await picaClient.getComments(comic.value.id).then((value) {
       comments.value = value;
       comments.refresh();
     });
+    isDrag.value = false;
     isLoading.value = false;
   }
 
-  void initComments() {
+  Future<void> initComments({bool dragging = false}) async {
+    isDrag.value = dragging;
     comments.value = PicaComments([], "", 1, 0, 0);
-    fetchComments();
+    await fetchComments();
   }
 
-  bool loadMoreComments() {
+  Future<bool> loadMoreComments() async {
     if (isLoading.value) {
       return true;
     }
+    isDrag.value = true;
     isLoading.value = true;
     if (comments.value.pages > comments.value.loaded) {
       comments.value.loaded++;
     }
-    picaClient.loadMoreComments(comments.value).then((value) {
+    await picaClient.loadMoreComments(comments.value).then((value) {
       if (value.error) {
         isLoading.value = false;
+        isDrag.value = false;
         return false;
       }
       if (value.data) comments.refresh();
+      isDrag.value = false;
+      isLoading.value = false;
     });
-    isLoading.value = false;
     return true;
   }
 
@@ -362,7 +370,6 @@ class ComicStore extends GetxController {
   void setAutoPageTurning() {
     autoPageTurning.value = !autoPageTurning.value;
     if (autoPageTurning.value) {
-      
       autoPageTurningStart(
           autoPagingPageController, autoPagingScrollController);
     } else {
@@ -446,19 +453,19 @@ class ComicStore extends GetxController {
   }
 
   void selectDownloads(int index) {
-    if(selectDownload.containsKey(index)){
+    if (selectDownload.containsKey(index)) {
       selectDownload.remove(index);
-    }else{
+    } else {
       selectDownload[index] = true;
     }
     selectDownload.refresh();
   }
 
   void selectDownloadsAll() {
-    if(selectDownload.length == epsList.length){
+    if (selectDownload.length == epsList.length) {
       selectDownload.clear();
-    }else{
-      for(int i = 0; i < epsList.length; i++){
+    } else {
+      for (int i = 0; i < epsList.length; i++) {
         selectDownload[i] = true;
       }
     }
@@ -467,8 +474,16 @@ class ComicStore extends GetxController {
 
   void download() {
     List<int> selected = selectDownload.keys.toList();
-    downloadStore.download(downloadStore.createTask(comic.value, selected, epsList));
+    downloadStore
+        .download(downloadStore.createTask(comic.value, selected, epsList));
   }
 }
 
-final readModes = ["Left to Right", "Right to Left", "Top to Bottom", "Top to Bottom(Scroll view)", "Duo Page", "Duo Page(reversed)"];
+final readModes = [
+  "Left to Right",
+  "Right to Left",
+  "Top to Bottom",
+  "Top to Bottom(Scroll view)",
+  "Duo Page",
+  "Duo Page(reversed)"
+];

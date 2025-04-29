@@ -64,7 +64,7 @@ class _PicacgComicPageState extends State<PicacgComicPage>
       backgroundColor: context.moonTheme?.tokens.colors.gohan,
       body: Obx(() {
         if (comicDetailController.isLoading.value) {
-          return Center(child: DefaultHeaderFooter.progressIndicator(context));
+          return Center(child: progressIndicator(context));
         }
         return ListView(children: [
           SizedBox(height: 12),

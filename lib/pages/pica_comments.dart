@@ -1,9 +1,9 @@
-import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/controller/comicstore.dart';
 import 'package:skana_pica/util/widgetplugin.dart';
+import 'package:skana_pica/widgets/custom_indicator.dart';
 import 'package:skana_pica/widgets/icons.dart';
 import 'package:skana_pica/widgets/pica_comment_bar.dart';
 import 'package:skana_pica/widgets/pica_comment_tile.dart';
@@ -22,40 +22,55 @@ class _PicaCommentsPageState extends State<PicaCommentsPage> {
   Widget build(BuildContext context) {
     ComicStore comicStore = Get.find<ComicStore>(tag: widget.id);
     ScrollController scrollController = ScrollController();
-    EasyRefreshController controller = EasyRefreshController(
-        controlFinishLoad: true, controlFinishRefresh: true);
     return Scaffold(
         appBar: appBar(title: "Comments".tr),
         backgroundColor: context.moonTheme?.tokens.colors.gohan,
         body: Column(children: [
           Expanded(
-            child: EasyRefresh(
-              controller: controller,
-              footer: DefaultHeaderFooter.footer(context),
-              header: DefaultHeaderFooter.header(context),
-              refreshOnStartHeader: DefaultHeaderFooter.refreshHeader(context),
-              onLoad: () {
-                bool res = comicStore.loadMoreComments();
-                controller.finishLoad(
-                    res ? IndicatorResult.success : IndicatorResult.fail);
-                if (comicStore.comments.value.comments.length >=
-                    comicStore.comments.value.total) {
-                  controller.finishLoad(IndicatorResult.noMore);
-                }
-              },
-              onRefresh: () {
-                comicStore.initComments();
-                controller.finishRefresh();
-              },
-              child: Obx(() => ListView.builder(
-                    controller: scrollController,
-                    itemCount: comicStore.comments.value.comments.length,
-                    itemBuilder: (context, index) {
-                      return PicaCommentTile(
-                          comment: comicStore.comments.value.comments[index]);
-                    },
-                  )),
-            ),
+            child: BezierIndicator(
+                onRefresh: () => comicStore.initComments(dragging: true),
+                child: Obx(() => Stack(children: [
+                      ListView.builder(
+                        controller: scrollController,
+                        itemCount:
+                            comicStore.comments.value.comments.length + 1,
+                        itemBuilder: (context, index) {
+                          if (index ==
+                              comicStore.comments.value.comments.length) {
+                            if (comicStore.comments.value.comments.isEmpty) {
+                              return !comicStore.isLoading.value
+                                  ? SizedBox(
+                                      height: Get.height * 0.8,
+                                      child: Center(
+                                        child: Text("[ ]").h1(),
+                                      ))
+                                  : Container();
+                            }
+                            if (comicStore.comments.value.pages >
+                                comicStore.comments.value.loaded) {
+                              if (!comicStore.isLoading.value) {
+                                Future.delayed(
+                                    const Duration(microseconds: 100), () {
+                                  comicStore.loadMoreComments();
+                                });
+                              }
+                              return progressIndicator(context)
+                                  .paddingVertical(10);
+                            } else {
+                              return Container();
+                            }
+                          }
+                          return PicaCommentTile(
+                              comment:
+                                  comicStore.comments.value.comments[index]);
+                        },
+                      ),
+                      if (!comicStore.isDrag.value &&
+                          comicStore.isLoading.value)
+                        Center(
+                          child: progressIndicator(context),
+                        )
+                    ]))),
           ),
           PicaCommentBar(
             widget.id,

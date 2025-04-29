@@ -4,6 +4,7 @@ import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/api/managers/history_manager.dart';
 import 'package:skana_pica/api/models/objectbox_models.dart';
 import 'package:skana_pica/controller/comiclist.dart';
+import 'package:skana_pica/controller/setting_controller.dart';
 
 class HistoryController extends GetxController {
   RxList<VisitHistory> history = <VisitHistory>[].obs;
@@ -11,18 +12,16 @@ class HistoryController extends GetxController {
   RxInt total = 0.obs;
   RxBool isLoading = false.obs;
 
-  int perPage = 20;
+  int perPage = 10;
   RxInt page = 0.obs;
   RxInt totalPage = 0.obs;
-  RxBool isList = false.obs;
 
-  Future<bool> init({bool isList = false}) async {
+  Future<bool> init() async {
     if (isLoading.value) {
       return false;
     }
     isLoading.value = true;
-    this.isList.value = isList;
-    M.o.getVisitHistoryCount().then((value) async {
+    await M.o.getVisitHistoryCount().then((value) async {
       total.value = value;
       totalPage.value = (total.value / perPage).ceil();
       page.value = 0;
@@ -41,6 +40,7 @@ class HistoryController extends GetxController {
 
   // next page if index is -1
   Future<bool> toPage({int index = -1}) async {
+    //log.d("index: $index, totalPage: ${totalPage.value}");
     if (isLoading.value) {
       return false;
     }
@@ -68,7 +68,7 @@ class HistoryController extends GetxController {
   }
 
   Future<bool> fetchComic() async {
-    if (isList.value) comics.clear();
+    if (mangaSettingsController.picaPageViewMode.value) comics.clear();
     for (int i = 0; i < history.length; i++) {
       var item = await M.o.getComicHistory(history[i].comicid);
       if (item != null) {

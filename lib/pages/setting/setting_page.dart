@@ -28,6 +28,7 @@ class _SettingPageState extends State<SettingPage> {
     SettingController settingController = Get.put(SettingController());
     return Obx(() => ListView(
       children: [
+        SizedBox(height: 16),
         moonListTile(
           leading: Icon(BootstrapIcons.person),
           title: 'Account'.tr,

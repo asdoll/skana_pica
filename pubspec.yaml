@@ -44,7 +44,6 @@ dependencies:
   rxdart: ^0.28.0
   flutter_cache_manager: ^3.4.1
   cached_network_image: ^3.4.1
-  easy_refresh: ^3.4.0
   scrollable_positioned_list: ^0.3.8
   photo_view:
     git:
@@ -63,6 +62,7 @@ dependencies:
   moon_design: ^1.1.0
   google_fonts: ^6.2.1
   bootstrap_icons: ^1.11.3
+  custom_refresh_indicator: ^4.0.1
 
 dev_dependencies:
   flutter_test:

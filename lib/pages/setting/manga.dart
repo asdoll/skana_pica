@@ -26,6 +26,7 @@ class _MangaSettingPageState extends State<MangaSettingPage> {
       body: Obx(
         () => ListView(
           children: [
+            SizedBox(height: 16),
             moonListTile(
               leading: Icon(BootstrapIcons.arrow_left_right),
               title: "Set stream".tr,
@@ -231,6 +232,16 @@ class _MangaSettingPageState extends State<MangaSettingPage> {
                   onPressed: () => mangaSettingsController.preloadMenu.value =
                       !mangaSettingsController.preloadMenu.value,
                 ),
+              ),
+            ),
+            moonListTile(
+              leading: Icon(BootstrapIcons.calendar3),
+              title: "View comic card list in pages".tr,
+              trailing: MoonSwitch(
+                value: mangaSettingsController.picaPageViewMode.value,
+                onChanged: (value) {
+                  mangaSettingsController.setPicaPageViewMode(value);
+                },
               ),
             ),
             moonListTile(

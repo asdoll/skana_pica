@@ -29,7 +29,7 @@ class _PicaLoginPageState extends State<PicaLoginPage> {
       body: Obx(() {
         if (loginController.isLoading.isTrue) {
           return Center(
-            child: DefaultHeaderFooter.progressIndicator(context),
+            child: progressIndicator(context),
           );
         } else {
           return Center(

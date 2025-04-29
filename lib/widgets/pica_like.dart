@@ -28,7 +28,7 @@ class _PicaFavorButtonState extends State<PicaFavorButton> {
               ? SizedBox(
                   width: iconSize,
                   height: iconSize,
-                  child: DefaultHeaderFooter.progressIndicator(context))
+                  child: progressIndicator(context))
               : favorController.favorComics.contains(widget.id)
                   ? Icon(
                       BootstrapIcons.bookmark_fill,
@@ -77,7 +77,7 @@ class _PicaLikeButtonState extends State<PicaLikeButton> {
     return Obx(() => MoonButton.icon(
           icon: likeController.isLoading.value
               ? SizedBox(
-                  width: size, height: size, child: DefaultHeaderFooter.progressIndicator(context))
+                  width: size, height: size, child: progressIndicator(context))
               : likeController.isLike.value
                   ? Icon(
                       BootstrapIcons.heart_fill,
