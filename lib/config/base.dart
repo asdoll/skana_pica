@@ -14,7 +14,7 @@ class Base {
   /// **Warning: The end of String is not '/'**
   static late final String dataPath;
 
-  static const String version = "1.0.3";
+  static const String version = "1.0.5";
 
   static Future<void> init() async {
     cachePath = (await getApplicationCacheDirectory()).path;
