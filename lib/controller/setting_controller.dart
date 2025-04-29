@@ -19,6 +19,17 @@ class SettingController extends GetxController {
   RxBool homePageMenu = false.obs;
   RxBool orienMenu = false.obs;
 
+  void init() {
+    defaultPage.value = settings.general[5];
+    mainOrientation.value = settings.general[6];
+    highRefreshRate.value = settings.highRefreshRate;
+    language.value = settings.general[2];
+    darkMenu.value = false;
+    langMenu.value = false;
+    homePageMenu.value = false;
+    orienMenu.value = false;
+  }
+
   void changeDefaultPage(String index) {
     defaultPage.value = index;
     settings.general[5] = index;
@@ -73,6 +84,21 @@ class MangaSettingsController extends GetxController {
   RxBool searchModeMenu = false.obs;
   RxBool preloadMenu = false.obs;
 
+  void init() {
+    streamMenu.value = false;
+    imageQualityMenu.value = false;
+    searchModeMenu.value = false;
+    preloadMenu.value = false;
+    picaStream.value = int.parse(settings.pica[0]);
+    picaImageQuality.value = settings.picaImageQuality;
+    picaSearchMode.value = settings.picaSearchMode;
+    picaPageViewMode.value = settings.isPageView;
+    autoCheckIn.value = settings.pica[2] == "1";
+    preloadNumPages.value =
+        (int.parse(settings.pica[7]) > 6 ? '5' : settings.pica[7]);
+    preloadDetailsPage.value = settings.pica[8] == "1";
+  }
+
   List<String> get categories => picacg.categories;
 
   void setPicaStream(int value) {
@@ -125,8 +151,11 @@ class MangaSettingsController extends GetxController {
 
 class CacheController extends GetxController {
   RxString cachePeriod = settings.general[7].obs;
-  RxList<bool> restores = [false, false, false].obs;
   RxBool cacheMenu = false.obs;
+
+  void init() {
+    cachePeriod.value = settings.general[7];
+  }
 
   void setCachePeriod(String period) {
     cachePeriod.value = period;

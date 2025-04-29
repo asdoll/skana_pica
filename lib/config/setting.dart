@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:get/get.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skana_pica/api/managers/history_manager.dart';
@@ -12,6 +13,9 @@ import 'package:skana_pica/controller/favourite.dart';
 import 'package:skana_pica/controller/profile.dart';
 import 'package:skana_pica/controller/searchhistory.dart';
 import 'package:skana_pica/controller/log.dart';
+import 'package:skana_pica/controller/setting_controller.dart';
+import 'package:skana_pica/controller/theme_controller.dart';
+import 'package:skana_pica/util/tool.dart';
 
 class Appdata {
   ///搜索历史
@@ -27,9 +31,9 @@ class Appdata {
   Map<String, String> cookies = {};
 
   Future<void> init() async {
-    general = generalDefault;
-    pica = picaDefault;
-    read = readDefault;
+    general.addAll(generalDefault);
+    pica.addAll(picaDefault);
+    read.addAll(readDefault);
     s = await SharedPreferences.getInstance();
     secureStorage = FlutterSecureStorage(
         iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
@@ -87,7 +91,7 @@ class Appdata {
     "1", //6 page view(1) or unlimited scroll(0)
     "3", //7 preload pages
     "1", //8 preload when enter details page
-    "Leaderboard;Latest;Random;Bookmarks;", //9 main screen display cates
+    "Latest;Random;", //9 main screen display cates
   ];
 
   List<String> read = [];
@@ -129,7 +133,8 @@ class Appdata {
         general[i] = g[i];
       }
     } else {
-      general = generalDefault;
+      general.clear();
+      general.addAll(generalDefault);
     }
     List<String> p = s.getStringList("pica") ?? [];
     log.t("read pica settings: $p");
@@ -138,7 +143,8 @@ class Appdata {
         pica[i] = p[i];
       }
     } else {
-      pica = picaDefault;
+      pica.clear();
+      pica.addAll(picaDefault);
     }
     List<String> r = s.getStringList("read") ?? [];
     log.t("read read settings: $r");
@@ -147,7 +153,8 @@ class Appdata {
         read[i] = r[i];
       }
     } else {
-      read = readDefault;
+      read.clear();
+      read.addAll(readDefault);
     }
   }
 
@@ -234,6 +241,12 @@ class Appdata {
         break;
     }
     updateSettings(type);
+    mangaSettingsController.init();
+    Get.find<CacheController>().init();
+    Get.find<SettingController>().init();
+    ThemeManager.instance.updateDarkMode();
+    resetOrientation();
+    log.d("restore $type: $general $pica $read");
   }
 
   /***

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/controller/downloadstore.dart';
+import 'package:skana_pica/controller/main_controller.dart';
 import 'package:skana_pica/controller/setting_controller.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/widgetplugin.dart';
@@ -22,7 +23,7 @@ class _PicaDownloadPageState extends State<PicaDownloadPage> {
   Widget build(BuildContext context) {
     DownloadPageController dc = Get.put(DownloadPageController());
     TextEditingController pageJumpController = TextEditingController();
-    ScrollController scrollController = ScrollController();
+    ScrollController scrollController = globalScrollController;
 
     return Obx(
       () => Column(

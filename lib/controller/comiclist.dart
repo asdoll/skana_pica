@@ -8,6 +8,8 @@ import 'package:skana_pica/controller/history.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/controller/log.dart';
 
+import 'setting_controller.dart';
+
 
 get errorUrl => errorLoadingUrl;
 
@@ -152,7 +154,7 @@ class ComicListController extends GetxController {
   Future<void> reset({bool drag = false}) async {
     isDrag.value = drag;
     comics.clear();
-    if(keyword == "leaderboard") {
+    if(keyword == "leaderboard" || !mangaSettingsController.picaPageViewMode.value) {
       page.value = 1;
       total.value = 0;
       loadedPage.value = 0;

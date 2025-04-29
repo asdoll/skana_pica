@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/controller/history.dart';
+import 'package:skana_pica/controller/main_controller.dart';
 import 'package:skana_pica/controller/profile.dart';
 import 'package:skana_pica/controller/setting_controller.dart';
 import 'package:skana_pica/util/leaders.dart';
@@ -22,10 +23,11 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
   Widget build(BuildContext context) {
     HistoryController controller = Get.put(HistoryController());
     TextEditingController pageJumpController = TextEditingController();
-    ScrollController scrollController = ScrollController();
+    ScrollController scrollController = globalScrollController;
     controller.init();
 
     return Scaffold(
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       floatingActionButton: MoonButton.icon(
         buttonSize: MoonButtonSize.lg,
         showBorder: true,

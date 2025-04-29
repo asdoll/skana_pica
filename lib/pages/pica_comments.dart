@@ -18,13 +18,22 @@ class PicaCommentsPage extends StatefulWidget {
 }
 
 class _PicaCommentsPageState extends State<PicaCommentsPage> {
+  ScrollController scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    scrollController.addListener(() {
+      
+    });
+  }
   @override
   Widget build(BuildContext context) {
     ComicStore comicStore = Get.find<ComicStore>(tag: widget.id);
-    ScrollController scrollController = ScrollController();
     return Scaffold(
         appBar: appBar(title: "Comments".tr),
         backgroundColor: context.moonTheme?.tokens.colors.gohan,
+        floatingActionButton: GoTop(scrollController: scrollController),
         body: Column(children: [
           Expanded(
             child: BezierIndicator(

@@ -31,13 +31,13 @@ class Mains extends StatefulWidget {
 class _MainsState extends State<Mains> {
   @override
   Widget build(BuildContext context) {
-    // globalScrollController.addListener(() {
-    //   if (globalScrollController.offset < context.height) {
-    //     homeController.showBackArea.value = false;
-    //   } else {
-    //     homeController.showBackArea.value = true;
-    //   }
-    // });
+    globalScrollController.addListener(() {
+      if (globalScrollController.offset < context.height) {
+        homeController.showBackArea.value = false;
+      } else {
+        homeController.showBackArea.value = true;
+      }
+    });
     return Obx(
       () => profileController.isFirstLaunch.value
           ? Scaffold(
@@ -96,7 +96,7 @@ class _MainsState extends State<Mains> {
                     buildButton('Downloads'.tr, BootstrapIcons.download, 6),
                     buildButton('Settings'.tr, BootstrapIcons.gear, 7),
                   ]).paddingSymmetric(horizontal: 8)),
-              //floatingActionButton: GoTop(),
+              floatingActionButton:!mangaSettingsController.picaPageViewMode.value ? GoTop() : null,
               body: (homeController.pageIndex.value == 0 &&
                       categoriesController
                               .mainPageTags[homeController.tagIndex.value] ==
