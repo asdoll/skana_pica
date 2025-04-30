@@ -63,7 +63,6 @@ class ComicListController extends GetxController {
         type = "";
       }
     }
-    await Future.delayed(const Duration(milliseconds: 1000));
 
     return picaClient
         .getCategoryComics(
