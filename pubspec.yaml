@@ -63,6 +63,7 @@ dependencies:
   google_fonts: ^6.2.1
   bootstrap_icons: ^1.11.3
   custom_refresh_indicator: ^4.0.1
+  flutter_list_view: ^1.1.29
 
 dev_dependencies:
   flutter_test:

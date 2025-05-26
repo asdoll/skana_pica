@@ -73,6 +73,7 @@ class _PicaCommentsPageState extends State<PicaCommentsPage> {
                               comment:
                                   comicStore.comments.value.comments[index]);
                         },
+                        physics: BouncingScrollPhysics(),
                       ),
                       if (!comicStore.isDrag.value &&
                           comicStore.isLoading.value)

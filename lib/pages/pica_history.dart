@@ -284,6 +284,7 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
                     return PicaComicCard(controller.comics[index],
                         type: "history");
                   },
+                  physics: BouncingScrollPhysics(),
                 ),
               ),
             ),

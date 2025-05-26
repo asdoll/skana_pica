@@ -400,6 +400,7 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                                         : "comic",
                                   );
                                 },
+                                physics: BouncingScrollPhysics(),
                               ),
                               if (!controller.isDrag.value &&
                                   controller.isLoading.value)

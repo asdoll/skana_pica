@@ -30,6 +30,7 @@ class _UpdatePageState extends State<UpdatePage> {
             await updater.check();
           },
           child: ListView(
+            physics: BouncingScrollPhysics(),
             children: [
               SizedBox(height: 16),
               moonListTile(
