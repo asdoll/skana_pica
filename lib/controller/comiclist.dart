@@ -152,13 +152,14 @@ class ComicListController extends GetxController {
 
   Future<void> reset({bool drag = false}) async {
     isDrag.value = drag;
-    comics.clear();
     if(keyword == "leaderboard" || !mangaSettingsController.picaPageViewMode.value) {
       page.value = 1;
       total.value = 0;
       loadedPage.value = 0;
     }
     isLoading.value = false;
+    comics.clear();
+    comics.refresh();
     await loadData().then((value) async {
       if (value.success) {
         loadedPage.value = 1;

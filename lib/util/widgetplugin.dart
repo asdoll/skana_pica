@@ -421,3 +421,8 @@ extension TextSpanExtension on TextSpan {
         onExit: onExit,
       );
 }
+
+Icon moonIcon({required IconData icon, double size = 20, Color? color}) =>
+    Icon(icon,
+        size: size,
+        color: color ?? Get.context?.moonTheme?.tokens.colors.bulma);

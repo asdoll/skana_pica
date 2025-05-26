@@ -134,9 +134,10 @@ class ErrorLoading extends StatelessWidget {
   }
 }
 
-Widget progressIndicator(BuildContext context, {Color? color, double? size}) {
+Widget progressIndicator(BuildContext context, {Color? color, double? size, Duration? duration}) {
   return SpinKitPulse(
     size: size ?? 30,
     color: color ?? context.moonTheme?.tokens.colors.bulma,
+    duration: duration ?? const Duration(milliseconds: 1000),
   );
 }
