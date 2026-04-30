@@ -1,11 +1,13 @@
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+
 import 'package:skana_pica/controller/categories.dart';
-import 'package:skana_pica/controller/comiclist.dart' show leaderboardController;
+import 'package:skana_pica/controller/comiclist.dart' show leaderboardController, leaderboardProvider;
 import 'package:skana_pica/controller/main_controller.dart';
 import 'package:skana_pica/controller/profile.dart';
 import 'package:skana_pica/controller/setting_controller.dart'
-    show mangaSettingsController;
+    show mangaSettingProvider, categories;
 import 'package:skana_pica/pages/pica_cats.dart';
 import 'package:skana_pica/pages/pica_download.dart';
 import 'package:skana_pica/pages/pica_history.dart';
@@ -19,27 +21,26 @@ import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:skana_pica/widgets/icons.dart';
 import 'package:skana_pica/widgets/pica_comic_list.dart';
 
-class Mains extends StatefulWidget {
+class Mains extends StatefulHookConsumerWidget {
   static const route = "/";
 
   const Mains({super.key});
 
   @override
-  State<Mains> createState() => _MainsState();
+  ConsumerState<Mains> createState() => _MainsState();
 }
 
-class _MainsState extends State<Mains> {
+class _MainsState extends ConsumerState<Mains> {
   @override
   Widget build(BuildContext context) {
     globalScrollController.addListener(() {
-      if (globalScrollController.offset < context.height) {
-        homeController.showBackArea.value = false;
+      if (globalScrollController.offset < MediaQuery.of(context).size.height) {
+        ref.read(homeProvider.notifier).setShowBack(false);
       } else {
-        homeController.showBackArea.value = true;
+        ref.read(homeProvider.notifier).setShowBack(true);
       }
     });
-    return Obx(
-      () => profileController.isFirstLaunch.value
+    return ref.watch(profileProvider).isFirstLaunch
           ? Scaffold(
               body: Center(
                   child: ListView(shrinkWrap: true, children: [
@@ -49,13 +50,13 @@ class _MainsState extends State<Mains> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(height: 8),
-                        Text("${"The purpose of this App is only for learning, communication, and personal interest. Any content displayed comes from the internet and is not related to the developer".tr}.")
+                        Text("${"app_disclaimer_1".tr()}.")
                             .small(),
                         SizedBox(height: 8),
-                        Text("${"If you encounter any problems during use, please first confirm whether it is a problem with your device, and then provide feedback".tr}.")
+                        Text("${"app_disclaimer_2".tr()}.")
                             .small(),
                         SizedBox(height: 8),
-                        Text("${"The developer is not responsible for whether the problem can be solved".tr}.")
+                        Text("${"app_disclaimer_3".tr()}.")
                             .small(),
                         SizedBox(height: 20)
                       ],
@@ -63,9 +64,9 @@ class _MainsState extends State<Mains> {
                     actions: [
                       filledButton(
                         onPressed: () {
-                          Go.to(PicaLoginPage(start: true));
+                          Go.to(PicaLoginPage.route);
                         },
-                        label: "Login".tr,
+                        label: "login".tr(),
                       )
                     ]).paddingAll(20),
               )
@@ -73,100 +74,99 @@ class _MainsState extends State<Mains> {
           : Scaffold(
               key: homeKey,
               appBar: appBar(
-                  title: (homeController.pageIndex.value == 0)
-                      ? categoriesController
-                          .mainPageTags[homeController.tagIndex.value].tr
-                      : pages[homeController.pageIndex.value].tr,
+                  title: (ref.watch(homeProvider).pageIndex == 0)
+                      ? ref.watch(categoryProvider)
+                          .mainPageTags[ref.watch(homeProvider).tagIndex].tr()
+                      : pages[ref.watch(homeProvider).pageIndex].tr(),
                   leading: NormalDrawerButton(onTap: () => homeKey.currentState?.openDrawer())),              
               drawer: MoonDrawer(
-                  width: context.width > 200 ? 200 : null,
+                  width: MediaQuery.of(context).size.width > 200 ? 200 : null,
                   child: ListView(children: [
                     for (var i = 0;
-                        i < categoriesController.mainPageTags.length;
+                        i < ref.watch(categoryProvider).mainPageTags.length;
                         i++)
                       buildDynamicButton(
-                          categoriesController.mainPageTags[i], null, i),
+                          ref.watch(categoryProvider).mainPageTags[i], null, i),
                     const Divider(),
-                    buildButton('Search'.tr, BootstrapIcons.search, 1),
-                    buildButton('Categories'.tr, BootstrapIcons.app, 2),
-                    buildButton('Leaderboard'.tr, BootstrapIcons.list_stars, 3),
-                    buildButton('Bookmarks'.tr, BootstrapIcons.bookmark, 4),
+                    buildButton('search'.tr(), BootstrapIcons.search, 1),
+                    buildButton('categories'.tr(), BootstrapIcons.app, 2),
+                    buildButton('leaderboard'.tr(), BootstrapIcons.list_stars, 3),
+                    buildButton('bookmarks'.tr(), BootstrapIcons.bookmark, 4),
                     const Divider(),
-                    buildButton('History'.tr, BootstrapIcons.clock_history, 5),
-                    buildButton('Downloads'.tr, BootstrapIcons.download, 6),
-                    buildButton('Settings'.tr, BootstrapIcons.gear, 7),
+                    buildButton('history'.tr(), BootstrapIcons.clock_history, 5),
+                    buildButton('downloads'.tr(), BootstrapIcons.download, 6),
+                    buildButton('settings'.tr(), BootstrapIcons.gear, 7),
                   ]).paddingSymmetric(horizontal: 8)),
-              floatingActionButton:!mangaSettingsController.picaPageViewMode.value ? GoTop() : null,
-              body: (homeController.pageIndex.value == 0 &&
-                      categoriesController
-                              .mainPageTags[homeController.tagIndex.value] ==
-                          "Leaderboard")
+              floatingActionButton:!ref.watch(mangaSettingProvider).picaPageViewMode ? GoTop() : null,
+              body: (ref.watch(homeProvider).pageIndex == 0 &&
+                      ref.watch(categoryProvider)
+                              .mainPageTags[ref.watch(homeProvider).tagIndex] ==
+                          "leaderboard")
                   ? PicaComicsPage(
                       keyword: "leaderboard",
-                      type: leaderboardController.type.value,
+                      type: ref.watch(leaderboardProvider),
                       fromDrawer: true,
                     )
-                  : (homeController.pageIndex.value == 0 &&
-                          categoriesController.mainPageTags[homeController.tagIndex.value] ==
-                              "Random")
+                  : (ref.watch(homeProvider).pageIndex == 0 &&
+                          ref.watch(categoryProvider).mainPageTags[ref.watch(homeProvider).tagIndex] ==
+                              "random")
                       ? PicaComicsPage(
                           keyword: "random",
                           type: "fixed",
                           addToHistory: false,
                           fromDrawer: true)
-                      : (homeController.pageIndex.value == 0 &&
-                              categoriesController.mainPageTags[homeController.tagIndex.value] ==
-                                  "Latest")
+                      : (ref.watch(homeProvider).pageIndex == 0 &&
+                              ref.watch(categoryProvider).mainPageTags[ref.watch(homeProvider).tagIndex] ==
+                                  "latest")
                           ? PicaComicsPage(
                               keyword: "latest",
                               type: "fixed",
                               addToHistory: false,
                               fromDrawer: true)
-                          : (homeController.pageIndex.value == 0 &&
-                                  categoriesController.mainPageTags[
-                                          homeController.tagIndex.value] ==
-                                      "Bookmarks")
+                          : (ref.watch(homeProvider).pageIndex == 0 &&
+                                  ref.watch(categoryProvider).mainPageTags[
+                                          ref.watch(homeProvider).tagIndex] ==
+                                      "bookmarks")
                               ? PicaComicsPage(
                                   keyword: "bookmarks",
                                   type: "fixed",
                                   addToHistory: false,
                                   fromDrawer: true)
-                              : (homeController.pageIndex.value == 0 &&
-                                      mangaSettingsController.categories.contains(
-                                          categoriesController.mainPageTags[homeController.tagIndex.value]))
-                                  ? PicaComicsPage(keyword: categoriesController.mainPageTags[homeController.tagIndex.value], type: "category", addToHistory: false, fromDrawer: true)
-                                  : (homeController.pageIndex.value == 0)
-                                      ? PicaComicsPage(keyword: categoriesController.mainPageTags[homeController.tagIndex.value], type: "search", addToHistory: false, fromDrawer: true)
-                                      : switch (homeController.pageIndex.value) {
+                              : (ref.watch(homeProvider).pageIndex == 0 &&
+                                      categories.contains(
+                                          ref.watch(categoryProvider).mainPageTags[ref.watch(homeProvider).tagIndex]))
+                                  ? PicaComicsPage(keyword: ref.watch(categoryProvider).mainPageTags[ref.watch(homeProvider).tagIndex], type: "category", addToHistory: false, fromDrawer: true)
+                                  : (ref.watch(homeProvider).pageIndex == 0)
+                                      ? PicaComicsPage(keyword: ref.watch(categoryProvider).mainPageTags[ref.watch(homeProvider).tagIndex], type: "search", addToHistory: false, fromDrawer: true)
+                                      : switch (ref.watch(homeProvider).pageIndex) {
                                           1 => PicaSearchPage(),
                                           2 => PicaCatsPage(),
-                                          3 => PicaComicsPage(keyword: "leaderboard", type: leaderboardController.type.value, fromDrawer: true),
+                                          3 => PicaComicsPage(keyword: "leaderboard", type: ref.watch(leaderboardProvider), fromDrawer: true),
                                           4 => PicaComicsPage(keyword: "bookmarks", type: "me",fromDrawer: true,),
                                           5 => PicaHistoryPage(),
                                           6 => PicaDownloadPage(),
                                           _ => SettingPage(),
                                         },
-            ),
     );
   }
 
   MoonMenuItem buildDynamicButton(String label, [IconData? icon, int? index]) {
     if (index != null) {
       return MoonMenuItem(
-        backgroundColor: homeController.pageIndex.value == 0 &&
-                homeController.tagIndex.value == index
-            ? Get.context?.moonTheme?.tokens.colors.piccolo
+        backgroundColor: ref.watch(homeProvider).pageIndex == 0 &&
+                ref.watch(homeProvider).tagIndex == index
+            ? context.moonTheme?.tokens.colors.piccolo
             : Colors.transparent,
-        label: Text(label.tr,
-                style: homeController.pageIndex.value == 0 &&
-                        homeController.tagIndex.value == index
+        label: Text(label.tr(),
+                style: ref.watch(homeProvider).pageIndex == 0 &&
+                        ref.watch(homeProvider).tagIndex == index
                     ? TextStyle(color: MoonColors.light.goku)
                     : null)
             .subHeader(),
         onTap: () {
           closeDrawer();
-          homeController.pageIndex.value = 0;
-          homeController.tagIndex.value = index;
+          ref.read(homeProvider.notifier).setPage(0);
+          ref.read(homeProvider.notifier).setTag(index);
           globalScrollController.jumpTo(0);
         },
       );
@@ -180,11 +180,11 @@ class _MainsState extends State<Mains> {
   MoonMenuItem buildButton(String label, [IconData? icon, int? index]) {
     if (index != null) {
       return MoonMenuItem(
-        backgroundColor: homeController.pageIndex.value == index
-            ? Get.context?.moonTheme?.tokens.colors.piccolo
+        backgroundColor: ref.watch(homeProvider).pageIndex == index
+            ? context.moonTheme?.tokens.colors.piccolo
             : Colors.transparent,
         label: Text(label,
-                style: homeController.pageIndex.value == index
+                style: ref.watch(homeProvider).pageIndex == index
                     ? TextStyle(color: MoonColors.light.goku)
                     : null)
             .subHeader(),
@@ -192,13 +192,13 @@ class _MainsState extends State<Mains> {
             ? null
             : Icon(
                 icon,
-                color: homeController.pageIndex.value == index
+                color: ref.watch(homeProvider).pageIndex == index
                     ? MoonColors.light.goku
                     : null,
               ),
         onTap: () {
           closeDrawer();
-          homeController.pageIndex.value = index;
+          ref.read(homeProvider.notifier).setPage(index);
           try{
             globalScrollController.jumpTo(0);
           }catch(e){

@@ -78,7 +78,7 @@ DownloadCacheManage downloadCacheManager = DownloadCacheManage();
 
 ImagesCacheManager imagesCacheManager = ImagesCacheManager();
 
-ImageProvider imageProvider(String url) {
+ImageProvider imageProvider(String url, [bool downloaded = false]) {
   if(url==defaultAvatarUrl) {
     return AssetImage("assets/images/avatar/default.png");
   }
@@ -88,7 +88,7 @@ ImageProvider imageProvider(String url) {
   if(url.isEmpty) {
     return AssetImage("assets/images/0.png");
   }
-  return CachedNetworkImageProvider(url, cacheManager: imagesCacheManager);
+  return CachedNetworkImageProvider(url, cacheManager: downloaded? downloadCacheManager: imagesCacheManager);
 }
 
 ImageProvider localProvider(String url) {

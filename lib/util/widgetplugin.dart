@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/config/setting.dart';
+import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/widgets/icons.dart';
 
 extension WidgetExtension on Widget {
@@ -28,6 +28,28 @@ extension WidgetExtension on Widget {
   Widget paddingVertical(double padding) {
     return Padding(
         padding: EdgeInsets.symmetric(vertical: padding), child: this);
+  }
+
+  Widget paddingAll(double padding) {
+    return Padding(padding: EdgeInsets.all(padding), child: this);
+  }
+
+  Widget paddingOnly(
+      {double? top, double? bottom, double? left, double? right}) {
+    return Padding(
+        padding: EdgeInsets.only(
+            top: top ?? 0.0,
+            bottom: bottom ?? 0.0,
+            left: left ?? 0.0,
+            right: right ?? 0.0),
+        child: this);
+  }
+
+  Widget paddingSymmetric({double vertical = 0.0, double horizontal = 0.0}) {
+    return Padding(
+        padding:
+            EdgeInsets.symmetric(vertical: vertical, horizontal: horizontal),
+        child: this);
   }
 
   Widget paddingHorizontal(double padding) {
@@ -120,8 +142,7 @@ Future<T?> alertDialog<T>(BuildContext context, String title, String content,
           shrinkWrap: true,
           children: [
             MoonAlert(
-                borderColor: Get
-                    .context?.moonTheme?.buttonTheme.colors.borderColor
+                borderColor: context.moonTheme?.buttonTheme.colors.borderColor
                     .withValues(alpha: 0.5),
                 showBorder: true,
                 label: Text(title).header(),
@@ -153,7 +174,7 @@ Widget moonCard(
     Color? backgroundColor}) {
   return MoonAlert(
       backgroundColor: backgroundColor ??
-          (Get.context?.moonTheme?.tokens.colors.gohan ?? Colors.white),
+          (Go.context?.moonTheme?.tokens.colors.gohan ?? Colors.white),
       padding: padding,
       showBorder: false,
       label: title == null ? Container() : Text(title).header(),
@@ -177,7 +198,7 @@ Widget outlinedButton(
       buttonSize: buttonSize ?? MoonButtonSize.sm,
       onTap: onPressed,
       label: label == null ? null : Text(label),
-      borderColor: Get.context?.moonTheme?.buttonTheme.colors.borderColor
+      borderColor: Go.context?.moonTheme?.buttonTheme.colors.borderColor
           .withValues(alpha: 0.5));
 }
 
@@ -264,7 +285,7 @@ Widget emptyPlaceholder(BuildContext context) {
   return Container(
     padding: const EdgeInsets.only(bottom: 100),
     width: double.infinity,
-    height: context.height / 1.5,
+    height: MediaQuery.sizeOf(context).height / 1.5,
     alignment: Alignment.center,
     child: Center(
       child: Text('[ ]').h1(),
@@ -289,7 +310,7 @@ AppBar appBar(
               ? null
               : Text(subtitle,
                       style: TextStyle(
-                          color: Get.context?.moonTheme?.textAreaTheme.colors
+                          color: Go.context?.moonTheme?.textAreaTheme.colors
                               .helperTextColor))
                   .subHeader()),
       leading: Transform.translate(offset: Offset(0, 2), child: leading),
@@ -312,7 +333,7 @@ extension TextExtension on Text {
         maxLines: maxLines,
         overflow: overflow,
         strutStyle: strutStyle,
-        style: Get.context?.moonTheme?.tokens.typography.heading.text18
+        style: Go.context?.moonTheme?.tokens.typography.heading.text18
             .copyWith(color: _textColor),
       );
 
@@ -321,7 +342,7 @@ extension TextExtension on Text {
         maxLines: maxLines,
         overflow: overflow,
         strutStyle: strutStyle,
-        style: Get.context?.moonTheme?.tokens.typography.heading.text16
+        style: Go.context?.moonTheme?.tokens.typography.heading.text16
             .copyWith(color: _textColor),
       );
 
@@ -330,7 +351,7 @@ extension TextExtension on Text {
         maxLines: maxLines,
         overflow: overflow,
         strutStyle: strutStyle,
-        style: Get.context?.moonTheme?.tokens.typography.heading.text16
+        style: Go.context?.moonTheme?.tokens.typography.heading.text16
             .copyWith(color: _textColor),
       );
 
@@ -339,7 +360,7 @@ extension TextExtension on Text {
         maxLines: maxLines,
         overflow: overflow,
         strutStyle: strutStyle,
-        style: Get.context?.moonTheme?.tokens.typography.heading.text14
+        style: Go.context?.moonTheme?.tokens.typography.heading.text14
             .copyWith(color: _textColor),
       );
 
@@ -349,7 +370,7 @@ extension TextExtension on Text {
       maxLines: maxLines,
       overflow: overflow,
       strutStyle: strutStyle,
-      style: Get.context?.moonTheme?.tokens.typography.heading.text12
+      style: Go.context?.moonTheme?.tokens.typography.heading.text12
           .copyWith(color: _textColor),
     );
   }
@@ -359,7 +380,7 @@ extension TextExtension on Text {
         maxLines: maxLines,
         overflow: overflow,
         strutStyle: strutStyle,
-        style: Get.context?.moonTheme?.tokens.typography.heading.text12
+        style: Go.context?.moonTheme?.tokens.typography.heading.text12
             .copyWith(color: _textColor, decoration: TextDecoration.underline),
       );
 
@@ -369,9 +390,9 @@ extension TextExtension on Text {
         overflow: overflow,
         strutStyle: strutStyle,
         style:
-            Get.context?.moonTheme?.tokens.typography.heading.text14.copyWith(
+            Go.context?.moonTheme?.tokens.typography.heading.text14.copyWith(
           foreground: style?.foreground ??
-              Get.context?.moonTheme?.tokens.typography.heading.text14
+              Go.context?.moonTheme?.tokens.typography.heading.text14
                   .foreground,
         ),
       );
@@ -381,7 +402,7 @@ extension TextExtension on Text {
         maxLines: maxLines,
         overflow: overflow,
         strutStyle: strutStyle,
-        style: Get.context?.moonTheme?.tokens.typography.heading.text10
+        style: Go.context?.moonTheme?.tokens.typography.heading.text10
             .copyWith(color: _textColor),
       );
 
@@ -390,7 +411,7 @@ extension TextExtension on Text {
         maxLines: maxLines,
         overflow: overflow,
         strutStyle: strutStyle,
-        style: Get.context?.moonTheme?.tokens.typography.heading.text40
+        style: Go.context?.moonTheme?.tokens.typography.heading.text40
             .copyWith(color: _textColor),
       );
 
@@ -399,14 +420,14 @@ extension TextExtension on Text {
         maxLines: maxLines,
         overflow: overflow,
         strutStyle: strutStyle,
-        style: Get.context?.moonTheme?.tokens.typography.heading.text32
+        style: Go.context?.moonTheme?.tokens.typography.heading.text32
             .copyWith(color: _textColor),
       );
 }
 
 extension TextSpanExtension on TextSpan {
   TextSpan small() => TextSpan(
-        style: Get.context?.moonTheme?.tokens.typography.heading.text12
+        style: Go.context?.moonTheme?.tokens.typography.heading.text12
             .copyWith(
                 color: style?.color ??
                     (settings.isDarkMode ? Colors.white : Colors.black),
@@ -425,4 +446,4 @@ extension TextSpanExtension on TextSpan {
 Icon moonIcon({required IconData icon, double size = 20, Color? color}) =>
     Icon(icon,
         size: size,
-        color: color ?? Get.context?.moonTheme?.tokens.colors.bulma);
+        color: color ?? Go.context?.moonTheme?.tokens.colors.bulma);

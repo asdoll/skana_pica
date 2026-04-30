@@ -1,86 +1,90 @@
-import 'package:get/get.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/api/managers/history_manager.dart';
 import 'package:skana_pica/api/models/objectbox_models.dart';
-import 'package:skana_pica/controller/comiclist.dart';
-import 'package:skana_pica/controller/setting_controller.dart';
+import 'package:skana_pica/config/setting.dart' show settings;
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class HistoryController extends GetxController {
-  RxList<VisitHistory> history = <VisitHistory>[].obs;
-  RxList<PicaComicItemBrief> comics = <PicaComicItemBrief>[].obs;
-  RxInt total = 0.obs;
-  RxBool isLoading = false.obs;
+part 'history.freezed.dart';
+part 'history.g.dart';
 
-  int perPage = 10;
-  RxInt page = 0.obs;
-  RxInt totalPage = 0.obs;
+@freezed
+abstract class HistoryState with _$HistoryState {
+
+  const factory HistoryState({
+    @Default([]) List<VisitHistory> history,
+    @Default([]) List<PicaComicItemBrief> comics,
+    @Default(0) int total,
+    @Default(false) bool isLoading,
+    @Default(10) int perPage,
+    @Default(0) int page,
+    @Default(0) int totalPage,
+  }) = _HistoryState;
+}
+
+@riverpod
+class History extends _$History {
+  @override
+  HistoryState build() {
+    return const HistoryState();
+  }
 
   Future<bool> init() async {
-    if (isLoading.value) {
+    if (state.isLoading) {
       return false;
     }
-    isLoading.value = true;
-    await M.o.getVisitHistoryCount().then((value) async {
-      total.value = value;
-      totalPage.value = (total.value / perPage).ceil();
-      page.value = 0;
-      history.clear();
-      var val =
-          await M.o.getVisitHistoryByOffset(page.value * perPage, perPage);
-      history.addAll(val);
-      history.refresh();
-      comics.clear();
-      await fetchComic();
-      comics.refresh();
-    });
-    isLoading.value = false;
+    state = state.copyWith(isLoading: true);
+    var count = await M.o.getVisitHistoryCount();
+    var val = await M.o.getVisitHistoryByOffset(0, state.perPage);
+    state = state.copyWith(total: count, totalPage: (count/ state.perPage).ceil(), history: val);
+    fetchComic();
     return true;
   }
 
   // next page if index is -1
   Future<bool> toPage({int index = -1}) async {
     //log.d("index: $index, totalPage: ${totalPage.value}");
-    if (isLoading.value) {
+    if (state.isLoading) {
       return false;
     }
-    if (index >= totalPage.value) {
+    if (index >= state.totalPage) {
       return false;
     }
     if (index != -1) {
-      page.value = index;
+      state = state.copyWith(page: index);
     } else {
-      if (page.value + 1 >= totalPage.value) {
+      if (state.page + 1 >= state.totalPage) {
         return false;
       }
-      page++;
+      state = state.copyWith(page: state.page + 1);
     }
-    isLoading.value = true;
-    history.clear();
+    state = state.copyWith(isLoading: true);
     var value =
-        await M.o.getVisitHistoryByOffset(page.value * perPage, perPage);
-    history.addAll(value);
-    history.refresh();
-    await fetchComic();
-    isLoading.value = false;
-    comics.refresh();
+        await M.o.getVisitHistoryByOffset(state.page * state.perPage, state.perPage);
+    state = state.copyWith(history: value);
+    fetchComic();
     return true;
   }
 
   Future<bool> fetchComic() async {
-    if (mangaSettingsController.picaPageViewMode.value) comics.clear();
-    for (int i = 0; i < history.length; i++) {
-      var item = await M.o.getComicHistory(history[i].comicid);
-      if (item != null) {
-        comics.add(item.toBrief());
-        continue;
-      }
-      var res = await picaClient.getBriefComicInfo(history[i].comicid);
-      if (!res.error) {
-        comics.add(res.data);
-      } else {
-        comics.add(PicaComicItemBrief.error());
-      }
+    var comics = await Future.wait(
+    state.history.map((history) async {
+        final comicId = history.comicid;
+
+        final item = await M.o.getComicHistory(comicId);
+        if (item != null) return item.toBrief();
+
+        final res = await picaClient.getBriefComicInfo(comicId);
+        if (!res.error) return res.data;
+
+        return PicaComicItemBrief.error();
+      }),
+    );
+    if (settings.isPageView) {
+      state = state.copyWith(comics: comics);
+    }else{
+      state = state.copyWith(comics: [...state.comics,...comics]);
     }
     return true;
   }
@@ -88,35 +92,35 @@ class HistoryController extends GetxController {
   Future<void> removeHistory() async {
     M.o.removeAllHistory();
     M.o.removeAllHistoryItem();
-    comics.clear();
-    history.clear();
-    visitHistoryController.clear();
-    comics.refresh();
-    history.refresh();
+    ref.read(visitHistoryControllerProvider.notifier).clear();
+    state = state.copyWith(comics: const [],history: const []);
   }
 }
 
-class VisitHistoryController extends GetxController {
-  RxMap<String, VisitHistory> history = <String, VisitHistory>{}.obs;
-
-  void fallback() {
-    Get.find<ComicListController>();
+@Riverpod(keepAlive: true)
+class VisitHistoryController extends _$VisitHistoryController {
+  @override
+  Map<String, VisitHistory> build() {
+    return const {};
   }
 
   void init() {
     M.o.getVisitHistory().then((value) {
-      history.clear();
+      Map<String, VisitHistory> map = {};
       for (var e in value) {
-        history[e.comicid] = e;
+        map[e.comicid] = e;
       }
-      history.refresh();
+      state = Map.unmodifiable(map);
     });
   }
 
   Future<VisitHistory?> fetchVisitHistory(String id) async {
     var item = await M.o.getVisitHistoryByComic(id);
     if (item != null) {
-      history[id] = item;
+      state = Map.unmodifiable({
+        ...state,
+        id: item,
+      });
       return item;
     } else {
       return null;
@@ -124,26 +128,27 @@ class VisitHistoryController extends GetxController {
   }
 
   void updateVisitHistory(String id, int eps, int index) {
-    VisitHistory? item = history[id];
-    if (item != null) {
-      item.lastEps = eps;
-      item.lastIndex = index;
-      M.o.addVisitHistory(item);
-    } else {
-      item = VisitHistory(
+    final old = state[id];
+    final item = old?.copyWith(
+      lastEps: eps,
+      lastIndex: index,
+      timestamp: DateTime.now().millisecondsSinceEpoch.toString(),
+    ) ??
+        VisitHistory(
           comicid: id,
           lastEps: eps,
           lastIndex: index,
-          timestamp: DateTime.now().millisecondsSinceEpoch.toString());
-      M.o.addVisitHistory(item);
-    }
-    history[id] = item;
+          timestamp: DateTime.now().millisecondsSinceEpoch.toString(),
+        );
+
+    M.o.addVisitHistory(item);
+    state = Map.unmodifiable({
+        ...state,
+        id: item,
+      });
   }
 
   void clear() {
-    history.clear();
-    history.refresh();
+    state = const {};
   }
 }
-
-late VisitHistoryController visitHistoryController;

@@ -1,6 +1,8 @@
 import 'package:bootstrap_icons/bootstrap_icons.dart';
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+
 import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/setting_controller.dart';
@@ -8,124 +10,120 @@ import 'package:skana_pica/pages/setting/setting_page.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/widgetplugin.dart';
 
-class CacheSetting extends StatelessWidget {
+class CacheSetting extends HookConsumerWidget {
   static const route = "${SettingPage.route}/cache";
   const CacheSetting({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    CacheController cacheController = Get.put(CacheController());
+  Widget build(BuildContext context,WidgetRef ref) {
     return Scaffold(
       appBar: appBar(
-        title: "Cache & Restore".tr,
+        title: "cache_restore".tr(),
       ),
-      body: Obx(
-        () => ListView(
+      body: ListView(
           children: [
             SizedBox(height: 16),
             moonListTile(
-              title: "Clear Cache Period".tr,
+              title: "clear_cache_period".tr(),
               trailing: MoonDropdown(
-                show: cacheController.cacheMenu.value,
-                onTapOutside: () => cacheController.cacheMenu.value = false,
+                show: ref.watch(cacheProvider).cacheMenu,
+                onTapOutside: () => ref.read(cacheProvider.notifier).setMenu(),
                 content: Column(
                   children: [
                     MoonMenuItem(
                       onTap: () {
-                        cacheController.cacheMenu.value = false;
-                        cacheController.setCachePeriod("1");
+                        ref.read(cacheProvider.notifier).setMenu();
+                        ref.read(cacheProvider.notifier).setCachePeriod("1");
                       },
-                      label: Text('1 ${"Day".tr}'),
+                      label: Text('1 ${"day".tr()}'),
                     ),
                     MoonMenuItem(
                       onTap: () {
-                        cacheController.cacheMenu.value = false;
-                        cacheController.setCachePeriod("3");
+                        ref.read(cacheProvider.notifier).setMenu();
+                        ref.read(cacheProvider.notifier).setCachePeriod("3");
                       },
-                      label: Text('3 ${"Days".tr}'),
+                      label: Text('3 ${"days".tr()}'),
                     ),
                     MoonMenuItem(
                       onTap: () {
-                        cacheController.cacheMenu.value = false;
-                        cacheController.setCachePeriod("7");
+                        ref.read(cacheProvider.notifier).setMenu();
+                        ref.read(cacheProvider.notifier).setCachePeriod("7");
                       },
-                      label: Text('7 ${"Days".tr}'),
+                      label: Text('7 ${"days".tr()}'),
                     ),
                     MoonMenuItem(
                       onTap: () {
-                        cacheController.cacheMenu.value = false;
-                        cacheController.setCachePeriod("30");
+                        ref.read(cacheProvider.notifier).setMenu();
+                        ref.read(cacheProvider.notifier).setCachePeriod("30");
                       },
-                      label: Text('30 ${"Days".tr}'),
+                      label: Text('30 ${"days".tr()}'),
                     ),
                   ],
                 ),
                 child: filledButton(
-                  label: "${cacheController.cachePeriod.value} ${"Days".tr}",
-                  onPressed: () => cacheController.cacheMenu.value =
-                      !cacheController.cacheMenu.value,
+                  label: "${ref.watch(cacheProvider).cachePeriod} ${"days".tr()}",
+                  onPressed: () => ref.read(cacheProvider.notifier).setMenu(!ref.read(cacheProvider).cacheMenu),
                 ),
               ),
             ),
             moonListTile(
-              title: "Clear Cache".tr,
+              title: "clear_cache".tr(),
               leading: Icon(BootstrapIcons.trash3),
               onTap: () {
-                alertDialog(context, "Clear Cache".tr,
-                    "Are you sure to clear cache?".tr, [
+                alertDialog(context, "clear_cache".tr(),
+                    "are_you_sure_to_clear_cache".tr(), [
                   outlinedButton(
-                      onPressed: () => Get.back(), label: "Cancel".tr),
+                      onPressed: () => Navigator.pop(context), label: "cancel".tr()),
                   filledButton(
                       onPressed: () {
-                        cacheController.clearCache();
-                        showToast("Cache Cleared".tr);
-                        Get.back();
+                        ref.read(cacheProvider.notifier).clearCache();
+                        showToast("cache_cleared".tr());
+                        Navigator.pop(context);
                       },
-                      label: "Ok".tr)
+                      label: "ok".tr())
                 ]);
               },
             ),
             moonListTile(
-              title: "Restore Settings".tr,
+              title: "restore_settings".tr(),
               leading: Icon(BootstrapIcons.clock_history),
               onTap: () {
-                alertDialog(context, "Restore Settings".tr,
-                    "Are you sure to restore settings?".tr, [
+                alertDialog(context, "restore_settings".tr(),
+                    "are_you_sure_to_restore_settings".tr(), [
                   outlinedButton(
-                      onPressed: () => Get.back(), label: "Cancel".tr),
+                      onPressed: () => Navigator.pop(context), label: "cancel".tr()),
                   filledButton(
                       onPressed: () {
-                        cacheController.restore("general");
-                        cacheController.restore("pica");
-                        cacheController.restore("read");
-                        showToast("Restored".tr);
-                        Get.back();
+                        ref.read(cacheProvider.notifier).restore("general");
+                        ref.read(cacheProvider.notifier).restore("pica");
+                        ref.read(cacheProvider.notifier).restore("read");
+                        showToast("restored".tr());
+                        Navigator.pop(context);
                       },
-                      label: "Ok".tr)
+                      label: "ok".tr())
                 ]);
               },
             ),
             moonListTile(
-              title: "Initialize App".tr,
+              title: "initialize_app".tr(),
               leading: Icon(BootstrapIcons.exclamation_circle),
               onTap: () {
-                alertDialog(context, "Initialize App".tr,
-                    "Are you sure to initialize app?".tr, [
+                alertDialog(context, "initialize_app".tr(),
+                    "are_you_sure_to_initialize_app".tr(), [
                   outlinedButton(
-                      onPressed: () => Get.back(), label: "Cancel".tr),
+                      onPressed: () => Navigator.pop(context), label: "cancel".tr()),
                   filledButton(
                       onPressed: () {
-                        clearAppdata();
-                        showToast("App Initialized".tr);
-                        Get.back();
+                        clearAppdata(ref);
+                        showToast("app_initialized".tr());
+                        Navigator.pop(context);
                       },
-                      label: "Ok".tr)
+                      label: "ok".tr())
                 ]);
               },
             ),
           ],
         ),
-      ),
     );
   }
 }

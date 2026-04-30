@@ -1,6 +1,6 @@
 import 'package:bootstrap_icons/bootstrap_icons.dart';
+import 'package:easy_localization/easy_localization.dart' show BuildContextEasyLocalizationExtension;
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
@@ -54,7 +54,7 @@ class PicaCommentTile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(comment.name).appHeader(),
-                      Text(DateFormat.yMMMd(Get.locale.toString())
+                      Text(DateFormat.yMMMd(context.locale.toString())
                               .format(DateTime.parse(comment.time)))
                           .small(),
                     ],
@@ -91,8 +91,7 @@ class PicaCommentTile extends StatelessWidget {
                             PicaRepliesPage(
                               comment: comment,
                               comicId: comicId,
-                            ),
-                            preventDuplicates: false);
+                            ));
                       },
                       icon: Icon(
                         BootstrapIcons.chat_square_text,

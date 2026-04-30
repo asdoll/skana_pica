@@ -1,11 +1,14 @@
 
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:moon_design/moon_design.dart';
 import 'package:flutter/material.dart';
 import 'package:skana_pica/config/setting.dart' show settings;
 import 'package:skana_pica/controller/log.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:skana_pica/util/leaders.dart' show Go;
+
+part 'theme_controller.g.dart';
 
 class ThemeManager {
   static ThemeManager? _instance;
@@ -66,7 +69,7 @@ ThemeData getTheme(bool isDark) {
           ? ThemeData.dark().copyWith(
             primaryColor: MoonTheme(tokens: MoonTokens.dark).tokens.colors.piccolo,
               textTheme: GoogleFonts.notoSansTextTheme(
-                Get.theme.textTheme
+                Theme.of(Go.context!).textTheme
               ),
               appBarTheme: AppBarTheme(
                 titleSpacing: 0,
@@ -79,7 +82,7 @@ ThemeData getTheme(bool isDark) {
           : ThemeData.light().copyWith(
             primaryColor: MoonTheme(tokens: MoonTokens.light).tokens.colors.piccolo,
               textTheme: GoogleFonts.notoSansTextTheme(
-                Get.theme.textTheme
+                Theme.of(Go.context!).textTheme
               ),
               appBarTheme: AppBarTheme(
                 titleSpacing: 0,
@@ -112,16 +115,17 @@ ThemeData getTheme(bool isDark) {
   ]);
 }
 
-late ThemeController tc;
-
-class ThemeController extends GetxController {
-  RxString darkMode = settings.darkMode.obs;
-  RxBool dmMenu = false.obs;
+@Riverpod(keepAlive: true)
+class ThemeController extends _$ThemeController {
+  @override
+  String build() {
+    return settings.darkMode;
+  }
 
   void changeDarkMode(String darkMode) {
     settings.darkMode = darkMode;
     settings.updateSettings("general");
-    this.darkMode.value = settings.darkMode;
+    state = darkMode;
     ThemeManager.instance.updateDarkMode();
   }
 }

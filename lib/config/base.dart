@@ -30,7 +30,7 @@ class Base {
     return switch (settings.general[2]) {
       "cn" => const Locale("zh", "CN"),
       "tw" => const Locale("zh", "TW"),
-      "en" => const Locale("en", "US"),
+      "en" => const Locale("en"),
       _ => deviceLocale,
     };
   }

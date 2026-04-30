@@ -1,57 +1,73 @@
-import 'package:get/get.dart';
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
 import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
 import 'package:skana_pica/controller/favourite.dart';
 import 'package:skana_pica/controller/profile.dart';
 import 'package:skana_pica/util/leaders.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class LoginController extends GetxController {
-  var isLoading = false.obs;
-  var isLogin = false.obs;
-  var error = "".obs;
-  RxBool hideOldPassword = false.obs;
-  RxBool hideNewPassword = false.obs;
-  RxBool hideConfirmPassword = false.obs;
+part 'login.freezed.dart';
+part 'login.g.dart';
 
-  Future<bool> picalogin(String account, String password, {bool start = false}) async {
+@freezed
+abstract class LogingState with _$LogingState {
+  factory LogingState({
+    @Default(false) bool isLoading,
+    @Default(false) bool isLogin,
+    @Default("") String error,
+    @Default(false) bool hideOldPassword,
+    @Default(false) bool hideNewPassword,
+    @Default(false) bool hideConfirmPassword,
+  }) = _LogingState;
+}
+
+@riverpod
+class Login extends _$Login {
+  @override
+  LogingState build() {
+    return LogingState(
+        isLogin:
+            picacg.data['token'] != null && picacg.data['token'].isNotEmpty);
+  }
+
+  void setHideOP() => state = state.copyWith(hideOldPassword: !state.hideOldPassword);
+  void setHideNP() => state = state.copyWith(hideNewPassword: !state.hideNewPassword);
+  void setHideCP() => state = state.copyWith(hideConfirmPassword: !state.hideConfirmPassword);
+
+  Future<bool> picalogin(String account, String password,
+      {bool start = false}) async {
     if (account.isEmpty || password.isEmpty) {
-      error.value = "Please enter account and password";
+      state = state.copyWith(error: "Please enter account and password");
       return false;
     }
-    isLoading.value = true;
-    picaClient.login(account, password).then((value) {
-      if (value.error) {
-        isLoading.value = false;
-        isLogin.value = false;
-        error.value = handleError(value.errorMessageWithoutNull);
-        showToast("Login failed".tr);
-        return false;
-      } else {
-        picacg.data['token'] = value.data;
-        picacg.data['account'] = account;
-        picacg.data['password'] = password;
-        picaClient.updateProfile().then((value) {});
-        isLoading.value = false;
-        isLogin.value = true;
-        error.value = "";
-        showToast("Login success".tr);
-        if(start){
-          profileController.firstLaunchFinished();
-        }
-        profileController.fetch();
-        favorController.fetch();
-        Get.back();
-        return true;
+    state = state.copyWith(isLoading: true);
+    var value = await picaClient.login(account, password);
+    if (value.error) {
+      state = state.copyWith(
+          isLoading: false,
+          isLogin: false,
+          error: handleError(value.errorMessageWithoutNull));
+      showToast("login_failed".tr());
+      return false;
+    } else {
+      picacg.data['token'] = value.data;
+      picacg.data['account'] = account;
+      picacg.data['password'] = password;
+      picaClient.updateProfile();
+      state = state.copyWith(isLoading: false, isLogin: true, error: "");
+      showToast("login_success".tr());
+      if (start) {
+        ref.read(profileProvider.notifier).firstLaunchFinished();
       }
-    });
-    isLoading.value = false;
-    isLogin.value = true;
-    return false;
+      ref.read(profileProvider.notifier).fetch();
+      ref.read(favorProvider.notifier).fetch();
+      return true;
+    }
   }
 
   void init() {
-    isLogin.value =
-        picacg.data['token'] != null && picacg.data['token'].isNotEmpty;
+    state = build();
   }
 
   String handleError(String error) {
@@ -71,7 +87,7 @@ class LoginController extends GetxController {
   }
 
   void logout() {
-    profileController.logout();
+    ref.read(profileProvider.notifier).logout();
     init();
   }
 }

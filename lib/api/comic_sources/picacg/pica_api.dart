@@ -2,7 +2,7 @@
 
 import 'dart:convert';
 import 'package:dio/dio.dart';
-import 'package:get/get.dart' as g;
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
 import 'package:skana_pica/api/api_dio.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
@@ -338,7 +338,7 @@ class PicaClient {
           punchIn().then((b) {
             if (b) {
               settings.lastPunchedTime = DateTime.now();
-              showToast("Check-in successful".tr);
+              showToast("check_in_successful".tr());
               return const Res(true);
             }
             return Res(false, errorMessage: "Failed to punch in");

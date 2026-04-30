@@ -1,8 +1,6 @@
-import 'dart:ui';
-
 import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:get/get.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart' show WidgetRef;
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skana_pica/api/managers/history_manager.dart';
@@ -13,7 +11,6 @@ import 'package:skana_pica/controller/favourite.dart';
 import 'package:skana_pica/controller/profile.dart';
 import 'package:skana_pica/controller/searchhistory.dart';
 import 'package:skana_pica/controller/log.dart';
-import 'package:skana_pica/controller/setting_controller.dart';
 import 'package:skana_pica/controller/theme_controller.dart';
 import 'package:skana_pica/util/tool.dart';
 
@@ -37,7 +34,7 @@ class Appdata {
     s = await SharedPreferences.getInstance();
     secureStorage = FlutterSecureStorage(
         iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
-        aOptions: AndroidOptions(encryptedSharedPreferences: true));
+        aOptions: AndroidOptions.defaultOptions);
     cookies = await secureStorage.readAll();
     await readData();
   }
@@ -234,16 +231,12 @@ class Appdata {
         break;
       case "pica":
         pica = picaDefault;
-        categoriesController.init();
         break;
       case "read":
         read = readDefault;
         break;
     }
     updateSettings(type);
-    mangaSettingsController.init();
-    Get.find<CacheController>().init();
-    Get.find<SettingController>().init();
     ThemeManager.instance.updateDarkMode();
     resetOrientation();
     log.d("restore $type: $general $pica $read");
@@ -345,21 +338,21 @@ class Appdata {
 var settings = Appdata();
 
 /// clear all data
-Future<void> clearAppdata() async {
+Future<void> clearAppdata(WidgetRef ref) async {
   var s = await SharedPreferences.getInstance();
   await s.clear();
   //appdata.history.clearHistory();
   settings = Appdata();
   await settings.init();
   await settings.readData();
-  clearGlobalControllers();
+  clearGlobalControllers(ref);
   M.o.clearDB();
 }
 
-void clearGlobalControllers() {
-  profileController.logout();
-  favorController.clear();
-  searchHistoryController.init();
-  blocker.init();
-  categoriesController.init();
+void clearGlobalControllers(WidgetRef ref) {
+  ref.read(profileProvider.notifier).logout();
+  ref.read(favorProvider.notifier).clear();
+  ref.read(searchHistoryProvider.notifier).init();
+  ref.read(blockerProvider.notifier).init();
+  ref.read(categoryProvider.notifier).init();
 }

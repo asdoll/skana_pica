@@ -58,7 +58,6 @@ class PicaCategoryItem {
 class PicaEpsImages {
   String eps;
   List<String> imageUrl;
-  int? loaded;
   PicaEpsImages(this.eps, this.imageUrl);
 }
 
@@ -221,6 +220,8 @@ class PicaComment {
       this.time);
   PicaComment.error()
       : this("", "", "", 0, "", 0, "", false, 0, null, null, "");
+
+  bool isError() => id == "";
 }
 
 class PicaComments {

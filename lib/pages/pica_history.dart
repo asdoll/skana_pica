@@ -1,6 +1,9 @@
 import 'package:bootstrap_icons/bootstrap_icons.dart' show BootstrapIcons;
+import 'package:easy_localization/easy_localization.dart'
+    show StringTranslateExtension;
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+
 import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/controller/history.dart';
 import 'package:skana_pica/controller/main_controller.dart';
@@ -11,37 +14,37 @@ import 'package:skana_pica/util/widgetplugin.dart';
 import 'package:skana_pica/widgets/custom_indicator.dart';
 import 'package:skana_pica/widgets/pica_comic_card.dart';
 
-class PicaHistoryPage extends StatefulWidget {
+class PicaHistoryPage extends StatefulHookConsumerWidget {
   const PicaHistoryPage({super.key});
 
   @override
-  State<PicaHistoryPage> createState() => _PicaHistoryPageState();
+  ConsumerState<PicaHistoryPage> createState() => _PicaHistoryPageState();
 }
 
-class _PicaHistoryPageState extends State<PicaHistoryPage> {
+class _PicaHistoryPageState extends ConsumerState<PicaHistoryPage> {
   @override
   Widget build(BuildContext context) {
-    HistoryController controller = Get.put(HistoryController());
     TextEditingController pageJumpController = TextEditingController();
     ScrollController scrollController = globalScrollController;
-    controller.init();
+    ref.read(historyProvider.notifier).init();
 
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       floatingActionButton: MoonButton.icon(
         buttonSize: MoonButtonSize.lg,
         showBorder: true,
-        borderColor: Get.context?.moonTheme?.buttonTheme.colors.borderColor
+        borderColor: context.moonTheme?.buttonTheme.colors.borderColor
             .withValues(alpha: 0.5),
-        backgroundColor: Get.context?.moonTheme?.tokens.colors.zeno,
+        backgroundColor: context.moonTheme?.tokens.colors.zeno,
         onTap: () {
-          alertDialog(context, 'Clear History'.tr, 'Clear all history?'.tr, [
-            outlinedButton(label: 'Cancel'.tr, onPressed: () => Get.back()),
+          alertDialog(context, 'clear_history'.tr(), 'clear_all_history'.tr(), [
+            outlinedButton(
+                label: 'cancel'.tr(), onPressed: () => Navigator.pop(context)),
             filledButton(
-                label: 'Clear'.tr,
+                label: 'clear'.tr(),
                 onPressed: () {
-                  controller.removeHistory();
-                  Get.back();
+                  ref.read(historyProvider.notifier).removeHistory();
+                  Navigator.pop(context);
                 })
           ]);
         },
@@ -50,16 +53,15 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
           color: Colors.white,
         ),
       ),
-      body: Obx(
-        () => Column(
-          children: [
-            if(mangaSettingsController.picaPageViewMode.value)
+      body: Column(
+        children: [
+          if (ref.watch(mangaSettingProvider).picaPageViewMode)
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
-                    onPressed: controller.totalPage.value <= 1
+                    onPressed: ref.watch(historyProvider).totalPage <= 1
                         ? null
                         : () {
                             showMoonModal(
@@ -70,12 +72,12 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
                                     shrinkWrap: true,
                                     children: [
                                       MoonAlert(
-                                          borderColor: Get.context?.moonTheme
+                                          borderColor: context.moonTheme
                                               ?.buttonTheme.colors.borderColor
                                               .withValues(alpha: 0.5),
                                           showBorder: true,
-                                          label:
-                                              Text('Jump to Page'.tr).header(),
+                                          label: Text('jump_to_page'.tr())
+                                              .header(),
                                           verticalGap: 16,
                                           content: Column(
                                             mainAxisSize: MainAxisSize.min,
@@ -86,7 +88,7 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
                                                 controller: pageJumpController,
                                                 keyboardType:
                                                     TextInputType.number,
-                                                hintText: "Page Number".tr,
+                                                hintText: "page_number".tr(),
                                                 validator: (value) {
                                                   if (value == null ||
                                                       value.isEmpty ||
@@ -95,10 +97,12 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
                                                       int.tryParse(value)! <
                                                           1 ||
                                                       int.tryParse(value)! >
-                                                          controller
-                                                              .total.value) {
-                                                    return 'Invalid Page Number'
-                                                        .tr;
+                                                          ref
+                                                              .read(
+                                                                  historyProvider)
+                                                              .total) {
+                                                    return 'invalid_page_number'
+                                                        .tr();
                                                   }
                                                   return null;
                                                 },
@@ -108,8 +112,10 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
                                                   if (pageNumber != null &&
                                                       pageNumber >= 0 &&
                                                       pageNumber <
-                                                          controller.totalPage
-                                                              .value) {
+                                                          ref
+                                                              .read(
+                                                                  historyProvider)
+                                                              .totalPage) {
                                                     scrollController.animateTo(
                                                         0,
                                                         duration:
@@ -117,13 +123,13 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
                                                                 microseconds:
                                                                     200),
                                                         curve: Curves.ease);
-                                                    controller.toPage(
+                                                    ref.read(historyProvider.notifier).toPage(
                                                         index: pageNumber);
-                                                    Get.back();
+                                                    Navigator.pop(context);
                                                   } else {
                                                     showToast(
-                                                        'Invalid Page Number'
-                                                            .tr);
+                                                        'invalid_page_number'
+                                                            .tr());
                                                   }
                                                 },
                                               ).paddingBottom(16),
@@ -132,12 +138,13 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
                                                       MainAxisAlignment.end,
                                                   children: [
                                                     filledButton(
-                                                      label: "Cancel".tr,
+                                                      label: "cancel".tr(),
                                                       onPressed: () =>
-                                                          Get.back(),
+                                                          Navigator.pop(
+                                                              context),
                                                     ).paddingRight(8),
                                                     filledButton(
-                                                      label: "Ok".tr,
+                                                      label: "ok".tr(),
                                                       onPressed: () {
                                                         FocusManager.instance
                                                             .primaryFocus
@@ -151,9 +158,8 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
                                                                 null &&
                                                             pageNumber >= 0 &&
                                                             pageNumber <
-                                                                controller
-                                                                    .totalPage
-                                                                    .value) {
+                                                                ref.read(historyProvider)
+                                                                    .totalPage) {
                                                           scrollController.animateTo(
                                                               0,
                                                               duration:
@@ -162,14 +168,15 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
                                                                           200),
                                                               curve:
                                                                   Curves.ease);
-                                                          controller.toPage(
+                                                          ref.read(historyProvider.notifier).toPage(
                                                               index:
                                                                   pageNumber);
-                                                          Get.back();
+                                                          Navigator.pop(
+                                                              context);
                                                         } else {
                                                           showToast(
-                                                              'Invalid Page Number'
-                                                                  .tr);
+                                                              'invalid_page_number'
+                                                                  .tr());
                                                         }
                                                       },
                                                     ).paddingRight(8),
@@ -180,119 +187,119 @@ class _PicaHistoryPageState extends State<PicaHistoryPage> {
                                   ));
                                 });
                           },
-                    child: Text('at_page'.trParams({
-                      'page': (controller.page.value + 1).toString(),
-                      'total': controller.totalPage.value == 0 ? "1" : controller.totalPage.toString()
-                    })).subHeader()),
+                    child: Text('at_page'.tr(args: [
+                      (ref.watch(historyProvider).page + 1).toString(),
+                      ref.watch(historyProvider).totalPage == 0
+                          ? "1"
+                          : ref.watch(historyProvider).totalPage.toString()
+                    ])).subHeader()),
                 Expanded(child: SizedBox()),
                 filledButton(
                   color: context.moonTheme?.tokens.colors.cell60,
-                  label: "Prev Page".tr,
+                  label: "prev_page".tr(),
                   applyDarkMode: true,
-                  onPressed: (controller.page.value == 0)
+                  onPressed: (ref.watch(historyProvider).page == 0)
                       ? null
                       : () {
                           scrollController.animateTo(0,
                               duration: const Duration(microseconds: 200),
                               curve: Curves.ease);
-                          controller.toPage(index: controller.page.value - 1);
+                          ref.read(historyProvider.notifier).toPage(index: ref.watch(historyProvider).page - 1);
                         },
                 ),
                 SizedBox(width: 4),
                 filledButton(
                   color: context.moonTheme?.tokens.colors.cell60,
-                  label: "Next Page".tr,
+                  label: "next_page".tr(),
                   applyDarkMode: true,
-                  onPressed: (controller.page.value + 1 >=
-                          controller.totalPage.value)
+                  onPressed: (ref.watch(historyProvider).page + 1 >=
+                          ref.watch(historyProvider).totalPage)
                       ? null
                       : () {
                           scrollController.animateTo(0,
                               duration: const Duration(microseconds: 200),
                               curve: Curves.ease);
-                          controller.toPage(index: controller.page.value + 1);
+                          ref.read(historyProvider.notifier).toPage(index: ref.watch(historyProvider).page + 1);
                         },
                 ),
                 SizedBox(width: 16),
               ],
             ),
-            SizedBox(
-              height: 4,
-            ),
-            Expanded(
-              child: BezierIndicator(
-                onRefresh: () async {
-                  if (controller.history.isEmpty) {
-                    controller.init();
-                  } else {
-                    controller
-                        .toPage(index: controller.page.value);
-                  }
-                },
-                child: ListView.builder(
-                  controller: scrollController,
-                  itemCount: controller.comics.length + 1,
-                  itemBuilder: (context, index) {
-                    if (index == controller.comics.length) {
-                      if (!mangaSettingsController.picaPageViewMode.value) {
-                        controller.toPage();
-                      }
-                      if ((controller.page.value + 1 <
-                              controller.totalPage.value) &&
-                          !controller.isLoading.value) {
-                        return Center(
-                          child: IconButton(
-                              onPressed: () {
-                                scrollController.animateTo(0,
-                                    duration: const Duration(microseconds: 200),
-                                    curve: Curves.ease);
-                                controller.toPage(
-                                    index: controller.page.value + 1);
-                              },
-                              icon: Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                                size: 40,
-                              )),
-                        );
-                      } else {
-                        return Container();
-                      }
+          SizedBox(
+            height: 4,
+          ),
+          Expanded(
+            child: BezierIndicator(
+              onRefresh: () async {
+                if (ref.read(historyProvider).history.isEmpty) {
+                  ref.read(historyProvider.notifier).init();
+                } else {
+                  ref.read(historyProvider.notifier).toPage(index: ref.read(historyProvider).page);
+                }
+              },
+              child: ListView.builder(
+                controller: scrollController,
+                itemCount: ref.watch(historyProvider).comics.length + 1,
+                itemBuilder: (context, index) {
+                  if (index == ref.watch(historyProvider).comics.length) {
+                    if (!ref.watch(mangaSettingProvider).picaPageViewMode) {
+                      ref.read(historyProvider.notifier).toPage();
                     }
-                    if (controller.comics.isEmpty) {
-                      return SizedBox(
-                          height: Get.height * 0.8,
-                          child: Center(
-                            child: Text(
-                              "[ ]",
-                              style: Get.textTheme.displayLarge?.copyWith(
-                                  color: Get.theme.colorScheme.onPrimary
-                                      .withValues(alpha: 0.7)),
-                            ),
-                          ));
-                    }
-                    if (!profileController.isLogin.value) {
-                      return InkWell(
-                        onTap: () => showToast("Not Logged In".tr),
-                        child: IgnorePointer(
-                          child: PicaComicCard(
-                            controller.comics[index],
-                            type: "history",
-                          ),
-                        ),
+                    if ((ref.watch(historyProvider).page + 1 <
+                            ref.watch(historyProvider).totalPage) &&
+                        !ref.watch(historyProvider).isLoading) {
+                      return Center(
+                        child: IconButton(
+                            onPressed: () {
+                              scrollController.animateTo(0,
+                                  duration: const Duration(microseconds: 200),
+                                  curve: Curves.ease);
+                              ref.read(historyProvider.notifier).toPage(
+                                  index: ref.read(historyProvider).page + 1);
+                            },
+                            icon: Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              size: 40,
+                            )),
                       );
+                    } else {
+                      return Container();
                     }
-                    return PicaComicCard(controller.comics[index],
-                        type: "history");
-                  },
-                  physics: BouncingScrollPhysics(),
-                ),
+                  }
+                  if (ref.watch(historyProvider).comics.isEmpty) {
+                    return SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.8,
+                        child: Center(
+                          child: Text(
+                            "[ ]",
+                            style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                                color: Theme.of(context).colorScheme.onPrimary
+                                    .withValues(alpha: 0.7)),
+                          ),
+                        ));
+                  }
+                  if (!ref.watch(profileProvider).isLogin) {
+                    return InkWell(
+                      onTap: () => showToast("not_logged_in".tr()),
+                      child: IgnorePointer(
+                        child: PicaComicCard(
+                          ref.watch(historyProvider).comics[index],
+                          type: "history",
+                        ),
+                      ),
+                    );
+                  }
+                  return PicaComicCard(ref.watch(historyProvider).comics[index],
+                      type: "history");
+                },
+                physics: BouncingScrollPhysics(),
               ),
             ),
-            SizedBox(
-              height: 10,
-            ),
-          ],
-        ),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+        ],
       ),
     );
   }

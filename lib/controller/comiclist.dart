@@ -1,201 +1,265 @@
-import 'package:get/get.dart';
+import 'package:easy_localization/easy_localization.dart'
+    show StringTranslateExtension;
 import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/api/models/res.dart';
 import 'package:skana_pica/config/setting.dart';
-import 'package:skana_pica/controller/blocker.dart';
 import 'package:skana_pica/controller/history.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/controller/log.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+part 'comiclist.g.dart';
+part 'comiclist.freezed.dart';
 
-import 'setting_controller.dart';
+String get errorUrl => errorLoadingUrl;
 
+@freezed
+abstract class ComicListState with _$ComicListState {
+  const factory ComicListState({
+    @Default([]) List<PicaComicItemBrief> comics,
+    @Default(false) bool isLoading,
+    @Default(1) int page,
+    @Default(0) int total,
+    @Default(false) bool isDrag,
+    @Default(0) int loadedPage,
+    @Default(0) int lastFetchTime,
+    @Default(0) int sort,
+    @Default(false) bool filterMenu,
+  }) = _ComicListState;
+}
 
-get errorUrl => errorLoadingUrl;
+@riverpod
+class Leaderboard extends _$Leaderboard {
+  static const items = ["H24", "D7", "D30"];
+  @override
+  String build() {
+    return "H24";
+  }
 
-class ComicListController extends GetxController {
-  RxList<PicaComicItemBrief> comics = <PicaComicItemBrief>[].obs;
-  RxBool isLoading = false.obs;
-  RxInt page = 1.obs;
-  RxInt total = 0.obs;
-  bool isAuthor;
-  String keyword;
-  RxInt sort = settings.picaSearchMode.obs;
-  String sortByDefault;
-  bool isSearch;
-  bool addToHistory;
-  String type;
-  int lastFetchTime = 0;
-  RxBool filterMenu = false.obs;
-  RxBool isDrag = false.obs;
-  RxInt loadedPage = 0.obs;
+  void setType(String value) {
+    state = value;
+  }
+}
 
-  get sortType => settings.pica[4];
+@riverpod
+class ComicList extends _$ComicList {
+  @override
+  ComicListState build({
+    required String keyword,
+    bool isAuthor = false,
+    bool isSearch = false,
+    bool addToHistory = true,
+    String type = "",
+    required String sortByDefault,
+  }) {
+    return const ComicListState();
+  }
 
-  ComicListController({
-    required this.keyword,
-    this.isAuthor = false,
-    this.isSearch = false,
-    this.addToHistory = true,
-    this.type = "",
-    required this.sortByDefault,
-  });
+  void closeMenu() {
+    state = state.copyWith(filterMenu: false);
+  }
 
-  bool isLoadin() => isLoading.value && DateTime.now().millisecondsSinceEpoch - lastFetchTime < 5000;
+  void toggleMenu() {
+    state = state.copyWith(filterMenu: !state.filterMenu);
+  }
 
-  Future<Res<List<PicaComicItemBrief>>> loadData() async {
-    if (isLoadin()) {
-      return Res.error("Loading");
-    }
-    isLoading.value = true;
-    lastFetchTime = DateTime.now().millisecondsSinceEpoch;
-    if (isSearch) {
-      log.d("search: $keyword, page: ${page.value}, sort: ${sort.value}");
-      return picaClient
-          .search(keyword, getSort(), page.value, addToHistory: addToHistory);
-    }
-    log.d(
-        "keyword: $keyword, page: ${page.value}, sort: ${sort.value}, type: $type");
-    if(keyword == "leaderboard") {
-      try {
-        type = Get.find<LeaderboardController>().type.value;
-      } catch (e) {
-        type = "";
-      }
-    }
-
-    return picaClient
-        .getCategoryComics(
-            keyword,
-            page.value,
-            getSort(),
-            isAuthor
-                ? "a"
-                : keyword == "leaderboard"
-                    ? type
-                    : "c");
+  bool isLoadin() {
+    return state.isLoading &&
+        DateTime.now().millisecondsSinceEpoch - state.lastFetchTime < 5000;
   }
 
   String getSort() {
-    return sort.value == 0 ? "dd" : sort.value == 1 ? "da" : sort.value == 2 ? "ld" : "vd";
+    return state.sort == 0
+        ? "dd"
+        : state.sort == 1
+            ? "da"
+            : state.sort == 2
+                ? "ld"
+                : "vd";
+  }
+
+  Future<void> loadData() async {
+    if (isLoadin()) {
+      return;
+    }
+
+    state = state.copyWith(
+      isLoading: true,
+      lastFetchTime: DateTime.now().millisecondsSinceEpoch,
+    );
+
+    final currentPage = state.page;
+    final currentKeyword = keyword;
+    final currentSort = getSort();
+
+    Future<Res<List<PicaComicItemBrief>>> future;
+
+    if (isSearch) {
+      log.d("search: $currentKeyword, page: $currentPage, sort: ${state.sort}");
+      future = picaClient.search(
+        currentKeyword,
+        currentSort,
+        currentPage,
+        addToHistory: addToHistory,
+      );
+    } else {
+      var currentType = type;
+      log.d(
+          "keyword: $currentKeyword, page: $currentPage, sort: ${state.sort}, type: $currentType");
+
+      if (currentKeyword == "leaderboard") {
+        try {
+          currentType = ref.read(leaderboardProvider);
+        } catch (e) {
+          currentType = "";
+        }
+      }
+
+      future = picaClient.getCategoryComics(
+        currentKeyword,
+        currentPage,
+        currentSort,
+        isAuthor
+            ? "a"
+            : currentKeyword == "leaderboard"
+                ? currentType
+                : "c",
+      );
+    }
+
+    try {
+      final value = await future;
+
+      if (!value.success) {
+        showToast("failed_to_load_data".tr());
+        state = state.copyWith(
+          isLoading: false,
+          isDrag: false,
+        );
+        return;
+      }
+
+      state = state.copyWith(
+        total: value.subData,
+        loadedPage: currentPage,
+        isLoading: false,
+        isDrag: false,
+      );
+
+      addWithFilter(value.data);
+    } catch (e) {
+      showToast("failed_to_load_data".tr());
+      state = state.copyWith(
+        isLoading: false,
+        isDrag: false,
+      );
+    }
   }
 
   void addWithFilter(List<PicaComicItemBrief> list) {
-    for(var comic in list) {
-      if(blocked(comic)) {
+    final comics = List<PicaComicItemBrief>.from(state.comics);
+
+    for (var comic in list) {
+      if (blocked(comic)) {
         continue;
       }
-      if(containsComic(comic)) {
+      if (containsComic(comic)) {
         continue;
       }
-      visitHistoryController.fetchVisitHistory(comic.id);
+      ref
+          .read(visitHistoryControllerProvider.notifier)
+          .fetchVisitHistory(comic.id);
       comics.add(comic);
     }
-    comics.refresh();
+
+    state = state.copyWith(comics: comics);
   }
 
   bool containsComic(PicaComicItemBrief comic) {
-    for(var item in comics) {
-      if(item.id == comic.id) return true;
+    for (var item in state.comics) {
+      if (item.id == comic.id) return true;
     }
     return false;
   }
 
   void addHistory(List<PicaComicItemBrief> list) {
     for (var item in list) {
-      visitHistoryController.fetchVisitHistory(item.id);
+      ref
+          .read(visitHistoryControllerProvider.notifier)
+          .fetchVisitHistory(item.id);
     }
   }
 
   bool blocked(PicaComicItemBrief comic) {
-    if (blocker.blockedKeywords.contains(comic.author)) return true;
+    if (settings.blockingKeyword.contains(comic.author)) return true;
     for (var tag in comic.tags) {
-      if (blocker.blockedKeywords.contains(tag)) return true;
+      if (settings.blockingKeyword.contains(tag)) return true;
     }
     for (var tag in comic.tags) {
-      if (blocker.blockedCategories.contains(tag)) return true;
+      if (settings.blockedCategory.contains(tag)) return true;
     }
-    for (var kw in blocker.blockedKeywords) {
+    for (var kw in settings.blockingKeyword) {
       if (comic.title.contains(kw)) return true;
     }
     return false;
   }
 
-  Future<void> onLoad() async {
-    isDrag.value = true;
+  void onLoad() {
+    state = state.copyWith(isDrag: true);
+
     log.d(
-        "keyword: $keyword, page: ${page.value}, total: ${total.value}, isLoading: ${isLoading.value}");
-    if (page.value == total.value) {
+        "keyword: $keyword, page: ${state.page}, total: ${state.total}, isLoading: ${state.isLoading}");
+
+    if (state.page == state.total) {
       log.d("No more data");
       return;
     }
+
     if (isLoadin()) {
       return;
     }
-    if(page.value <= loadedPage.value) {
-      page.value++;
+
+    if (state.page <= state.loadedPage) {
+      state = state.copyWith(page: state.page + 1);
     }
-    await loadData().then((value) async {
-      if (value.success) {
-        total.value = value.subData;
-        addWithFilter(value.data);
-        loadedPage.value = page.value;
-        isLoading.value = false;
-        isDrag.value = false;
-      } else {
-        showToast("Failed to load data".tr);
-        isLoading.value = false;
-        isDrag.value = false;
-      }
-    });
+
+    loadData();
   }
 
   Future<void> reset({bool drag = false}) async {
-    isDrag.value = drag;
-    if(keyword == "leaderboard" || !mangaSettingsController.picaPageViewMode.value) {
-      page.value = 1;
-      total.value = 0;
-      loadedPage.value = 0;
+    state = state.copyWith(isDrag: drag);
+
+    if (keyword == "leaderboard" || !settings.isPageView) {
+      state = state.copyWith(
+        page: 1,
+        total: 0,
+        loadedPage: 0,
+      );
     }
-    isLoading.value = false;
-    comics.clear();
-    comics.refresh();
-    await loadData().then((value) async {
-      if (value.success) {
-        loadedPage.value = 1;
-        total.value = value.subData;
-        addWithFilter(value.data);
-        isLoading.value = false;
-        isDrag.value = drag;
-      } else {
-        showToast("Failed to load data".tr);
-        isLoading.value = false;
-        isDrag.value = drag;
-      }
-    });
+
+    state = state.copyWith(
+      isLoading: false,
+      comics: const [],
+    );
+
+    await loadData();
   }
 
-  void resetWithSort(int sort) async {
-    this.sort.value = sort;
-    await reset();
+  void resetWithSort(int sort) {
+    state = state.copyWith(sort: sort);
+    reset();
   }
 
-  void pageFetch(int page) async {
+  void pageFetch(int page) {
     if (isLoadin()) {
       return;
     }
-    if (page > total.value || page < 1) {
+    if (page > state.total || page < 1) {
       return;
     }
-    this.page.value = page;
-    await reset();
+
+    state = state.copyWith(page: page);
+    reset();
   }
-
 }
-
-class LeaderboardController extends GetxController {
-  var items = ["H24", "D7", "D30"];
-  var type = "H24".obs;
-}
-
-LeaderboardController leaderboardController = Get.put(LeaderboardController());

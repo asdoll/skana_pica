@@ -2,10 +2,11 @@ import 'dart:async';
 
 import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show clampDouble;
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:skana_pica/util/leaders.dart' show Go;
 import 'package:skana_pica/util/widgetplugin.dart';
 import 'package:skana_pica/widgets/icons.dart';
 
@@ -208,7 +209,7 @@ Widget _buildIndicatorForRefreshState(
       return Opacity(
         opacity: opacityCurve.transform(percentageComplete),
         child: progressIndicator(
-          Get.context!,
+          Go.context!,
           size: radius,
           duration: const Duration(milliseconds: 500),
         ),
@@ -216,13 +217,13 @@ Widget _buildIndicatorForRefreshState(
     case RefreshIndicatorMode.armed:
     case RefreshIndicatorMode.refresh:
       return progressIndicator(
-        Get.context!,
+        Go.context!,
         size: radius,
       );
     case RefreshIndicatorMode.done:
       return progressIndicator(
-        Get.context!,
-        size: radius * percentageComplete,
+        Go.context!,
+        size: radius,
       );
     case RefreshIndicatorMode.inactive:
       return const SizedBox.shrink();
@@ -319,7 +320,7 @@ class LoadingStateIndicator extends StatelessWidget {
         break;
       case LoadingState.noMore:
         child = noMoreWidget ??
-            Text('No more'.tr,
+            Text('no_more'.tr(),
                 style: TextStyle(
                     color: Theme.of(context).colorScheme.outline)).subHeader();
         break;
@@ -336,7 +337,7 @@ class LoadingStateIndicator extends StatelessWidget {
         child = GestureDetector(
           onTap: noDataTapCallback,
           child: noDataWidget ??
-              Text('Empty'.tr,
+              Text('empty'.tr(),
                       style: TextStyle(
                           color: Theme.of(context).colorScheme.outline))
                   .appHeader(),

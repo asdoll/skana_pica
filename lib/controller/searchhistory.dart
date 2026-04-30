@@ -1,39 +1,44 @@
-import 'package:get/get.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:skana_pica/config/setting.dart';
 
-late SearchHistoryController searchHistoryController;
+part 'searchhistory.g.dart';
 
-class SearchHistoryController extends GetxController {
-  RxList<String> searchHistory = <String>[].obs;
+@Riverpod(keepAlive: true)
+class SearchHistory extends _$SearchHistory {
+  @override
+  List<String> build() {
+    return List<String>.from(settings.searchHistory);
+  }
 
-  void removeHistory(String keyword) {
-    searchHistory.remove(keyword);
+  Future<void> removeHistory(String keyword) async {
+    final newList = List<String>.from(state)..remove(keyword);
+    state = newList;
+
     settings.searchHistory.remove(keyword);
     settings.writeHistory();
-    searchHistory.refresh();
   }
 
   void clearHistory() {
-    searchHistory.clear();
+    state = [];
     settings.searchHistory.clear();
     settings.writeHistory();
-    searchHistory.refresh();
   }
 
   void addHistory(String keyword) {
-    if (searchHistory.contains(keyword)) {
-      searchHistory.remove(keyword);
-      settings.searchHistory.remove(keyword);
-    }
-    searchHistory.add(keyword);
-    settings.searchHistory.add(keyword);
+    final newList = List<String>.from(state)
+      ..remove(keyword)
+      ..add(keyword);
+
+    state = newList;
+
+    settings.searchHistory
+      ..remove(keyword)
+      ..add(keyword);
+
     settings.writeHistory();
-    searchHistory.refresh();
   }
 
   void init() {
-    searchHistory.clear();
-    searchHistory.addAll(settings.searchHistory);
-    searchHistory.refresh();
+    state = List<String>.from(settings.searchHistory);
   }
 }

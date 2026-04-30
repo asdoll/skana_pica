@@ -1,8 +1,9 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart'
+    show StringTranslateExtension;
 import 'package:flutter/material.dart';
-import 'package:get/get.dart' hide Response;
 import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/config/base.dart';
 import 'package:skana_pica/config/setting.dart';
@@ -11,35 +12,50 @@ import 'package:skana_pica/controller/log.dart';
 import 'package:skana_pica/util/widgetplugin.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+part 'updater.freezed.dart';
+part 'updater.g.dart';
+
 enum Result { yes, no, timeout }
 
-late Updater updater;
+@freezed
+abstract class UpdaterState with _$UpdaterState {
+  factory UpdaterState(
+      {@Default(Result.timeout) Result result,
+      @Default("") String updateDescription,
+      @Default("") String updateVersion,
+      @Default("") String updateDate,
+      @Default(true) bool autoCheck}) = _UpdaterState;
+}
 
-class Updater extends GetxController {
-  Rx<Result> result = Result.timeout.obs;
-  RxString updateUrl =
-      "https://github.com/asdoll/skana_pica/releases/latest".obs;
-  RxString updateDescription = "".obs;
-  RxString updateVersion = "".obs;
-  RxString updateDate = "".obs;
-  RxBool autoCheck = settings.autoCheckUpdate.obs;
+String get updateUrl => "https://github.com/asdoll/skana_pica/releases/latest";
+
+@Riverpod(keepAlive: true)
+class Updater extends _$Updater {
+  @override
+  UpdaterState build() {
+    return UpdaterState(autoCheck: settings.autoCheckUpdate);
+  }
 
   void init() {
-    if (autoCheck.value) {
+    if (state.autoCheck) {
       check().then((value) {
         if (value == Result.yes) {
           alertDialog(
-              Get.context!,
-              "New version available".tr,
-              "${"Description: ".tr} ${updateDescription.value}\n${"Version: ".tr} ${updateVersion.value}\n${"Date: ".tr} ${updateDate.value}",
+              Go.context!,
+              "new_version_available".tr(),
+              "${"description".tr()}: ${state.updateDescription}\n${"latest_version".tr()}: ${state.updateVersion}\n${"release_date".tr()}: ${state.updateDate}",
               [
-                outlinedButton(onPressed: () => Get.back(), label: "Cancel".tr),
+                outlinedButton(
+                    onPressed: () => Navigator.pop(Go.context!),
+                    label: "cancel".tr()),
                 filledButton(
                     onPressed: () {
-                      launchUrlString(updateUrl.value);
-                      Get.back();
+                      launchUrlString(updateUrl);
+                      Navigator.pop(Go.context!);
                     },
-                    label: "Update".tr)
+                    label: "update".tr())
               ]);
         }
       });
@@ -49,14 +65,14 @@ class Updater extends GetxController {
   Future<Result> check({bool showResult = false}) async {
     //if (Constants.isGooglePlay) return Result.no;
     final result = await checkUpdate("");
-    this.result.value = result;
+    state = state.copyWith(result: result);
     if (showResult) {
       if (result == Result.yes) {
-        showToast('Update available'.tr);
+        showToast("new_version_available".tr());
       } else if (result == Result.no) {
-        showToast('No update available'.tr);
+        showToast('no_update_available'.tr());
       } else {
-        showToast('Update check failed'.tr);
+        showToast('update_check_failed'.tr());
       }
     }
     return result;
@@ -70,7 +86,10 @@ class Updater extends GetxController {
               .get('/repos/asdoll/skana_pica/releases/latest');
       if (response.statusCode != 200) return Result.no;
       String tagName = response.data['tag_name'];
-      updateVersion.value = tagName;
+      state = state.copyWith(
+          updateVersion: tagName,
+          updateDate: response.data['published_at'] ?? "",
+          updateDescription: response.data['body'] ?? "");
       log.i("tagName:$tagName ");
       if (tagName != Base.version) {
         List<String> remoteList = tagName.split(".");
@@ -82,15 +101,13 @@ class Updater extends GetxController {
           int l = int.tryParse(localList[i]) ?? 0;
           log.i("r:$r l$l");
           if (r > l) {
-            updateDate.value = response.data['published_at'];
-            updateDescription.value = response.data['body'];
             return Result.yes;
           }
         }
       }
     } catch (e) {
       log.w(e);
-      showToast("Update check failed".tr);
+      showToast("update_check_failed".tr());
       return Result.timeout;
     }
     return Result.no;
@@ -101,7 +118,7 @@ class Updater extends GetxController {
   }
 
   void setAutoCheck(bool value) {
-    autoCheck.value = value;
+    state = state.copyWith(autoCheck: value);
     settings.autoCheckUpdate = value;
   }
 }
@@ -137,18 +154,19 @@ class BoardInfo {
       };
 }
 
-late BoardController boardController;
-
-class BoardController extends GetxController {
-  RxList<BoardInfo> boardList = <BoardInfo>[].obs;
+@Riverpod(keepAlive: true)
+class Board extends _$Board {
+  @override
+  List<BoardInfo> build() {
+    return List<BoardInfo>.unmodifiable([]);
+  }
 
   void init() {
     getBoardList();
 
-    Duration(seconds: 5).delay(() {
+    Future.delayed(const Duration(seconds: 5), () {
       BoardInfo? info;
-      info = boardController.boardList.firstWhere(
-          (element) => element.debug == true,
+      info = state.firstWhere((element) => element.debug == true,
           orElse: () => BoardInfo(
               title: "PLACEHOLDER",
               content: "",
@@ -158,13 +176,13 @@ class BoardController extends GetxController {
       if (info.debug ?? true) {
         info = null;
       }
-      boardController.boardList.clear();
+      state = List<BoardInfo>.unmodifiable([]);
       if (info != null) {
         MoonToast.show(
             toastAlignment: Alignment.center,
             backgroundColor: MoonColors.dark.gohan,
             displayDuration: const Duration(seconds: 10),
-            Get.context!,
+            Go.context!,
             label: Text(info.title),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -176,7 +194,7 @@ class BoardController extends GetxController {
                     onPressed: () {
                       MoonToast.clearToastQueue();
                     },
-                    label: "Ok".tr,
+                    label: "ok".tr(),
                   ),
                 ]),
               ],
@@ -192,7 +210,7 @@ class BoardController extends GetxController {
       final list = (jsonDecode(response.data) as List)
           .map((e) => BoardInfo.fromJson(e))
           .toList();
-      boardList.value = list;
+      state = List<BoardInfo>.from(list);
     } catch (e) {
       log.w(e);
     }

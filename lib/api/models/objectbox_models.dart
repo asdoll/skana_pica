@@ -112,6 +112,21 @@ class VisitHistory {
       required this.lastEps,
       required this.lastIndex,
       required this.timestamp});
+  
+  VisitHistory copyWith({
+    int? id,
+    String? comicid,
+    int? lastEps,
+    int? lastIndex,
+    String? timestamp,
+  }) {
+    return VisitHistory(
+      comicid: comicid ?? this.comicid,
+      lastEps: lastEps ?? this.lastEps,
+      lastIndex: lastIndex ?? this.lastIndex,
+      timestamp: timestamp ?? this.timestamp,
+    )..id = id ?? this.id;
+  }
 }
 
 @Entity()
@@ -161,6 +176,13 @@ class DownloadEps {
   List<int> progress;
   final task = ToOne<DownloadTask>();
   DownloadEps(this.eps,this.url,this.progress,{this.id = 0});
+
+  PicaEpsImages toPicaEpsImages() {
+    return PicaEpsImages(
+      eps.toString(),
+      List<String>.from(url),
+    );
+  }
 }
 
 bool isTaskFinished(DownloadTask task) {

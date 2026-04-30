@@ -1,7 +1,7 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension, BuildContextEasyLocalizationExtension;
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
@@ -157,7 +157,7 @@ String getExtensionName(String url) {
 void saveImage(String url, {bool fromDld = false}) async {
   if (Platform.isIOS && (await Permission.photosAddOnly.status.isDenied)) {
     if (await Permission.storage.request().isDenied) {
-      showToast("Permission denied".tr);
+      showToast("permission_denied".tr());
       return;
     }
   }
@@ -171,7 +171,7 @@ void saveImage(String url, {bool fromDld = false}) async {
     }
     await ImageGallerySaverPlus.saveImage(await file.readAsBytes(),
         quality: 100, name: fileName);
-    showToast("$fileName ${"Saved".tr}");
+    showToast("$fileName ${"saved".tr()}");
   }
 }
 
@@ -184,7 +184,7 @@ void shareImage(String url, {bool fromDld = false}) async {
     if (!fileName.contains('.')) {
       fileName += getExtensionName(url);
     }
-    Share.shareXFiles([XFile(file.path)]);
+    SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
   }
 }
 
@@ -218,7 +218,7 @@ String getLastTime(VisitHistory? history) {
     return "";
   }
   DateTime Date = DateTime.fromMillisecondsSinceEpoch(time);
-  return DateFormat.yMd(Get.locale.toString()).add_Hm().format(Date);
+  return DateFormat.yMd(Go.context!.locale.toString()).add_Hm().format(Date);
 }
 
 extension TimeExts on DateTime {

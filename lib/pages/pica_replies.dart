@@ -1,5 +1,7 @@
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension, BuildContextEasyLocalizationExtension;
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+
 import 'package:intl/intl.dart';
 import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
@@ -10,7 +12,7 @@ import 'package:skana_pica/util/widgetplugin.dart';
 import 'package:skana_pica/widgets/pica_comment_bar.dart';
 import 'package:skana_pica/widgets/pica_comment_tile.dart';
 
-class PicaRepliesPage extends StatefulWidget {
+class PicaRepliesPage extends StatefulHookConsumerWidget {
   static const route = "${PicaCommentsPage.route}pica_replies";
   final PicaComment comment;
   final String? comicId;
@@ -19,20 +21,18 @@ class PicaRepliesPage extends StatefulWidget {
       {super.key, required this.comment, required this.comicId});
 
   @override
-  State<PicaRepliesPage> createState() => _PicaRepliesPageState();
+  ConsumerState<PicaRepliesPage> createState() => _PicaRepliesPageState();
 }
 
-class _PicaRepliesPageState extends State<PicaRepliesPage> {
+class _PicaRepliesPageState extends ConsumerState<PicaRepliesPage> {
   PicaComment get comment => widget.comment;
   @override
   Widget build(BuildContext context) {
-    CommentController commentController =
-        Get.put(CommentController(), tag: widget.comment.id);
-    commentController.init(comment, widget.comicId ?? "");
-
+    var cProvider = commentProvider(comment.id);
+    ref.read(cProvider.notifier).init(comment);
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      appBar: appBar(title: "Replies".tr),
+      appBar: appBar(title: "replies".tr()),
       backgroundColor: context.moonTheme?.tokens.colors.gohan,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,7 +57,7 @@ class _PicaRepliesPageState extends State<PicaRepliesPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(comment.name).appHeader(),
-                  Text(DateFormat.yMMMd(Get.locale.toString())
+                  Text(DateFormat.yMMMd(context.locale.toString())
                           .format(DateTime.parse(comment.time)))
                       .small(),
                 ],
@@ -72,19 +72,19 @@ class _PicaRepliesPageState extends State<PicaRepliesPage> {
             height: 16,
           ),
           Expanded(
-            child: Obx(() => ListView.builder(
+            child: ListView.builder(
               shrinkWrap: true,
-                itemCount: commentController.replies.value.comments.length,
+                itemCount: ref.watch(cProvider).replies.comments.length,
                 itemBuilder: (context, index) {
                   if (index ==
-                            commentController.replies.value.comments.length -
+                            ref.read(cProvider).replies.comments.length -
                                 1 &&
-                        commentController.replies.value.loaded <
-                            commentController.replies.value.total) {
-                      commentController.loadMore();
+                        ref.read(cProvider).replies.loaded <
+                            ref.read(cProvider).replies.total) {
+                      ref.read(cProvider.notifier).loadMore();
                     }
                     return PicaCommentTile(
-                      comment: commentController.replies.value.comments[index],
+                      comment: ref.watch(cProvider).replies.comments[index],
                       comicId: widget.comicId,
                       isReply: true,
                       parentComment: comment.id,
@@ -92,7 +92,6 @@ class _PicaRepliesPageState extends State<PicaRepliesPage> {
                   },
                 ),
               ),
-          ),
           PicaCommentBar(
             widget.comment.id,
             isComic: false,

@@ -1,69 +1,92 @@
-import 'package:get/get.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:skana_pica/config/setting.dart';
 
-late Blocker blocker;
+part 'blocker.freezed.dart';
+part 'blocker.g.dart';
 
-class Blocker extends GetxController {
-  RxList<String> blockedKeywords = <String>[].obs;
-  RxList blockedCategories = <String>[].obs;
+@freezed
+abstract class BlockerState with _$BlockerState {
+  factory BlockerState(
+    {required List<String> keywords,
+    required List<String> categories
+    }) = _BlockerState;
+}
+
+
+@Riverpod(keepAlive: true)
+class Blocker extends _$Blocker {
+  @override
+  BlockerState build() {
+  return _createState();
+  }
+
+  BlockerState _createState() {
+    return BlockerState(
+      keywords: List.unmodifiable(settings.blockingKeyword),
+      categories: List.unmodifiable(fetchCategories()),
+    );
+  }
 
   void init() {
-    blockedKeywords.clear();
-    blockedKeywords.addAll(settings.blockingKeyword);
-    blockedKeywords.refresh();
+    state = _createState();
   }
 
   void removeKeyword(String keyword) {
-    blockedKeywords.remove(keyword);
+    if (!state.keywords.contains(keyword)) {
+      return;
+    }
+    state = state.copyWith(
+      keywords: state.keywords.where((e) => e != keyword).toList(),
+    );
     settings.blockingKeyword.remove(keyword);
     settings.setBlockingKeyword();
-    blockedKeywords.refresh();
   }
 
   void addKeyword(String keyword) {
-    if (blockedKeywords.contains(keyword)) {
-      blockedKeywords.remove(keyword);
-      settings.blockingKeyword.remove(keyword);
+    if (state.keywords.contains(keyword)) {
+      return;
     }
-    blockedKeywords.add(keyword);
+    state = state.copyWith(
+      keywords: [...state.keywords, keyword],
+    );
     settings.blockingKeyword.add(keyword);
     settings.setBlockingKeyword();
-    blockedKeywords.refresh();
   }
 
   void addBlockedCategory(String category) {
-    if (blockedCategories.contains(category)) {
-      blockedCategories.remove(category);
-    } else {
-      blockedCategories.add(category);
+    if (state.categories.contains(category)) {
+      return;
     }
-    settings.pica[5] = blockedCategories.join(";");
+    state = state.copyWith(
+      keywords: [...state.categories, category],
+    );
+    settings.pica[5] = state.categories.join(";");
     settings.updateSettings("picacg");
   }
 
   void removeBlockedCategory(String category) {
-    if (blockedCategories.contains(category)) {
-      blockedCategories.remove(category);
+    if (!state.categories.contains(category)) {
+      return;
     }
-    settings.pica[5] = blockedCategories.join(";");
+    state = state.copyWith(
+      keywords: state.categories.where((e) => e != category).toList(),
+    );
+    settings.pica[5] = state.categories.join(";");
     settings.updateSettings("picacg");
   }
 
   void toggleBlockedCategory(String category) {
-    if (blockedCategories.contains(category)) {
-      blockedCategories.remove(category);
+    if (state.categories.contains(category)) {
+      removeBlockedCategory(category);
     } else {
-      blockedCategories.add(category);
+      addBlockedCategory(category);
     }
-    settings.pica[5] = blockedCategories.join(";");
-    settings.updateSettings("picacg");
-    blockedCategories.refresh();
   }
 
-  void fetchCategories() {
-    if (blockedCategories.isEmpty) {
-      blockedCategories.value = settings.pica[5].split(";").toList();
-    }
-    blockedCategories.refresh();
+  List<String> fetchCategories() {
+      return settings.pica[5].split(";").toList();
   }
+
+  bool containsCat(String cat) => state.categories.contains(cat);
 }

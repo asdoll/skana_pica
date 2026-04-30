@@ -1,26 +1,29 @@
 import 'dart:math';
 
+import 'package:easy_localization/easy_localization.dart'
+    show StringTranslateExtension;
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/controller/categories.dart';
 import 'package:skana_pica/controller/main_controller.dart';
-import 'package:get/get.dart';
+
 import 'package:skana_pica/pages/pica_list_comics.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/widgetplugin.dart';
 
-class PicaCatsPage extends StatefulWidget {
+class PicaCatsPage extends StatefulHookConsumerWidget {
   const PicaCatsPage({super.key});
 
   @override
-  State<PicaCatsPage> createState() => _PicaCatsPageState();
+  ConsumerState<PicaCatsPage> createState() => _PicaCatsPageState();
 }
 
-class _PicaCatsPageState extends State<PicaCatsPage> {
+class _PicaCatsPageState extends ConsumerState<PicaCatsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Obx(
-      () => CustomScrollView(
+      body: CustomScrollView(
         controller: globalScrollController,
         slivers: [
           SliverPadding(padding: const EdgeInsets.only(top: 8.0)),
@@ -28,25 +31,23 @@ class _PicaCatsPageState extends State<PicaCatsPage> {
             padding: const EdgeInsets.all(8.0),
             sliver: SliverGrid.builder(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: max(3,min(5, (context.width / 150).floor())),
+                crossAxisCount: max(3,
+                    min(5, (MediaQuery.of(context).size.width / 150).floor())),
                 crossAxisSpacing: 8.0,
                 mainAxisSpacing: 8.0,
               ),
-              itemCount: categoriesController.categories.length + 3,
+              itemCount: ref.watch(categoryProvider).categories.length + 3,
               itemBuilder: (context, index) {
                 if (index < 3) {
                   return InkWell(
                     onTap: () {
                       if (index == 0) {
-                        Go.to(PicaCatComicsPage(id: "random", type: "fixed"),
-                            preventDuplicates: false);
+                        Go.to(PicaCatComicsPage(id: "random", type: "fixed"));
                       } else if (index == 1) {
-                        Go.to(PicaCatComicsPage(id: "latest", type: "fixed"),
-                            preventDuplicates: false);
+                        Go.to(PicaCatComicsPage(id: "latest", type: "fixed"));
                       } else {
-                        Go.to(
-                            PicaCatComicsPage(id: "leaderboard", type: "fixed"),
-                            preventDuplicates: false);
+                        Go.to(PicaCatComicsPage(
+                            id: "leaderboard", type: "fixed"));
                       }
                     },
                     child: Card(
@@ -56,19 +57,20 @@ class _PicaCatsPageState extends State<PicaCatsPage> {
                       child: Stack(
                         children: <Widget>[
                           Image.asset(
-                            categoriesController.getCoverImg(
-                                fixedCategories[index].toLowerCase()),
+                            ref
+                                .read(categoryProvider.notifier)
+                                .getCoverImg(fixedCategories[index]),
                             fit: BoxFit.cover,
                             width: 300,
                             height: 300,
                           ),
                           Opacity(
-                            opacity: Get.isDarkMode ? 0.4 : 0,
+                            opacity: context.isDarkMode ? 0.4 : 0,
                             child: Container(
                               decoration: BoxDecoration(color: Colors.black),
                             ),
                           ),
-                          if (!Get.isDarkMode)
+                          if (!context.isDarkMode)
                             Positioned(
                               bottom: 0,
                               child: Container(
@@ -95,7 +97,7 @@ class _PicaCatsPageState extends State<PicaCatsPage> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: <Widget>[
                                   Text(
-                                    fixedCategories[index].tr,
+                                    fixedCategories[index].tr(),
                                     textAlign: TextAlign.center,
                                     style: TextStyle(color: Colors.white),
                                   ).subHeader(),
@@ -109,33 +111,33 @@ class _PicaCatsPageState extends State<PicaCatsPage> {
                   );
                 }
                 return InkWell(
-                  onTap: () => Go.to(
-                      PicaCatComicsPage(
-                          id: categoriesController.categories[index - 3],
-                          type: "category"),
-                      preventDuplicates: false),
+                  onTap: () => Go.to(PicaCatComicsPage(
+                      id: ref.watch(categoryProvider).categories[index - 3],
+                      type: "category")),
                   onLongPress: () {
                     showDialog(
                         context: context,
                         builder: (context) {
                           return AlertDialog(
-                            title: Text("block_cate".trParams({
-                              "cate": categoriesController.categories[index - 3]
-                            })),
+                            title: Text("block_cate".tr(args: [
+                              ref.watch(categoryProvider).categories[index - 3]
+                            ])),
                             actions: [
                               TextButton(
                                   onPressed: () {
                                     Navigator.of(context).pop();
                                   },
-                                  child: Text("Cancel".tr)),
+                                  child: Text("cancel".tr())),
                               TextButton(
                                   onPressed: () {
-                                    categoriesController.blockCategory(
-                                        categoriesController
+                                    ref
+                                        .read(categoryProvider.notifier)
+                                        .blockCategory(ref
+                                            .read(categoryProvider)
                                             .categories[index - 3]);
                                     Navigator.of(context).pop();
                                   },
-                                  child: Text("Ok".tr)),
+                                  child: Text("ok".tr())),
                             ],
                           );
                         });
@@ -147,19 +149,19 @@ class _PicaCatsPageState extends State<PicaCatsPage> {
                     child: Stack(
                       children: <Widget>[
                         Image.asset(
-                          categoriesController.getCoverImg(
-                              categoriesController.categories[index - 3]),
+                          ref.read(categoryProvider.notifier).getCoverImg(
+                              ref.read(categoryProvider).categories[index - 3]),
                           fit: BoxFit.cover,
                           width: 300,
                           height: 300,
                         ),
                         Opacity(
-                          opacity: Get.isDarkMode ? 0.4 : 0,
+                          opacity: context.isDarkMode ? 0.4 : 0,
                           child: Container(
                             decoration: BoxDecoration(color: Colors.black),
                           ),
                         ),
-                        if (!Get.isDarkMode)
+                        if (!context.isDarkMode)
                           Positioned(
                             bottom: 0,
                             child: Container(
@@ -186,7 +188,9 @@ class _PicaCatsPageState extends State<PicaCatsPage> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  categoriesController.categories[index - 3],
+                                  ref
+                                      .watch(categoryProvider)
+                                      .categories[index - 3],
                                   textAlign: TextAlign.center,
                                   style: TextStyle(color: Colors.white),
                                 ).subHeader()
@@ -203,6 +207,6 @@ class _PicaCatsPageState extends State<PicaCatsPage> {
           )
         ],
       ),
-    ));
+    );
   }
 }

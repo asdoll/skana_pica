@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:get/get.dart';
 import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/managers/image_cache_manager.dart'
@@ -79,7 +78,7 @@ class _PicaImageState extends State<PicaImage> {
           Container(
             width: width,
             height: height,
-            color: Get.theme.colorScheme.surface.withValues(alpha: 0.5),
+            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
           ),
           Center(
             child: TextButton(

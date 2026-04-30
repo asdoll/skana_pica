@@ -1,66 +1,77 @@
 
-import 'package:get/get.dart';
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
 import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/favourite.dart';
 import 'package:skana_pica/util/leaders.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-late ProfileController profileController;
+part 'profile.freezed.dart';
+part 'profile.g.dart';
 
-class ProfileController extends GetxController {
-  Rx<PicaProfile> profile = PicaProfile.error().obs;
-  RxBool loading = false.obs;
-  RxBool isLogin = false.obs;
-  RxBool isFirstLaunch = settings.isFirstLaunch().obs;
+@freezed
+abstract class ProfileState with _$ProfileState {
+  factory ProfileState({
+    @Default(false) bool isLoading,
+    @Default(false) bool isLogin,
+    @Default(false) bool isFirstLaunch,
+    required PicaProfile profile,
+  }) = _ProfileState;
+}
+
+@Riverpod(keepAlive: true)
+class Profile extends _$Profile {
+  @override
+  ProfileState build() {
+    return ProfileState(profile: PicaProfile.error(),isFirstLaunch: settings.isFirstLaunch());
+  }
 
   void fetch() {
-    isLogin.value = picacg.data['token'] != null && picacg.data['token'].isNotEmpty;
-    loading.value = true;
-    if (picacg.data['token'] == null || picacg.data['token'].isEmpty) {
-      loading.value = false;
+    state = state.copyWith(isLogin: picacg.data['token'] != null && picacg.data['token'].isNotEmpty);
+    if (state.isLogin) {
       return;
     }
+    state = state.copyWith(isLoading: true);
     picaClient.getProfile().then((value) {
       if (value.error) {
-        loading.value = false;
+        state = state.copyWith(isLoading: false);
         return;
       }
-      profile.value = value.data;
-      loading.value = false;
+      state = state.copyWith(profile: value.data, isLoading: false);
     });
-    loading.value = false;
-    profile.refresh();
   }
 
   void updateSlogan(String slogan) {
     picaClient.changeSlogan(slogan).then((value) {
       if (!value) {
-        showToast("Failed to update slogan".tr);
+        showToast("failed_to_update_slogan".tr());
         return;
       }
-      profile.value.slogan = slogan;
-      profile.refresh();
+      var profile = state.profile;
+      profile.slogan = slogan;
+      state = state.copyWith(profile: profile);
     });
   }
 
   void updatePassword(String old, String password) {
     String? oldPassword = picacg.data['password'];
     if(oldPassword!= null && oldPassword.isNotEmpty && oldPassword != old){
-      showToast("Old password is incorrect".tr);
+      showToast("old_password_is_incorrect".tr());
       return;
     }
     if(old == password){
-      showToast("New password is the same as the old password".tr);
+      showToast("new_password_is_the_same_as_the_old_password".tr());
       return;
     }
     picaClient.changePassword(old,password).then((value) {
       if (!value.data) {
-        showToast("Failed to update password".tr);
+        showToast("failed_to_update_password".tr());
         return;
       }
-      showToast("Password updated".tr);
+      showToast("password_updated".tr());
     });
   }
   
@@ -68,16 +79,13 @@ class ProfileController extends GetxController {
     picacg.data['token'] = null;
     picacg.data['account'] = null;
     picacg.data['password'] = null;
-    isLogin.value = false;
-    loading.value = false;
     settings.logout();
-    profile.value = PicaProfile.error();
-    profile.refresh();
-    favorController.clear();
+    state = state.copyWith(profile: PicaProfile.error(),isLoading: false,isLogin: false);
+    ref.read(favorProvider.notifier).clear();
   }
 
   void firstLaunchFinished() {
-    isFirstLaunch.value = false;
+    state = state.copyWith(isFirstLaunch: false);
     settings.firstLaunch();
   }
 }

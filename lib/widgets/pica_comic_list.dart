@@ -1,6 +1,8 @@
 import 'package:bootstrap_icons/bootstrap_icons.dart';
+import 'package:easy_localization/easy_localization.dart'
+    show StringTranslateExtension;
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/controller/comiclist.dart';
 import 'package:skana_pica/controller/main_controller.dart';
@@ -12,7 +14,7 @@ import 'package:skana_pica/widgets/custom_indicator.dart';
 import 'package:skana_pica/widgets/icons.dart';
 import 'package:skana_pica/widgets/pica_comic_card.dart';
 
-class PicaComicsPage extends StatefulWidget {
+class PicaComicsPage extends StatefulHookConsumerWidget {
   final String keyword;
   final String type;
   final bool? addToHistory;
@@ -30,389 +32,373 @@ class PicaComicsPage extends StatefulWidget {
       this.fromDrawer = false});
 
   @override
-  State<PicaComicsPage> createState() => _PicaComicsPageState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _PicaComicsPageState();
 }
 
-class _PicaComicsPageState extends State<PicaComicsPage> {
+class _PicaComicsPageState extends ConsumerState<PicaComicsPage> {
   @override
   Widget build(BuildContext context) {
-    String tag = widget.type != "search" && widget.type != "author"
-        ? widget.keyword
-        : "${widget.type}_${widget.keyword}";
-    ComicListController controller;
+    final provider = comicListProvider(
+        keyword: widget.keyword,
+        type: widget.type,
+        isAuthor: widget.type == "author",
+        isSearch: widget.type == "search",
+        sortByDefault: widget.sort ?? "",
+        addToHistory: widget.addToHistory ?? false);
     TextEditingController pageJumpController = TextEditingController();
-    late LeaderboardController leaderboardController;
-    if (widget.keyword == "leaderboard") {
-      leaderboardController = Get.put(LeaderboardController());
-    }
-    controller = Get.put(
-        ComicListController(
-            keyword: widget.keyword,
-            type: widget.type,
-            isSearch: widget.type == "search",
-            isAuthor: widget.type == "author",
-            addToHistory: widget.addToHistory ?? false,
-            sortByDefault: widget.sort ?? ""),
-        tag: tag);
-    controller.reset();
+    ref.read(provider.notifier).reset();
     GlobalKey<RefreshIndicatorState> refreshIndicatorKey =
         GlobalKey<RefreshIndicatorState>();
     ScrollController scrollController =
         widget.scrollController ?? globalScrollController;
-    return Obx(
-      () => !profileController.isLogin.value
-          ? ErrorLoading(text: "Not Logged In".tr)
-          : Column(
-              children: [
-                if (widget.keyword == "leaderboard")
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: leaderboardController.items.map((String value) {
-                      return filledButton(
-                        label: value.tr,
+    return !ref.watch(profileProvider).isLogin
+        ? ErrorLoading(text: "not_logged_in".tr())
+        : Column(
+            children: [
+              if (widget.keyword == "leaderboard")
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: Leaderboard.items.map((String value) {
+                    return filledButton(
+                      label: value.tr(),
+                      textColor: context.moonTheme?.tokens.colors.bulma,
+                      color: ref.watch(leaderboardProvider) == value
+                          ? context.moonTheme?.tokens.colors.frieza60
+                          : context.moonTheme?.tokens.colors.goku,
+                      onPressed: () {
+                        ref.read(leaderboardProvider.notifier).setType(value);
+                        ref.read(provider.notifier).reset();
+                      },
+                    );
+                  }).toList(),
+                ).paddingVertical(8),
+              if (widget.keyword != "leaderboard" &&
+                  widget.keyword != "latest" &&
+                  widget.keyword != "random" &&
+                  !ref.watch(mangaSettingProvider).picaPageViewMode)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    filledButton(
+                      label: "new_to_old".tr(),
+                      textColor: context.moonTheme?.tokens.colors.bulma,
+                      color: ref.watch(provider).sort == 0
+                          ? context.moonTheme?.tokens.colors.frieza60
+                          : context.moonTheme?.tokens.colors.goku,
+                      onPressed: () {
+                        ref.read(provider.notifier).resetWithSort(0);
+                      },
+                    ),
+                    filledButton(
+                      label: "old_to_new".tr(),
+                      textColor: context.moonTheme?.tokens.colors.bulma,
+                      color: ref.watch(provider).sort == 1
+                          ? context.moonTheme?.tokens.colors.frieza60
+                          : context.moonTheme?.tokens.colors.goku,
+                      onPressed: () {
+                        ref.read(provider.notifier).resetWithSort(1);
+                      },
+                    ),
+                    if (widget.keyword != "bookmarks")
+                      filledButton(
+                        label: 'most_likes'.tr(),
                         textColor: context.moonTheme?.tokens.colors.bulma,
-                        color: leaderboardController.type.value == value
+                        color: ref.watch(provider).sort == 2
                             ? context.moonTheme?.tokens.colors.frieza60
                             : context.moonTheme?.tokens.colors.goku,
                         onPressed: () {
-                          leaderboardController.type.value = value;
-                          controller.reset();
+                          ref.read(provider.notifier).resetWithSort(2);
                         },
-                      );
-                    }).toList(),
-                  ).paddingVertical(8),
-                if (widget.keyword != "leaderboard" &&
-                    widget.keyword != "latest" &&
-                    widget.keyword != "random" &&
-                    !mangaSettingsController.picaPageViewMode.value)
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+                      ),
+                    if (widget.keyword != "bookmarks")
                       filledButton(
-                        label: "New to Old".tr,
+                        label: 'most_viewed'.tr(),
                         textColor: context.moonTheme?.tokens.colors.bulma,
-                        color: controller.sort.value == 0
+                        color: ref.watch(provider).sort == 3
                             ? context.moonTheme?.tokens.colors.frieza60
                             : context.moonTheme?.tokens.colors.goku,
                         onPressed: () {
-                          controller.resetWithSort(0);
+                          ref.read(provider.notifier).resetWithSort(3);
                         },
                       ),
-                      filledButton(
-                        label: "Old to New".tr,
-                        textColor: context.moonTheme?.tokens.colors.bulma,
-                        color: controller.sort.value == 1
-                            ? context.moonTheme?.tokens.colors.frieza60
-                            : context.moonTheme?.tokens.colors.goku,
-                        onPressed: () {
-                          controller.resetWithSort(1);
-                        },
-                      ),
-                      if (widget.keyword != "bookmarks")
-                        filledButton(
-                          label: 'Most Likes'.tr,
-                          textColor: context.moonTheme?.tokens.colors.bulma,
-                          color: controller.sort.value == 2
-                              ? context.moonTheme?.tokens.colors.frieza60
-                              : context.moonTheme?.tokens.colors.goku,
-                          onPressed: () {
-                            controller.resetWithSort(2);
-                          },
-                        ),
-                      if (widget.keyword != "bookmarks")
-                        filledButton(
-                          label: 'Most Viewed'.tr,
-                          textColor: context.moonTheme?.tokens.colors.bulma,
-                          color: controller.sort.value == 3
-                              ? context.moonTheme?.tokens.colors.frieza60
-                              : context.moonTheme?.tokens.colors.goku,
-                          onPressed: () {
-                            controller.resetWithSort(3);
-                          },
-                        ),
-                    ],
-                  ).paddingVertical(8),
-                if (mangaSettingsController.picaPageViewMode.value &&
-                    controller.total.value > 1)
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      SizedBox(
-                        width: 12,
-                      ),
-                      if (widget.keyword != "leaderboard" &&
-                          widget.keyword != "latest" &&
-                          widget.keyword != "random")
-                        MoonDropdown(
-                            show: controller.filterMenu.value,
-                            onTapOutside: () =>
-                                controller.filterMenu.value = false,
-                            offset: Offset(5, 0),
-                            minWidth: 80,
-                            maxWidth: 80,
-                            content: Column(
-                              children: [
-                                MoonMenuItem(
-                                  label: Text('New to Old'.tr).small(),
-                                  onTap: () {
-                                    controller.filterMenu.value = false;
-                                    controller.resetWithSort(0);
-                                  },
-                                ),
-                                MoonMenuItem(
-                                  label: Text('Old to New'.tr).small(),
-                                  onTap: () {
-                                    controller.filterMenu.value = false;
-                                    controller.resetWithSort(1);
-                                  },
-                                ),
-                                if (widget.keyword != "bookmarks")
-                                  MoonMenuItem(
-                                    label: Text('Most Likes'.tr).small(),
-                                    onTap: () {
-                                      controller.filterMenu.value = false;
-                                      controller.resetWithSort(2);
-                                    },
-                                  ),
-                                if (widget.keyword != "bookmarks")
-                                  MoonMenuItem(
-                                    label: Text('Most Viewed'.tr).small(),
-                                    onTap: () {
-                                      controller.filterMenu.value = false;
-                                      controller.resetWithSort(3);
-                                    },
-                                  ),
-                              ],
-                            ),
-                            child: filledButton(
-                                label: controller.sort.value == 0
-                                    ? "New to Old".tr
-                                    : controller.sort.value == 1
-                                        ? "Old to New".tr
-                                        : controller.sort.value == 2
-                                            ? "Most Likes".tr
-                                            : "Most Viewed".tr,
-                                onPressed: () => controller.filterMenu.value =
-                                    !controller.filterMenu.value)),
-                      TextButton(
-                          onPressed: () {
-                            showMoonModal(
-                                context: context,
-                                builder: (context) {
-                                  return Dialog(
-                                      child: ListView(
-                                    shrinkWrap: true,
-                                    children: [
-                                      MoonAlert(
-                                          borderColor: Get.context?.moonTheme
-                                              ?.buttonTheme.colors.borderColor
-                                              .withValues(alpha: 0.5),
-                                          showBorder: true,
-                                          label:
-                                              Text('Jump to Page'.tr).header(),
-                                          verticalGap: 16,
-                                          content: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              MoonFormTextInput(
-                                                controller: pageJumpController,
-                                                keyboardType:
-                                                    TextInputType.number,
-                                                hintText: "Page Number".tr,
-                                                validator: (value) {
-                                                  if (value == null ||
-                                                      value.isEmpty ||
-                                                      int.tryParse(value) ==
-                                                          null ||
-                                                      int.tryParse(value)! <
-                                                          1 ||
-                                                      int.tryParse(value)! >
-                                                          controller
-                                                              .total.value) {
-                                                    return 'Invalid Page Number'
-                                                        .tr;
-                                                  }
-                                                  return null;
-                                                },
-                                                onSubmitted: (value) {
-                                                  int pageNumber =
-                                                      int.parse(value);
-                                                  controller
-                                                      .pageFetch(pageNumber);
-                                                },
-                                              ).paddingBottom(16),
-                                              Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.end,
-                                                  children: [
-                                                    filledButton(
-                                                      label: "Cancel".tr,
-                                                      onPressed: () =>
-                                                          Get.back(),
-                                                    ).paddingRight(8),
-                                                    filledButton(
-                                                      label: "Ok".tr,
-                                                      onPressed: () {
-                                                        FocusManager.instance
-                                                            .primaryFocus
-                                                            ?.unfocus();
-                                                        if (int.tryParse(
-                                                                pageJumpController
-                                                                    .text) ==
-                                                            null) {
-                                                          showToast(
-                                                              "Invalid Page Number"
-                                                                  .tr);
-                                                          return;
-                                                        }
-                                                        int pageNumber =
-                                                            int.tryParse(
-                                                                pageJumpController
-                                                                    .text)!;
-                                                        if (pageNumber < 1 ||
-                                                            pageNumber >
-                                                                controller.total
-                                                                    .value) {
-                                                          showToast(
-                                                              "Invalid Page Number"
-                                                                  .tr);
-                                                          return;
-                                                        }
-                                                        controller.pageFetch(
-                                                            pageNumber);
-                                                        Get.back();
-                                                      },
-                                                    ).paddingRight(8),
-                                                  ]),
-                                            ],
-                                          )),
-                                    ],
-                                  ));
-                                });
-                          },
-                          child: Text('at_page'.trParams({
-                            'page': controller.page.toString(),
-                            'total': controller.total.toString()
-                          })).subHeader()),
-                      Expanded(child: SizedBox()),
-                      filledButton(
-                        color: context.moonTheme?.tokens.colors.cell60,
-                        label: "Prev Page".tr,
-                        applyDarkMode: true,
-                        onPressed: (controller.page.value == 1)
-                            ? null
-                            : () {
-                                controller.pageFetch(controller.page.value - 1);
-                                scrollController.animateTo(-100,
-                                    duration: const Duration(microseconds: 200),
-                                    curve: Curves.ease);
-                                refreshIndicatorKey.currentState?.show();
-                              },
-                      ),
-                      SizedBox(width: 4),
-                      filledButton(
-                        color: context.moonTheme?.tokens.colors.cell60,
-                        label: "Next Page".tr,
-                        applyDarkMode: true,
-                        onPressed: (controller.page.value ==
-                                controller.total.value)
-                            ? null
-                            : () {
-                                controller.pageFetch(controller.page.value + 1);
-                                scrollController.animateTo(-100,
-                                    duration: const Duration(microseconds: 200),
-                                    curve: Curves.ease);
-                                refreshIndicatorKey.currentState?.show();
-                              },
-                      ),
-                      SizedBox(width: 16),
-                    ],
-                  ),
-                Expanded(
-                    child: BezierIndicator(
-                        onRefresh: () => controller.reset(drag: true),
-                        child: Obx(() => Stack(children: [
-                              ListView.builder(
-                                controller: scrollController,
-                                itemCount: controller.comics.length + 1,
-                                itemBuilder: (context, index) {
-                                  if (index == controller.comics.length) {
-                                    if (controller.comics.isEmpty) {
-                                      return !controller.isLoading.value
-                                          ? SizedBox(
-                                              height: Get.height * 0.8,
-                                              child: Center(
-                                                child: Text("[ ]").h1(),
-                                              ))
-                                          : Container();
-                                    }
-                                    if (controller.page.value <
-                                        controller.total.value) {
-                                      if (mangaSettingsController
-                                          .picaPageViewMode.value) {
-                                        return !controller.isLoading.value
-                                            ? Center(
-                                                child: MoonButton.icon(
-                                                    onTap: () {
-                                                      scrollController.animateTo(
-                                                          0,
-                                                          duration:
-                                                              const Duration(
-                                                                  microseconds:
-                                                                      200),
-                                                          curve: Curves.ease);
-                                                      controller.pageFetch(
-                                                          controller
-                                                                  .page.value +
-                                                              1);
-                                                    },
-                                                    icon: Icon(
-                                                      BootstrapIcons
-                                                          .chevron_compact_down,
-                                                      size: 40,
-                                                    )),
-                                              )
-                                            : Container();
-                                      } else {
-                                        if (!controller.isLoading.value) {
-                                          Future.delayed(
-                                              const Duration(microseconds: 100),
-                                              () {
-                                            controller.onLoad();
-                                          });
-                                        }
-                                        return progressIndicator(context)
-                                            .paddingVertical(10);
-                                      }
-                                    } else { 
-                                      return Container();
-                                    }
-                                  }
-                                  return PicaComicCard(
-                                    controller.comics[index],
-                                    type: widget.keyword == "bookmarks"
-                                        ? "bookmarks"
-                                        : "comic",
-                                  );
+                  ],
+                ).paddingVertical(8),
+              if (ref.watch(mangaSettingProvider).picaPageViewMode &&
+                  ref.watch(provider).total > 1)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    SizedBox(
+                      width: 12,
+                    ),
+                    if (widget.keyword != "leaderboard" &&
+                        widget.keyword != "latest" &&
+                        widget.keyword != "random")
+                      MoonDropdown(
+                          show: ref.watch(provider).filterMenu,
+                          onTapOutside: () =>
+                              ref.read(provider.notifier).closeMenu(),
+                          offset: Offset(5, 0),
+                          minWidth: 80,
+                          maxWidth: 80,
+                          content: Column(
+                            children: [
+                              MoonMenuItem(
+                                label: Text('new_to_old'.tr()).small(),
+                                onTap: () {
+                                  ref.read(provider.notifier).closeMenu();
+                                  ref.read(provider.notifier).resetWithSort(0);
                                 },
-                                physics: BouncingScrollPhysics(),
                               ),
-                              if (!controller.isDrag.value &&
-                                  controller.isLoading.value)
-                                Center(
-                                  child: progressIndicator(context),
-                                )
-                            ])))),
-                SizedBox(
-                  height: 10,
+                              MoonMenuItem(
+                                label: Text('old_to_new'.tr()).small(),
+                                onTap: () {
+                                  ref.read(provider.notifier).closeMenu();
+                                  ref.read(provider.notifier).resetWithSort(1);
+                                },
+                              ),
+                              if (widget.keyword != "bookmarks")
+                                MoonMenuItem(
+                                  label: Text('most_likes'.tr()).small(),
+                                  onTap: () {
+                                    ref.read(provider.notifier).closeMenu();
+                                    ref.read(provider.notifier).resetWithSort(2);
+                                  },
+                                ),
+                              if (widget.keyword != "bookmarks")
+                                MoonMenuItem(
+                                  label: Text('most_viewed'.tr()).small(),
+                                  onTap: () {
+                                    ref.read(provider.notifier).closeMenu();
+                                    ref.read(provider.notifier).resetWithSort(3);
+                                  },
+                                ),
+                            ],
+                          ),
+                          child: filledButton(
+                              label: ref.watch(provider).sort == 0
+                                  ? "new_to_old".tr()
+                                  : ref.watch(provider).sort == 1
+                                      ? "old_to_new".tr()
+                                      : ref.watch(provider).sort == 2
+                                          ? "most_likes".tr()
+                                          : "most_viewed".tr(),
+                              onPressed: () => ref.read(provider.notifier).toggleMenu())),
+                    TextButton(
+                        onPressed: () {
+                          showMoonModal(
+                              context: context,
+                              builder: (context) {
+                                return Dialog(
+                                    child: ListView(
+                                  shrinkWrap: true,
+                                  children: [
+                                    MoonAlert(
+                                        borderColor: context.moonTheme
+                                            ?.buttonTheme.colors.borderColor
+                                            .withValues(alpha: 0.5),
+                                        showBorder: true,
+                                        label:
+                                            Text('jump_to_page'.tr()).header(),
+                                        verticalGap: 16,
+                                        content: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            MoonFormTextInput(
+                                              controller: pageJumpController,
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              hintText: "page_number".tr(),
+                                              validator: (value) {
+                                                if (value == null ||
+                                                    value.isEmpty ||
+                                                    int.tryParse(value) ==
+                                                        null ||
+                                                    int.tryParse(value)! < 1 ||
+                                                    int.tryParse(value)! >
+                                                        ref.watch(provider).total) {
+                                                  return 'invalid_page_number'
+                                                      .tr();
+                                                }
+                                                return null;
+                                              },
+                                              onSubmitted: (value) {
+                                                int pageNumber =
+                                                    int.parse(value);
+                                                ref.read(provider.notifier)
+                                                    .pageFetch(pageNumber);
+                                              },
+                                            ).paddingBottom(16),
+                                            Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.end,
+                                                children: [
+                                                  filledButton(
+                                                    label: "cancel".tr(),
+                                                    onPressed: () => () =>
+                                                        Navigator.pop(
+                                                            context),
+                                                  ).paddingRight(8),
+                                                  filledButton(
+                                                    label: "ok".tr(),
+                                                    onPressed: () {
+                                                      FocusManager
+                                                          .instance.primaryFocus
+                                                          ?.unfocus();
+                                                      if (int.tryParse(
+                                                              pageJumpController
+                                                                  .text) ==
+                                                          null) {
+                                                        showToast(
+                                                            "invalid_page_number"
+                                                                .tr());
+                                                        return;
+                                                      }
+                                                      int pageNumber =
+                                                          int.tryParse(
+                                                              pageJumpController
+                                                                  .text)!;
+                                                      if (pageNumber < 1 ||
+                                                          pageNumber >
+                                                              ref.watch(provider).total) {
+                                                        showToast(
+                                                            "invalid_page_number"
+                                                                .tr());
+                                                        return;
+                                                      }
+                                                      ref.read(provider.notifier).pageFetch(
+                                                          pageNumber);
+                                                      Navigator.pop(context);
+                                                    },
+                                                  ).paddingRight(8),
+                                                ]),
+                                          ],
+                                        )),
+                                  ],
+                                ));
+                              });
+                        },
+                        child: Text('at_page'.tr(args: [
+                          ref.watch(provider).page.toString(),
+                          ref.watch(provider).total.toString()
+                        ])).subHeader()),
+                    Expanded(child: SizedBox()),
+                    filledButton(
+                      color: context.moonTheme?.tokens.colors.cell60,
+                      label: "prev_page".tr(),
+                      applyDarkMode: true,
+                      onPressed: (ref.watch(provider).page == 1)
+                          ? null
+                          : () {
+                              ref.read(provider.notifier).pageFetch(ref.read(provider).page - 1);
+                              scrollController.animateTo(-100,
+                                  duration: const Duration(microseconds: 200),
+                                  curve: Curves.ease);
+                              refreshIndicatorKey.currentState?.show();
+                            },
+                    ),
+                    SizedBox(width: 4),
+                    filledButton(
+                      color: context.moonTheme?.tokens.colors.cell60,
+                      label: "next_page".tr(),
+                      applyDarkMode: true,
+                      onPressed: (ref.watch(provider).page ==
+                              ref.watch(provider).total)
+                          ? null
+                          : () {
+                              ref.read(provider.notifier).pageFetch(ref.read(provider).page + 1);
+                              scrollController.animateTo(-100,
+                                  duration: const Duration(microseconds: 200),
+                                  curve: Curves.ease);
+                              refreshIndicatorKey.currentState?.show();
+                            },
+                    ),
+                    SizedBox(width: 16),
+                  ],
                 ),
-              ],
-            ),
-    );
+              Expanded(
+                  child: BezierIndicator(
+                      onRefresh: () => ref.read(provider.notifier).reset(drag: true),
+                      child: Stack(children: [
+                            ListView.builder(
+                              controller: scrollController,
+                              itemCount: ref.watch(provider).comics.length + 1,
+                              itemBuilder: (context, index) {
+                                if (index == ref.watch(provider).comics.length) {
+                                  if (ref.watch(provider).comics.isEmpty) {
+                                    return !ref.watch(provider).isLoading
+                                        ? SizedBox(
+                                            height: MediaQuery.of(context).size.height * 0.8,
+                                            child: Center(
+                                              child: Text("[ ]").h1(),
+                                            ))
+                                        : Container();
+                                  }
+                                  if (ref.watch(provider).page <
+                                      ref.watch(provider).total) {
+                                    if (ref.watch(mangaSettingProvider)
+                                        .picaPageViewMode) {
+                                      return !ref.watch(provider).isLoading
+                                          ? Center(
+                                              child: MoonButton.icon(
+                                                  onTap: () {
+                                                    scrollController.animateTo(
+                                                        0,
+                                                        duration:
+                                                            const Duration(
+                                                                microseconds:
+                                                                    200),
+                                                        curve: Curves.ease);
+                                                    ref.read(provider.notifier).pageFetch(
+                                                        ref.read(provider).page +
+                                                            1);
+                                                  },
+                                                  icon: Icon(
+                                                    BootstrapIcons
+                                                        .chevron_compact_down,
+                                                    size: 40,
+                                                  )),
+                                            )
+                                          : Container();
+                                    } else {
+                                      if (!ref.watch(provider).isLoading) {
+                                        Future.delayed(
+                                            const Duration(microseconds: 100),
+                                            () {
+                                          ref.read(provider.notifier).onLoad();
+                                        });
+                                      }
+                                      return progressIndicator(context)
+                                          .paddingVertical(10);
+                                    }
+                                  } else {
+                                    return Container();
+                                  }
+                                }
+                                return PicaComicCard(
+                                  ref.watch(provider).comics[index],
+                                  type: widget.keyword == "bookmarks"
+                                      ? "bookmarks"
+                                      : "comic",
+                                );
+                              },
+                              physics: BouncingScrollPhysics(),
+                            ),
+                            if (!ref.watch(provider).isDrag &&
+                                ref.watch(provider).isLoading)
+                              Center(
+                                child: progressIndicator(context),
+                              )
+                          ]))),
+              SizedBox(
+                height: 10,
+              ),
+            ],
+          );
   }
 }

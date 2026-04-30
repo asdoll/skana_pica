@@ -1,222 +1,192 @@
-import 'package:get/get.dart';
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
 import 'package:skana_pica/api/comic_sources/picacg/pica_api.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/comicstore.dart';
 import 'package:skana_pica/controller/comment.dart';
 import 'package:skana_pica/util/leaders.dart';
-import 'package:skana_pica/controller/log.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-late FavorController favorController;
+part 'favourite.freezed.dart';
+part 'favourite.g.dart';
 
-class FavorController extends GetxController {
-  RxList<String> favorComics = <String>[].obs;
-  RxBool isLoading = false.obs;
-  RxString lastId = "".obs;
-  String sort = settings.pica[4] == "da" ? "da" : "dd";
+@freezed
+abstract class FavorState with _$FavorState {
+  const factory FavorState({
+    @Default([]) List<String> favorComics,
+    @Default(false) bool isLoading,
+    @Default("") String lastId,
+    @Default("") String sort,
+  }) = _FavorState;
+}
 
-  void addFavor(String id) {
-    if (favorComics.contains(id)) {
-      return;
-    }
-    favorComics.add(id);
-    favorComics.refresh();
+@Riverpod(keepAlive: true)
+class Favor extends _$Favor {
+  @override
+  FavorState build() {
+    fetch();
+    return const FavorState();
   }
 
-  void removeFavor(String id) {
-    favorComics.remove(id);
-    favorComics.refresh();
-  }
-
-  void favorCall(String id) {
-    if (isLoading.value && lastId.value == id) {
+  void addFavor(String id, [bool unload = false]) {
+    if (state.favorComics.contains(id)) {
       return;
     }
-    isLoading.value = true;
-    lastId.value = id;
-    bool isFavor = favorComics.contains(id);
-    picaClient.favouriteOrUnfavouriteComic(id).then((value) {
-      if (value) {
-        if (isFavor) {
-          removeFavor(id);
-        } else {
-          addFavor(id);
-        }
-        isLoading.value = false;
-        return;
+    var comics = List<String>.from(state.favorComics);
+    comics.add(id);
+    if (unload) {
+      state = state.copyWith(favorComics: comics, isLoading: false);
+    } else {
+      state = state.copyWith(favorComics: comics);
+    }
+  }
+
+  void removeFavor(String id, [bool unload = false]) {
+    if (!state.favorComics.contains(id)) {
+      return;
+    }
+    var comics = List<String>.from(state.favorComics);
+    comics.remove(id);
+    if (unload) {
+      state = state.copyWith(favorComics: comics, isLoading: false);
+    } else {
+      state = state.copyWith(favorComics: comics);
+    }
+  }
+
+  void loading([String? id]) {
+    state = state.copyWith(isLoading: true, lastId: id ?? state.lastId);
+  }
+
+  void unloading() {
+    state = state.copyWith(isLoading: false);
+  }
+
+  Future<void> favorCall(String id) async {
+    if (state.isLoading && state.lastId == id) {
+      return;
+    }
+    loading(id);
+    bool isFavor = state.favorComics.contains(id);
+    var value = await picaClient.favouriteOrUnfavouriteComic(id);
+    if (value) {
+      if (isFavor) {
+        removeFavor(id, true);
+      } else {
+        addFavor(id, true);
       }
-      showToast("Network Error".tr);
-      isLoading.value = false;
-    });
+      return;
+    }
+    showToast("network_error".tr());
+    unloading();
   }
 
-  Future<void> fetch() async {
-    favorComics.clear();
+  Future<void> fetch({bool init = false}) async {
+    if (state.isLoading) return;
+    List<String> comics = [];
     int pages = 1;
-    picaClient.getFavorites(1, settings.pica[4] != "da").then((value) {
+    state = state.copyWith(isLoading: true);
+
+    final first = await picaClient.getFavorites(1, settings.pica[4] != "da");
+
+    if (first.error) {
+      showToast(first.errorMessageWithoutNull);
+      return;
+    }
+    pages = first.subData ?? 1;
+
+    final results = await Future.wait(
+      [
+        for (int i = 2; i <= pages; i++)
+          picaClient.getFavorites(i, settings.pica[4] != "da")
+      ],
+    );
+
+    comics = <String>[
+      for (final e in first.data) e.id,
+    ];
+
+    for (final value in results) {
       if (value.error) {
-        return;
+        showToast(value.errorMessageWithoutNull);
+        continue;
       }
-      pages = value.subData ?? 1;
-      for (var e in value.data) {
-        favorComics.add(e.id);
+      for (final e in value.data) {
+        comics.add(e.id);
       }
-      for (int i = 2; i <= pages; i++) {
-        picaClient.getFavorites(i, settings.pica[4] != "da").then((value) {
-          if (value.error) {
-            return;
-          }
-          for (var e in value.data) {
-            favorComics.add(e.id);
-          }
-        });
-      }
-      favorComics.refresh();
-    });
+    }
+    state = state.copyWith(favorComics: comics, isLoading: false);
   }
 
   void addList(List<PicaComicItemBrief> list) {
-    for (var e in list) {
-      favorComics.add(e.id);
-    }
-    favorComics.refresh();
+    state = state.copyWith(favorComics: list.map((l) => l.id).toList());
   }
 
   void clear() {
-    favorComics.clear();
-    favorComics.refresh();
-    isLoading.value = false;
-    lastId.value = "";
-    sort = settings.pica[4] == "da" ? "da" : "dd";
+    state = state.copyWith(
+        favorComics: [],
+        isLoading: false,
+        lastId: "",
+        sort: settings.pica[4] == "da" ? "da" : "dd");
   }
 }
 
-class BookmarksController extends GetxController {
-  RxList<PicaComicItemBrief> bookmarks = <PicaComicItemBrief>[].obs;
-  RxBool isLoading = false.obs;
-  RxString lastId = "".obs;
-
-  void addBookmark(PicaComicItemBrief comic) {
-    if (bookmarks.contains(comic)) {
-      return;
-    }
-    bookmarks.add(comic);
-    bookmarks.refresh();
-  }
-
-  void removeBookmark(PicaComicItemBrief comic) {
-    bookmarks.remove(comic);
-    bookmarks.refresh();
-  }
-
-  void favorCall(PicaComicItemBrief comic) {
-    String id = comic.id;
-    if (isLoading.value && lastId.value == id) {
-      return;
-    }
-    isLoading.value = true;
-    lastId.value = id;
-    bool isFavor = favorController.favorComics.contains(id);
-    picaClient.favouriteOrUnfavouriteComic(id).then((value) {
-      if (value) {
-        if (isFavor) {
-          favorController.removeFavor(id);
-          removeBookmark(comic);
-        } else {
-          favorController.addFavor(id);
-          addBookmark(comic);
-        }
-        isLoading.value = false;
-        return;
-      }
-      showToast("Network Error".tr);
-      isLoading.value = false;
-    });
-  }
-
-  void fetch() {
-    if (isLoading.value && lastId.value == "bookmarks") {
-      return;
-    }
-    isLoading.value = true;
-    lastId.value = "bookmarks";
-    bookmarks.clear();
-    int pages = 1;
-    picaClient.getFavorites(1, settings.pica[4] != "da").then((value) {
-      if (value.error) {
-        isLoading.value = false;
-        return;
-      }
-      pages = value.subData ?? 1;
-      bookmarks.addAll(value.data);
-      for (int i = 2; i <= pages; i++) {
-        picaClient.getFavorites(i, settings.pica[4] != "da").then((value) {
-          if (value.error) {
-            isLoading.value = false;
-            return;
-          }
-          bookmarks.addAll(value.data);
-        });
-      }
-      bookmarks.refresh();
-    });
-    favorController.addList(bookmarks);
-    isLoading.value = false;
-  }
+@freezed
+abstract class LikeState with _$LikeState {
+  const factory LikeState(
+      {@Default(false) bool isLike,
+      @Default(false) bool isLoading,
+      required String id,
+      @Default(false) bool isComment}) = _LikeState;
 }
 
-class LikeController extends GetxController {
-  RxBool isLoading = false.obs;
-  RxBool isLike = false.obs;
-  RxInt likes = 0.obs;
+@riverpod
+class Like extends _$Like {
+  @override
+  LikeState build(bool isLike, bool isComment, String id) {
+    return LikeState(isLike: isLike, isComment: isComment, id: id);
+  }
 
   bool likeCall(String id) {
-    if (isLoading.value) {
+    if (state.isLoading) {
       return false;
     }
-    isLoading.value = true;
+    state = state.copyWith(isLoading: true);
     picaClient.likeOrUnlikeComic(id).then((value) {
       if (!value) {
-        showToast("Network Error".tr);
-        isLoading.value = false;
+        showToast("network_error".tr());
+        state = state.copyWith(isLoading: false);
         return false;
       }
-      isLike.value = !isLike.value;
-      isLoading.value = false;
+      state = state.copyWith(isLike: !state.isLike, isLoading: false);
     });
     return true;
   }
 
   bool commentLikeCall(String id, {String? commentComicId, String? commentId}) {
-    if (isLoading.value) {
+    if (state.isLoading) {
       return false;
     }
-    isLoading.value = true;
+    state = state.copyWith(isLoading: true);
     picaClient.likeOrUnlikeComment(id).then((value) {
       if (!value) {
-        showToast("Network Error".tr);
-        isLoading.value = false;
-        return false;
+        showToast("network_error".tr());
+        state = state.copyWith(isLoading: false);
+        return;
       }
-      isLike.value = !isLike.value;
+      state = state.copyWith(isLike: !state.isLike);
       if (commentComicId != null) {
-        try {
-          ComicStore store = Get.find<ComicStore>(tag: commentComicId);
-          store.fetchComments();
-        } catch (e) {
-          log.e(e);
+        if (ref.exists(comicStoreProvider(commentComicId))) {
+          ref.read(comicStoreProvider(commentComicId).notifier).fetchComments();
         }
       }
       if (commentId != null) {
-        try {
-          CommentController controller =
-              Get.find<CommentController>(tag: commentId);
-          controller.fetch();
-        } catch (e) {
-          log.e(e);
+        if (ref.exists(commentProvider(commentId))) {
+          ref.read(commentProvider(commentId).notifier).fetch();
         }
       }
-      isLoading.value = false;
+      state = state.copyWith(isLoading: false);
     });
 
     return true;

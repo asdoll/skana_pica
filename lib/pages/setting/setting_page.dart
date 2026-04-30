@@ -1,9 +1,12 @@
 import 'dart:io';
 
 import 'package:bootstrap_icons/bootstrap_icons.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:moon_design/moon_design.dart';
+import 'package:skana_pica/config/base.dart' show Base;
 import 'package:skana_pica/controller/setting_controller.dart';
 import 'package:skana_pica/controller/theme_controller.dart';
 import 'package:skana_pica/pages/mainscreen.dart';
@@ -14,176 +17,233 @@ import 'package:skana_pica/pages/setting/update.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/widgetplugin.dart';
 
-class SettingPage extends StatefulWidget {
+class SettingPage extends StatefulHookConsumerWidget {
   static const route = "${Mains.route}settings";
   const SettingPage({super.key});
 
   @override
-  State<SettingPage> createState() => _SettingPageState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _SettingPageState();
 }
 
-class _SettingPageState extends State<SettingPage> {
+class _SettingPageState extends ConsumerState<SettingPage> {
   @override
   Widget build(BuildContext context) {
-    SettingController settingController = Get.put(SettingController());
-    return Obx(() => ListView(
+    return ListView(
       children: [
         SizedBox(height: 16),
         moonListTile(
           leading: Icon(BootstrapIcons.person),
-          title: 'Account'.tr,
+          title: 'account'.tr(),
           onTap: () {
             Go.to(AccountPage());
           },
         ),
         moonListTile(
           leading: Icon(BootstrapIcons.moon),
-          title: 'Dark Mode'.tr,
+          title: 'dark_mode'.tr(),
           trailing: MoonDropdown(
             offset: Offset(-10, 0),
             minWidth: 100,
             maxWidth: 100,
-            show: settingController.darkMenu.value,
+            show: ref.watch(settingProvider).darkMenu,
             //constrainWidthToChild: true,
-            onTapOutside: () => settingController.darkMenu.value = false,
+            onTapOutside: () =>
+                ref.read(settingProvider.notifier).setDarkMenu(),
             content: Column(
               children: [
-                    MoonMenuItem(onTap: () {
-                      settingController.darkMenu.value = false;
-                      tc.changeDarkMode("0");
-                    }, label: Text('Follow System'.tr)),
-                    MoonMenuItem(onTap: () {
-                      settingController.darkMenu.value = false;
-                      tc.changeDarkMode("1");
-                    }, label: Text('Light'.tr)),
-                    MoonMenuItem(onTap: () {
-                      settingController.darkMenu.value = false;
-                      tc.changeDarkMode("2");
-                    }, label: Text('Dark'.tr)),
-                  ],
+                MoonMenuItem(
+                    onTap: () {
+                      ref.read(settingProvider.notifier).setDarkMenu();
+                      ref
+                          .read(themeControllerProvider.notifier)
+                          .changeDarkMode("0");
+                    },
+                    label: Text('follow_system'.tr())),
+                MoonMenuItem(
+                    onTap: () {
+                      ref.read(settingProvider.notifier).setDarkMenu();
+                      ref
+                          .read(themeControllerProvider.notifier)
+                          .changeDarkMode("1");
+                    },
+                    label: Text('light'.tr())),
+                MoonMenuItem(
+                    onTap: () {
+                      ref.read(settingProvider.notifier).setDarkMenu();
+                      ref
+                          .read(themeControllerProvider.notifier)
+                          .changeDarkMode("2");
+                    },
+                    label: Text('dark'.tr())),
+              ],
             ),
             child: filledButton(
-              label: tc.darkMode.value == "0" ? 'Follow System'.tr : tc.darkMode.value == "1" ? 'Light'.tr : 'Dark'.tr,
-              onPressed: () => settingController.darkMenu.value = !settingController.darkMenu.value,
+              label: ref.watch(themeControllerProvider) == "0"
+                  ? 'follow_system'.tr()
+                  : ref.watch(themeControllerProvider) == "1"
+                      ? 'light'.tr()
+                      : 'dark'.tr(),
+              onPressed: () => ref
+                  .read(settingProvider.notifier)
+                  .setDarkMenu(ref.read(settingProvider).darkMenu),
             ),
           ),
         ),
         moonListTile(
           leading: Icon(BootstrapIcons.translate),
-          title: 'Language'.tr,
+          title: 'language'.tr(),
           trailing: MoonDropdown(
             offset: Offset(-10, 0),
             minWidth: 100,
             maxWidth: 100,
-            show: settingController.langMenu.value,
-            onTapOutside: () => settingController.langMenu.value = false,
+            show: ref.watch(settingProvider).langMenu,
+            onTapOutside: () =>
+                ref.read(settingProvider.notifier).setLangMenu(),
             content: Column(
               children: [
-                    MoonMenuItem(onTap: () {
-                      settingController.langMenu.value = false;
-                      settingController.changeLanguage("");
-                    }, label: Text('Follow System'.tr)),
-                    MoonMenuItem(onTap: () {
-                      settingController.langMenu.value = false;
-                      settingController.changeLanguage("cn");
-                    }, label: Text("中文(简体)")),
-                    MoonMenuItem(onTap: () {
-                      settingController.langMenu.value = false;
-                      settingController.changeLanguage("tw");
-                    }, label: Text("中文(繁體)")),
-                    MoonMenuItem(onTap: () {
-                      settingController.langMenu.value = false;
-                      settingController.changeLanguage("en");
-                    }, label: Text("English")),
-                  ],
+                MoonMenuItem(
+                    onTap: () {
+                      ref.read(settingProvider.notifier).setLangMenu();
+                      ref.read(settingProvider.notifier).changeLanguage("");
+                      context.setLocale(Base.locale);
+                    },
+                    label: Text('follow_system'.tr())),
+                MoonMenuItem(
+                    onTap: () {
+                      ref.read(settingProvider.notifier).setLangMenu();
+                      ref.read(settingProvider.notifier).changeLanguage("cn");
+                      context.setLocale(Base.locale);
+                    },
+                    label: Text("中文(简体)")),
+                MoonMenuItem(
+                    onTap: () {
+                      ref.read(settingProvider.notifier).setLangMenu();
+                      ref.read(settingProvider.notifier).changeLanguage("tw");
+                      context.setLocale(Base.locale);
+                    },
+                    label: Text("中文(繁體)")),
+                MoonMenuItem(
+                    onTap: () {
+                      ref.read(settingProvider.notifier).setLangMenu();
+                      ref.read(settingProvider.notifier).changeLanguage("en");
+                      context.setLocale(Base.locale);
+                    },
+                    label: Text("English")),
+              ],
             ),
             child: filledButton(
-              label: settingController.language.value == "" ? 'Follow System'.tr : settingController.language.value == "cn" ? '中文(简体)'.tr : settingController.language.value == "tw" ? '中文(繁體)'.tr : 'English'.tr,
-              onPressed: () => settingController.langMenu.value = !settingController.langMenu.value,
+              label: ref.watch(settingProvider).language == ""
+                  ? 'follow_system'.tr()
+                  : ref.watch(settingProvider).language == "cn"
+                      ? '中文(简体)'.tr()
+                      : ref.watch(settingProvider).language == "tw"
+                          ? '中文(繁體)'.tr()
+                          : 'English'.tr(),
+              onPressed: () => ref
+                  .read(settingProvider.notifier)
+                  .setLangMenu(ref.read(settingProvider).langMenu),
             ),
           ),
         ),
         moonListTile(
-            leading: Icon(BootstrapIcons.arrow_counterclockwise),
-            title: 'Main orientation'.tr,
-            trailing: Obx(
-              () => MoonDropdown(
-                offset: Offset(-10, 0),
-                minWidth: 100,
-                maxWidth: 100,
-                show: settingController.orienMenu.value,
-                onTapOutside: () => settingController.orienMenu.value = false,
-                content: Column(
-                  children: [
-                    MoonMenuItem(onTap: () {
-                      settingController.orienMenu.value = false;
-                      settingController.changeMainOrientation("0");
-                    }, label: Text("Auto".tr)),
-                    MoonMenuItem(onTap: () {
-                      settingController.orienMenu.value = false;
-                      settingController.changeMainOrientation("1");
-                    }, label: Text("Portrait".tr)),
-                    MoonMenuItem(onTap: () {
-                      settingController.orienMenu.value = false;
-                      settingController.changeMainOrientation("2");
-                    }, label: Text("Landscape".tr)),
-                  ],
-                ),
-                child: filledButton(
-                  label: settingController.mainOrientation.value == "0" ? 'Auto'.tr : settingController.mainOrientation.value == "1" ? 'Portrait'.tr : 'Landscape'.tr,
-                  onPressed: () => settingController.orienMenu.value = !settingController.orienMenu.value,
-                ),
-              ),
-            )),
-          if(Platform.isAndroid)
-          moonListTile(
-            leading: Icon(BootstrapIcons.arrow_clockwise),
-            title: 'High Refresh Rate'.tr,
-            trailing: Obx(
-              () => MoonSwitch(
-                value: settingController.highRefreshRate.value,
-                onChanged: settingController.changeHighRefreshRate,
-              ),
+          leading: Icon(BootstrapIcons.arrow_counterclockwise),
+          title: 'main_orientation'.tr(),
+          trailing: MoonDropdown(
+            offset: Offset(-10, 0),
+            minWidth: 100,
+            maxWidth: 100,
+            show: ref.watch(settingProvider).orienMenu,
+            onTapOutside: () =>
+                ref.read(settingProvider.notifier).setOrientMenu(),
+            content: Column(
+              children: [
+                MoonMenuItem(
+                    onTap: () {
+                      ref.read(settingProvider.notifier).setOrientMenu();
+                      ref
+                          .read(settingProvider.notifier)
+                          .changeMainOrientation("0");
+                    },
+                    label: Text("auto".tr())),
+                MoonMenuItem(
+                    onTap: () {
+                      ref.read(settingProvider.notifier).setOrientMenu();
+                      ref
+                          .read(settingProvider.notifier)
+                          .changeMainOrientation("1");
+                    },
+                    label: Text("portrait".tr())),
+                MoonMenuItem(
+                    onTap: () {
+                      ref.read(settingProvider.notifier).setOrientMenu();
+                      ref
+                          .read(settingProvider.notifier)
+                          .changeMainOrientation("2");
+                    },
+                    label: Text("landscape".tr())),
+              ],
+            ),
+            child: filledButton(
+              label: ref.watch(settingProvider).mainOrientation == "0"
+                  ? 'auto'.tr()
+                  : ref.watch(settingProvider).mainOrientation == "1"
+                      ? 'portrait'.tr()
+                      : 'landscape'.tr(),
+              onPressed: () => ref
+                  .read(settingProvider.notifier)
+                  .setOrientMenu(ref.read(settingProvider).orienMenu),
             ),
           ),
-           moonListTile(
-            leading: Icon(BootstrapIcons.image),
-            title: 'Manga Settings'.tr,
-            onTap: () {
-              Go.to(MangaSettingPage());
+        ),
+        if (Platform.isAndroid)
+          moonListTile(
+            leading: Icon(BootstrapIcons.arrow_clockwise),
+            title: 'high_refresh_rate'.tr(),
+            trailing: MoonSwitch(
+              value: ref.watch(settingProvider).highRefreshRate,
+              onChanged:
+                  ref.read(settingProvider.notifier).changeHighRefreshRate,
+            ),
+          ),
+        moonListTile(
+          leading: Icon(BootstrapIcons.image),
+          title: 'manga_settings'.tr(),
+          onTap: () {
+            Go.to(MangaSettingPage());
           },
         ),
         moonListTile(
           leading: Icon(BootstrapIcons.database),
-          title: 'Cache & Restore'.tr,
+          title: 'cache_restore'.tr(),
           onTap: () {
             Go.to(CacheSetting());
           },
         ),
-          moonListTile(
-            leading: Icon(BootstrapIcons.info_circle),
-            title: 'About'.tr,
-            onTap: () {
-              alertDialog(
+        moonListTile(
+          leading: Icon(BootstrapIcons.info_circle),
+          title: 'about'.tr(),
+          onTap: () {
+            alertDialog(
                 context,
                 "Skana Pica",
-                '''Version:${settingController.getVersion()}\n\n© 2024 Skana - Asdoll
+                '''Version:${ref.watch(settingProvider.notifier).getVersion()}\n\n© 2024 Skana - Asdoll
                 ''',
-                [filledButton(
-                label: 'Ok'.tr,
-                onPressed: () => Get.back(),
-              )]
-              );
-            },
-          ),
-          moonListTile(
-            leading: Icon(BootstrapIcons.download),
-            title: 'Update'.tr,
-            onTap: () {
-              Go.to(UpdatePage());
-            },
-          ),
+                [
+                  filledButton(
+                    label: 'ok'.tr(),
+                    onPressed: () => Navigator.pop(context),
+                  )
+                ]);
+          },
+        ),
+        moonListTile(
+          leading: Icon(BootstrapIcons.download),
+          title: 'update'.tr(),
+          onTap: () {
+            Go.to(UpdatePage());
+          },
+        ),
       ],
-    ));
+    );
   }
 }

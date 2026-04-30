@@ -1,24 +1,38 @@
-import 'package:get/get.dart';
+import 'dart:async';
+
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
 import 'package:skana_pica/api/managers/history_manager.dart';
 import 'package:skana_pica/api/managers/image_cache_manager.dart';
 import 'package:skana_pica/api/models/objectbox_models.dart';
-import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/controller/log.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-late DownloadStore downloadStore;
+part 'downloadstore.freezed.dart';
+part 'downloadstore.g.dart';
 
-class DownloadStore extends GetxController {
-  RxList<DownloadTask> tasks = <DownloadTask>[].obs;
-  RxMap<int, int> progress = <int, int>{}.obs;
-  RxMap<int, int> total = <int, int>{}.obs;
+@freezed
+abstract class DownloadState with _$DownloadState {
+  factory DownloadState({
+    @Default([]) List<DownloadTask> tasks,
+    @Default({}) Map<int, int> progress,
+    @Default({}) Map<int, int> total,
+    @Default({}) Map<int, bool> stop,
+    @Default({}) Map<int, bool> working,
+  }) = _DownloadState;
+}
 
-  RxMap<int, bool> stop = <int, bool>{}.obs;
-  RxMap<int, bool> working = <int, bool>{}.obs;
+@Riverpod(keepAlive: true)
+class Download extends _$Download {
+  @override
+  DownloadState build() {
+    return DownloadState();
+  }
 
   Future<void> restore() async {
-    tasks.clear();
+    List<DownloadTask> tasks = [];
     //log.i(await M.o.getDownloadTaskCount());
     var list = await M.o.getDownloadTaskList();
     for (var task in list) {
@@ -26,87 +40,119 @@ class DownloadStore extends GetxController {
       //log.i(task.taskEps.map((e) => e.progress).toList());
       restoreProgress(task);
     }
-    tasks.refresh();
+    state = state.copyWith(tasks: tasks);
     //logAll();
   }
 
   void logAll() {
     log.t("DownloadStore");
-    for (var task in tasks) {
+    for (var task in state.tasks) {
       log.t(task.id);
     }
-    for (var p in progress.entries) {
+    for (var p in state.progress.entries) {
       log.t("progress ${p.key} ${p.value}");
     }
   }
 
   Future<void> addTask(DownloadTask task) async {
-    for (int i = 0; i < tasks.length; i++) {
-      if (tasks[i].comic.target!.comicid == task.comic.target!.comicid) {
-        mergeTask(i, task);
-        await M.o.addDownloadTask(tasks[i]);
-        return;
-      }
+    final existingIndex = state.tasks.indexWhere(
+      (e) => e.comic.target!.comicid == task.comic.target!.comicid,
+    );
+
+    if (existingIndex != -1) {
+      mergeTask(existingIndex, task);
+      await M.o.addDownloadTask(state.tasks[existingIndex]);
+      return;
     }
 
     await M.o.addDownloadTask(task);
-    tasks.add(task);
+
+    final newTasks = List<DownloadTask>.from(state.tasks)..add(task);
+
+    state = state.copyWith(tasks: newTasks);
+
     restoreProgress(task);
-    tasks.refresh();
   }
 
   Future<void> removeTask(int id) async {
-    DownloadTask task = tasks.firstWhere((element) => element.id == id);
-    for (int i = 0; i < task.taskEps.length; i++) {
-      for (int j = 0; j < task.taskEps[i].url.length; j++) {
-        await downloadCacheManager.removeFile(task.taskEps[i].url[j]);
-      }
-    }
-    tasks.removeWhere((element) => element.id == id);
-    progress.remove(id);
-    total.remove(id);
-    tasks.refresh();
+    final task = state.tasks.firstWhere((element) => element.id == id);
+
+    await Future.wait([
+      for (final ep in task.taskEps)
+        for (final url in ep.url)
+          downloadCacheManager.removeFile(url),
+    ]);
+
+    final tmpTask = List<DownloadTask>.from(state.tasks)
+      ..removeWhere((element) => element.id == id);
+
+    final tmpProgress = Map<int, int>.from(state.progress)..remove(id);
+    final tmpTotal = Map<int, int>.from(state.total)..remove(id);
+    final tmpStop = Map<int, bool>.from(state.stop)..remove(id);
+    final tmpWorking = Map<int, bool>.from(state.working)..remove(id);
+
+    state = state.copyWith(
+      tasks: tmpTask,
+      progress: tmpProgress,
+      total: tmpTotal,
+      stop: tmpStop,
+      working: tmpWorking,
+    );
+
     await M.o.removeDownloadTask(id);
   }
 
   void stopTask(int id) {
-    stop[id] = true;
-    stop.refresh();
-    for (var task in tasks) {
-      if (task.id == id) {
-        removeTask(id);
-      }
+    final stopMap = Map<int, bool>.from(state.stop);
+    stopMap[id] = true;
+
+    state = state.copyWith(stop: stopMap);
+
+    if (state.tasks.any((task) => task.id == id)) {
+      removeTask(id);
     }
   }
 
   void mergeTask(int index, DownloadTask task) {
-    for (int i = 0; i < task.taskEps.length; i++) {
-      if (tasks[index]
-              .taskEps
-              .indexWhere((element) => element.eps == task.taskEps[i].eps) ==
-          -1) {
-        tasks[index].taskEps.add(task.taskEps[i]);
+    final updatedTask = state.tasks[index];
+
+    for (final newEps in task.taskEps) {
+      final exists = updatedTask.taskEps.any((e) => e.eps == newEps.eps);
+      if (!exists) {
+        updatedTask.taskEps.add(newEps);
       }
     }
+
+    updatedTask.comic.target = task.comic.target;
+
+    final newTasks = List<DownloadTask>.from(state.tasks);
+    newTasks[index] = updatedTask;
+
+    state = state.copyWith(tasks: newTasks);
+
+    restoreProgress(updatedTask);
     log.t("mergeTask ${task.id}");
-    tasks[index].comic.target = task.comic.target;
-    task = tasks[index];
-    restoreProgress(task);
-    tasks.refresh();
   }
 
   Future<void> updateTask(DownloadTask task) async {
-    int index = tasks.indexWhere((element) => element.id == task.id);
-    if (index != -1) {
-      tasks[index] = task;
-      log.i("updateTask ${tasks[index].taskEps.map((e) => e.progress).toList()}");
-      tasks.refresh();
-      M.o.updateTaskEps(task);
-    }
-    if (progress[task.id] == total[task.id]) {
-      working.remove(task.id);
-      working.refresh();
-      showToast('${"Download".tr} "${task.comic.target!.title}" ${"Done".tr}');
+    final index = state.tasks.indexWhere((e) => e.id == task.id);
+    if (index == -1) return;
+
+    final newTasks = List<DownloadTask>.from(state.tasks);
+    newTasks[index] = task;
+
+    state = state.copyWith(tasks: newTasks);
+
+    log.i("updateTask ${task.taskEps.map((e) => e.progress).toList()}");
+
+    await M.o.updateTaskEps(task);
+
+    final done = state.progress[task.id] == state.total[task.id];
+    if (done) {
+      final newWorking = Map<int, bool>.from(state.working)..remove(task.id);
+      state = state.copyWith(working: newWorking);
+
+      showToast('${"download".tr()} "${task.comic.target!.title}" ${"done".tr()}');
     }
   }
 
@@ -125,87 +171,104 @@ class DownloadStore extends GetxController {
   }
 
   void continueTask(int id) {
-    download(tasks.firstWhere((element) => element.id == id));
+    download(state.tasks.firstWhere((element) => element.id == id));
   }
 
   void restoreProgress(DownloadTask task) {
     int restoredProgress = 0;
     int total = 0;
-    for (int i = 0; i < task.taskEps.length; i++) {
-      for (int j = 0; j < task.taskEps[i].url.length; j++) {
-        if (task.taskEps[i].progress[j] == 1) {
+
+    for (final ep in task.taskEps) {
+      for (int j = 0; j < ep.url.length; j++) {
+        if (ep.progress[j] == 1) {
           restoredProgress++;
         }
       }
-      total += task.taskEps[i].url.length;
+      total += ep.url.length;
     }
+
+    final progress = Map<int, int>.from(state.progress);
+    final totals = Map<int, int>.from(state.total);
+
     progress[task.id] = restoredProgress;
-    progress.refresh();
-    this.total[task.id] = total;
-    this.total.refresh();
+    totals[task.id] = total;
+
+    state = state.copyWith(progress: progress, total: totals);
   }
 
   void download(DownloadTask task) {
-    bool isError = false;
-    showToast('${"Download".tr} "${task.comic.target!.title}"');
-    {
-      working[task.id] = true;
-      working.refresh();
-      downloadCacheManager.getSingleFile(task.comic.target!.thumbUrl);
-      downloadCacheManager.getSingleFile(task.comic.target!.creatorAvatarUrl);
-    }
-    log.t(task.id);
+    if (state.working[task.id] == true) return;
+
+    showToast('${"download".tr()} "${task.comic.target!.title}"');
+
+    final workingMap = Map<int, bool>.from(state.working);
+    workingMap[task.id] = true;
+    state = state.copyWith(working: workingMap);
+
+    unawaited(downloadCacheManager.getSingleFile(task.comic.target!.thumbUrl));
+    unawaited(downloadCacheManager.getSingleFile(task.comic.target!.creatorAvatarUrl));
+
     for (int i = 0; i < task.taskEps.length; i++) {
       for (int j = 0; j < task.taskEps[i].url.length; j++) {
-        if (stop[task.id] == true) {
-          stop.remove(task.id);
-          working.remove(task.id);
-          working.refresh();
-          return;
-        }
-        if (task.taskEps[i].progress[j] == 1) {
-          continue;
-        }
-        downloadCacheManager.getSingleFile(task.taskEps[i].url[j]).then(
-            (value) {
-          task.taskEps[i].progress[j] = 1;
-          if(progress[task.id] == null){
-            progress[task.id] = 1;
-          } else {
-            progress[task.id] = progress[task.id]! + 1;
+        if (task.taskEps[i].progress[j] == 1) continue;
+
+        unawaited(() async {
+          try {
+            await downloadCacheManager.getSingleFile(task.taskEps[i].url[j]);
+
+            task.taskEps[i].progress[j] = 1;
+
+            final progressMap = Map<int, int>.from(state.progress);
+            progressMap[task.id] = (progressMap[task.id] ?? 0) + 1;
+
+            state = state.copyWith(progress: progressMap);
+
+            updateTask(task);
+          } catch (e) {
+            showToast("network_error".tr());
+
+            final workingMap = Map<int, bool>.from(state.working)..remove(task.id);
+            state = state.copyWith(working: workingMap);
           }
-          progress.refresh();
-          updateTask(task);
-        }, onError: (e) {
-          isError = true;
-        });
+        }());
       }
-    }
-    if (isError) {
-      showToast("Download Error".tr);
     }
   }
 
-  void clear() {
-    for (var task in tasks) {
-      stopTask(task.id);
+  Future<void> clear() async {
+    for (final task in state.tasks) {
+      await removeTask(task.id);
     }
-    Duration(milliseconds: 20).delay(() {
-      tasks.clear();
-      progress.clear();
-      total.clear();
-      stop.clear();
-      tasks.refresh();
-      progress.refresh();
-      total.refresh();
-      stop.refresh();
-    });
+
+    state = state.copyWith(
+      tasks: const [],
+      progress: const {},
+      total: const {},
+      stop: const {},
+      working: const {},
+    );
   }
 }
 
-class DownloadPageController extends GetxController {
-  int perPage = 20;
-  RxInt page = 0.obs;
-  RxBool isList = (settings.pica[6] == "1").obs;
-  
+@riverpod
+class DownloadPage extends _$DownloadPage {
+  static const int perPage = 20;
+
+  @override
+  int build() {
+    return 0; // current page
+  }
+
+  void setPage(int value) {
+    state = value;
+  }
+
+  void nextPage() {
+    state++;
+  }
+
+  void prevPage() {
+    if (state <= 0) return;
+    state--;
+  }
 }

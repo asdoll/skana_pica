@@ -1,51 +1,38 @@
 
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/controller/log.dart';
 
 class Go {
-  static Future<T?> to<T>(dynamic page,
-      {dynamic arguments,
-      Transition? transition,
-      bool? opaque,
-      bool preventDuplicates = true}) async {
-    return await Get.to<T>(page,
-        arguments: arguments,
-        transition: transition ?? Transition.rightToLeft,
-        duration: const Duration(milliseconds: 200),
-        opaque: opaque,
-        preventDuplicates: preventDuplicates);
+  static Future<T?> to<T>(dynamic page) async {
+      return Navigator.push(context!, page);
   }
-
-  static Future<dynamic> off(dynamic page,
-      {dynamic arguments, Transition? transition}) async {
-    Get.off(
-      page,
-      arguments: arguments,
-      transition: transition ?? Transition.rightToLeft,
-      duration: const Duration(milliseconds: 200),
-    );
+  static Future<T?> toNamed<T>(String page,
+      {dynamic arguments}) async {
+      return Navigator.pushNamed(context!, page, arguments: arguments);
   }
-
-  static Future<dynamic> offUntil(dynamic page,
-      {Transition? transition}) async {
-    Get.offUntil(
-        GetPageRoute(
-          page: page,
-          transition: transition ?? Transition.rightToLeft,
-          transitionDuration: const Duration(milliseconds: 200),
-        ),
-        (route) => false);
-  }
+  static BuildContext? context;
 }
 
+String? _lastToastText;
+DateTime? _lastToastTime;
+
 void showToast(String text,[Duration? duration]) {
+    final now = DateTime.now();
+
+    if (_lastToastText == text &&
+        _lastToastTime != null &&
+        now.difference(_lastToastTime!) < const Duration(seconds: 2)) {
+      return;
+    }
+    _lastToastText = text;
+    _lastToastTime = now;
+    
     try {
       MoonToast.show(
         toastAlignment: Alignment(0.0, 0.8),
         backgroundColor: MoonColors.dark.gohan,
-        Get.context!,
+        Go.context!,
         label: Text(text, style: TextStyle(color: MoonColors.light.goku)),
         displayDuration: duration,
       );

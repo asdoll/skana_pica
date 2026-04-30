@@ -1,6 +1,9 @@
 import 'package:bootstrap_icons/bootstrap_icons.dart';
+import 'package:easy_localization/easy_localization.dart'
+    show StringTranslateExtension;
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+
 import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/controller/updater.dart';
 import 'package:skana_pica/util/leaders.dart';
@@ -9,79 +12,64 @@ import 'package:skana_pica/util/widgetplugin.dart';
 import 'package:skana_pica/widgets/custom_indicator.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-class UpdatePage extends StatefulWidget {
+class UpdatePage extends HookConsumerWidget {
   const UpdatePage({super.key});
 
   @override
-  State<UpdatePage> createState() => _UpdatePageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.read(updaterProvider.notifier).check(showResult: true);
 
-class _UpdatePageState extends State<UpdatePage> {
-  @override
-  Widget build(BuildContext context) {
-    updater.check(showResult: true);
-    
     return Scaffold(
       appBar: appBar(
-        title: 'Check updates'.tr,
+        title: 'check_updates'.tr(),
       ),
-      body: Obx(() => BezierIndicator(
-          onRefresh: () async {
-            await updater.check();
-          },
+      body: BezierIndicator(
+          onRefresh: ref.read(updaterProvider.notifier).check,
           child: ListView(
             physics: BouncingScrollPhysics(),
             children: [
               SizedBox(height: 16),
               moonListTile(
-              leading: Icon(BootstrapIcons.download),
-              title: "Auto check updates".tr,
-              trailing: MoonSwitch(
-                value: updater.autoCheck.value,
-                onChanged: (value) {
-                  updater.setAutoCheck(value);
-                },
-              ),
-            ),
-              moonListTile(
-                title: 'Current Version'.tr,
-                subtitle: updater.getCurrentVersion(),
-              ),
-              if (updater.result.value == Result.yes)
-                moonListTile(
-                  title: 'Latest Version'.tr,
-                  subtitle: updater.updateVersion.value,
-                ),
-              if (updater.result.value == Result.yes)
-                moonListTile(
-                  title: 'Release Date'.tr,
-                  subtitle: updater.updateDate.isNotEmpty
-                      ? DateTime.parse(updater.updateDate.value).toShortTime()
-                      : ""),
-              if (updater.result.value == Result.yes)
-                moonListTile(
-                  title: 'Release Notes'.tr,
-                  subtitle: updater.updateDescription.value,
-                ),
-              if (updater.result.value == Result.yes)
-                moonListTile(
-                  title: 'Download'.tr,
-                  onTap: () async {
-                    if (updater.updateUrl.isEmpty) {
-                      showToast('No download link'.tr);
-                      return;
-                    }
-                    await launchUrlString(updater.updateUrl.value);
+                leading: Icon(BootstrapIcons.download),
+                title: "auto_check_updates".tr(),
+                trailing: MoonSwitch(
+                  value: ref.watch(updaterProvider).autoCheck,
+                  onChanged: (value) {
+                    ref.read(updaterProvider.notifier).setAutoCheck(value);
                   },
                 ),
+              ),
               moonListTile(
-                title: 'Check for updates'.tr,
-                onTap: () async {
-                  await updater.check(showResult: true);
-                },
+                title: 'current_version'.tr(),
+                subtitle: ref.read(updaterProvider.notifier).getCurrentVersion(),
+              ),
+              if (ref.watch(updaterProvider).result == Result.yes)
+                moonListTile(
+                  title: 'latest_version'.tr(),
+                  subtitle: ref.watch(updaterProvider).updateVersion,
+                ),
+              if (ref.watch(updaterProvider).result == Result.yes)
+                moonListTile(
+                    title: 'release_date'.tr(),
+                    subtitle: ref.watch(updaterProvider).updateDate.isNotEmpty
+                        ? DateTime.parse(ref.watch(updaterProvider).updateDate).toShortTime()
+                        : ""),
+              if (ref.watch(updaterProvider).result == Result.yes)
+                moonListTile(
+                  title: 'release_notes'.tr(),
+                  subtitle: ref.watch(updaterProvider).updateDescription,
+                ),
+              if (ref.watch(updaterProvider).result == Result.yes)
+                moonListTile(
+                  title: 'download'.tr(),
+                  onTap: () => launchUrlString(updateUrl),
+                ),
+              moonListTile(
+                title: 'check_for_updates'.tr(),
+                onTap: () => ref.read(updaterProvider.notifier).check(showResult: true),
               ),
             ],
-          ))),
+          )),
     );
   }
 }

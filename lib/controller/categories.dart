@@ -1,39 +1,56 @@
-import 'package:get/get.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
 import 'package:skana_pica/config/setting.dart';
 import 'package:skana_pica/controller/blocker.dart';
 
-late CategoriesController categoriesController;
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-class CategoriesController extends GetxController {
-  var categories = List<String>.empty(growable: true).obs;
-  RxList<String> mainPageTags = <String>[].obs;
+part 'categories.freezed.dart';
+part 'categories.g.dart';
 
-  void init() {
-    fetchCategories();
-    fetchMainPageTags();
+@freezed
+abstract class CategoryState with _$CategoryState {
+
+  factory CategoryState({
+    required List<String> categories,
+    required List<String> mainPageTags
+  }) = _CategoryState;
+}
+
+@Riverpod(keepAlive: true)
+class Category extends _$Category {
+  @override
+  CategoryState build() {
+    return _createState();
   }
 
-  void fetchCategories() async {
-    blocker.fetchCategories();
+  CategoryState _createState() {
+    return CategoryState(
+      categories: List.unmodifiable(fetchCategories()),
+      mainPageTags: List.unmodifiable(fetchMainPageTags()),
+    );
+  }
+
+  void init() {
+    state = _createState();
+  }
+
+  List<String> fetchCategories() {
+    List<String> categories = [];
     categories.clear();
     for (int i = 0; i < picacg.categories.length; i++) {
-      if (!blocker.blockedCategories.contains(picacg.categories[i])) {
+      if (!settings.blockedCategory.contains(picacg.categories[i])) {
         categories.add(picacg.categories[i]);
       }
     }
-    categories.refresh();
+    return categories;
   }
 
-  void blockCategory(String index) async {
-    if (blocker.blockedCategories.contains(index)) {
-      blocker.blockedCategories.remove(index);
-    } else {
-      blocker.blockedCategories.add(index);
+  void blockCategory(String cat) async {
+    if (!ref.read(blockerProvider.notifier).containsCat(cat)) {
+      ref.read(blockerProvider.notifier).addBlockedCategory(cat);
     }
-    settings.pica[5] = blocker.blockedCategories.join(";");
-    settings.updateSettings("picacg");
-    fetchCategories();
+    state = state.copyWith(categories: fetchCategories());
   }
 
   String getCoverImg(String category) {
@@ -51,53 +68,49 @@ class CategoriesController extends GetxController {
     return "assets/images/categories/$path";
   }
 
-  void fetchMainPageTags() {
-    mainPageTags.clear();
+  List<String> fetchMainPageTags() {
     List<String> tags = settings.pica[9].split(";");
     tags.removeWhere((element) => element.trim().isEmpty);
-    mainPageTags.addAll(tags);
-    mainPageTags.refresh();
+    return tags;
   }
 
   void toggleMainPageTag(String tag) {
-    if (mainPageTags.contains(tag)) {
-      mainPageTags.remove(tag);
+    if (state.mainPageTags.contains(tag)) {
+      removeMainPageTag(tag);
     } else {
-      mainPageTags.add(tag);
+      addMainPageTag(tag);
     }
-    settings.pica[9] = mainPageTags.join(";");
-    settings.updateSettings("pica");
-    mainPageTags.refresh();
+  }
+
+  void setMainPageTag(List<String> tag){
+    state = state.copyWith(mainPageTags: tag);
   }
 
   void addMainPageTag(String tag) {
-    if (mainPageTags.contains(tag)) {
-      return;
-    } else {
-      mainPageTags.add(tag);
-    }
-    settings.pica[9] = mainPageTags.join(";");
-    settings.updateSettings("pica");
-    mainPageTags.refresh();
+    if (state.mainPageTags.contains(tag)) return;
+
+    state = state.copyWith(
+      mainPageTags: List.unmodifiable([...state.mainPageTags, tag]),
+    );
+    saveMainPageTags();
   }
 
   void removeMainPageTag(String tag) {
-    if (mainPageTags.contains(tag)) {
-      mainPageTags.remove(tag);
-    } else {
-      return;
-    }
-    settings.pica[9] = mainPageTags.join(";");
-    settings.updateSettings("pica");
-    mainPageTags.refresh();
+    if (!state.mainPageTags.contains(tag)) return;
+
+    state = state.copyWith(
+      mainPageTags: List.unmodifiable(
+        state.mainPageTags.where((e) => e != tag).toList(),
+      ),
+    );
+    saveMainPageTags();
   }
 
   void saveMainPageTags() {
-    mainPageTags.refresh();
-    settings.pica[9] = mainPageTags.join(";");
+    settings.pica[9] = state.mainPageTags.join(";");
     settings.updateSettings("pica");
   }
 
 }
 
-final fixedCategories = ["Random", "Latest", "Leaderboard", "Bookmarks"];
+final fixedCategories = ["random", "latest", "leaderboard", "bookmarks"];

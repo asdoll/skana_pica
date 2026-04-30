@@ -1,7 +1,8 @@
 import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:get/get.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart'
+    show HookConsumerWidget, WidgetRef;
 import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/api/managers/image_cache_manager.dart';
 import 'package:skana_pica/controller/comiclist.dart' show errorUrl;
@@ -27,14 +28,15 @@ class _CommonBackAreaState extends State<CommonBackArea> {
           size: 20,
         ),
         onPressed: () {
-          Get.back();
+          Navigator.pop(context);
         },
       ),
       onLongPress: () {
         setState(() {
           _isLongPress = true;
         });
-        Get.offAll(() => const Mains());
+        Navigator.popUntil(
+            context, ((route) => route.settings.name == Mains.route));
       },
     );
   }
@@ -47,7 +49,7 @@ class NormalBackButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return MoonButton.icon(
       onTap: () {
-        Get.back();
+        Navigator.pop(context);
       },
       icon: Icon(
         BootstrapIcons.arrow_left,
@@ -76,36 +78,35 @@ class NormalDrawerButton extends StatelessWidget {
   }
 }
 
-class GoTop extends StatelessWidget {
+class GoTop extends HookConsumerWidget {
   const GoTop({super.key, this.scrollController});
 
   final ScrollController? scrollController;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final controller = scrollController ?? globalScrollController;
-    return Obx(() => AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: (homeController.showBackArea.value && controller.offset > 0)
-              ? MoonButton.icon(
-                  buttonSize: MoonButtonSize.lg,
-                  showBorder: true,
-                  borderColor: Get
-                      .context?.moonTheme?.buttonTheme.colors.borderColor
-                      .withValues(alpha: 0.5),
-                  backgroundColor: Get.context?.moonTheme?.tokens.colors.zeno,
-                  onTap: () {
-                    controller.animateTo(0,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut);
-                  },
-                  icon: Icon(
-                    Icons.arrow_upward,
-                    color: Colors.white,
-                  ),
-                )
-              : Container(),
-        ));
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: (ref.watch(homeProvider).showBackArea && controller.offset > 0)
+          ? MoonButton.icon(
+              buttonSize: MoonButtonSize.lg,
+              showBorder: true,
+              borderColor: context.moonTheme?.buttonTheme.colors.borderColor
+                  .withValues(alpha: 0.5),
+              backgroundColor: context.moonTheme?.tokens.colors.zeno,
+              onTap: () {
+                controller.animateTo(0,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut);
+              },
+              icon: Icon(
+                Icons.arrow_upward,
+                color: Colors.white,
+              ),
+            )
+          : Container(),
+    );
   }
 }
 
@@ -126,7 +127,7 @@ class ErrorLoading extends StatelessWidget {
           ),
           Text(
             text,
-            style: Get.textTheme.bodyLarge,
+            style: Theme.of(context).textTheme.bodyLarge,
           ),
         ],
       ),
@@ -134,7 +135,8 @@ class ErrorLoading extends StatelessWidget {
   }
 }
 
-Widget progressIndicator(BuildContext context, {Color? color, double? size, Duration? duration}) {
+Widget progressIndicator(BuildContext context,
+    {Color? color, double? size, Duration? duration}) {
   return SpinKitPulse(
     size: size ?? 30,
     color: color ?? context.moonTheme?.tokens.colors.bulma,

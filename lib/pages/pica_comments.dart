@@ -1,5 +1,8 @@
+import 'package:easy_localization/easy_localization.dart'
+    show StringTranslateExtension;
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+
 import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/controller/comicstore.dart';
 import 'package:skana_pica/util/widgetplugin.dart';
@@ -8,79 +11,70 @@ import 'package:skana_pica/widgets/icons.dart';
 import 'package:skana_pica/widgets/pica_comment_bar.dart';
 import 'package:skana_pica/widgets/pica_comment_tile.dart';
 
-class PicaCommentsPage extends StatefulWidget {
+class PicaCommentsPage extends StatefulHookConsumerWidget {
   static const route = "/pica_comments";
   final String id;
   const PicaCommentsPage(this.id, {super.key});
 
   @override
-  State<PicaCommentsPage> createState() => _PicaCommentsPageState();
+  ConsumerState<PicaCommentsPage> createState() => _PicaCommentsPageState();
 }
 
-class _PicaCommentsPageState extends State<PicaCommentsPage> {
-  ScrollController scrollController = ScrollController();
-
+class _PicaCommentsPageState extends ConsumerState<PicaCommentsPage> {
   @override
   void initState() {
     super.initState();
-    scrollController.addListener(() {
-      
-    });
   }
+
   @override
   Widget build(BuildContext context) {
-    ComicStore comicStore = Get.find<ComicStore>(tag: widget.id);
+    var comicStore = comicStoreProvider(widget.id, ComicStoreSource.online);
     return Scaffold(
-        appBar: appBar(title: "Comments".tr),
+        appBar: appBar(title: "comments".tr()),
         backgroundColor: context.moonTheme?.tokens.colors.gohan,
-        floatingActionButton: GoTop(scrollController: scrollController),
         body: Column(children: [
           Expanded(
             child: BezierIndicator(
-                onRefresh: () => comicStore.initComments(dragging: true),
-                child: Obx(() => Stack(children: [
-                      ListView.builder(
-                        controller: scrollController,
-                        itemCount:
-                            comicStore.comments.value.comments.length + 1,
-                        itemBuilder: (context, index) {
-                          if (index ==
-                              comicStore.comments.value.comments.length) {
-                            if (comicStore.comments.value.comments.isEmpty) {
-                              return !comicStore.isLoading.value
-                                  ? SizedBox(
-                                      height: Get.height * 0.8,
-                                      child: Center(
-                                        child: Text("[ ]").h1(),
-                                      ))
-                                  : Container();
-                            }
-                            if (comicStore.comments.value.pages >
-                                comicStore.comments.value.loaded) {
-                              if (!comicStore.isLoading.value) {
-                                Future.delayed(
-                                    const Duration(microseconds: 100), () {
-                                  comicStore.loadMoreComments();
-                                });
-                              }
-                              return progressIndicator(context)
-                                  .paddingVertical(10);
-                            } else {
-                              return Container();
-                            }
+                onRefresh: () =>
+                    ref.read(comicStore.notifier).initComments(dragging: true),
+                child: Stack(children: [
+                  ListView.builder(
+                    itemCount: ref.watch(comicStore).comments.comments.length + 1,
+                    itemBuilder: (context, index) {
+                      if (index == ref.watch(comicStore).comments.comments.length) {
+                        if (ref.watch(comicStore).comments.comments.isEmpty) {
+                          return !ref.watch(comicStore).isLoading
+                              ? SizedBox(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.8,
+                                  child: Center(
+                                    child: Text("[ ]").h1(),
+                                  ))
+                              : Container();
+                        }
+                        if (ref.watch(comicStore).comments.pages >
+                            ref.watch(comicStore).comments.loaded) {
+                          if (!ref.watch(comicStore).isLoading) {
+                            Future.delayed(const Duration(microseconds: 100),
+                                () {
+                              ref.read(comicStore.notifier).loadMoreComments();
+                            });
                           }
-                          return PicaCommentTile(
-                              comment:
-                                  comicStore.comments.value.comments[index]);
-                        },
-                        physics: BouncingScrollPhysics(),
-                      ),
-                      if (!comicStore.isDrag.value &&
-                          comicStore.isLoading.value)
-                        Center(
-                          child: progressIndicator(context),
-                        )
-                    ]))),
+                          return progressIndicator(context).paddingVertical(10);
+                        } else {
+                          return Container();
+                        }
+                      }
+                      return PicaCommentTile(
+                          comment: ref.watch(comicStore).comments.comments[index]);
+                    },
+                    physics: BouncingScrollPhysics(),
+                  ),
+                  if (!ref.watch(comicStore).isDrag && ref.watch(comicStore).isLoading)
+                    Center(
+                      child: progressIndicator(context),
+                    )
+                ])),
           ),
           PicaCommentBar(
             widget.id,

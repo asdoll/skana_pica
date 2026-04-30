@@ -1,6 +1,8 @@
 import 'package:bootstrap_icons/bootstrap_icons.dart';
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+
 import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/controller/main_controller.dart';
 import 'package:skana_pica/controller/searchhistory.dart';
@@ -10,36 +12,23 @@ import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/widgetplugin.dart';
 import 'package:skana_pica/widgets/pica_tagchip.dart';
 
-class PicaSearchPage extends StatefulWidget {
+class PicaSearchPage extends StatefulHookConsumerWidget {
   static const route = "${Mains.route}search";
 
   const PicaSearchPage({super.key});
 
   @override
-  State<PicaSearchPage> createState() => _PicaSearchPageState();
+  ConsumerState<PicaSearchPage> createState() => _PicaSearchPageState();
 }
 
-class _PicaSearchPageState extends State<PicaSearchPage> {
-  late SearchController controller;
+class _PicaSearchPageState extends ConsumerState<PicaSearchPage> {
   bool showDelete = false;
 
   @override
-  void initState() {
-    super.initState();
-    controller = SearchController();
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    SearchController controller = SearchController();
     return Scaffold(
-        body: Obx(
-      () => CustomScrollView(
+        body: CustomScrollView(
         controller: globalScrollController,
         slivers: [
           SliverPadding(padding: const EdgeInsets.only(top: 8.0)),
@@ -47,7 +36,7 @@ class _PicaSearchPageState extends State<PicaSearchPage> {
             child: MoonTextInput(
               textInputSize: MoonTextInputSize.xl,
               onTapOutside: (event) => FocusScope.of(context).unfocus(),
-              hintText: "Search".tr,
+              hintText: "search".tr(),
               onSubmitted: onSubmitted,
               onChanged: (value) => setState(() {
                 showDelete = value.isNotEmpty;
@@ -71,17 +60,17 @@ class _PicaSearchPageState extends State<PicaSearchPage> {
           ),
           SliverPadding(padding: const EdgeInsets.only(top: 8.0)),
           SliverToBoxAdapter(
-            child: (searchHistoryController.searchHistory.isNotEmpty)
-                ? Text("Search History".tr).appHeader().paddingAll(12.0)
+            child: (ref.watch(searchHistoryProvider).isNotEmpty)
+                ? Text("search_history".tr()).appHeader().paddingAll(12.0)
                 : Container(),
           ),
-          if ((searchHistoryController.searchHistory.isNotEmpty))
+          if ((ref.watch(searchHistoryProvider).isNotEmpty))
             SliverList(
               delegate: SliverChildListDelegate([
                 Wrap(
                   runSpacing: 0.0,
                   spacing: 5.0,
-                  children: searchHistoryController.searchHistory
+                  children: ref.watch(searchHistoryProvider)
                       .map(
                         (e) => InkWell(
                           onTap: () {
@@ -92,7 +81,7 @@ class _PicaSearchPageState extends State<PicaSearchPage> {
                                 context.moonTheme?.tokens.colors.frieza60,
                             text: e,
                             onDeleted: () {
-                              searchHistoryController.removeHistory(e);
+                              ref.read(searchHistoryProvider.notifier).removeHistory(e);
                             },
                           ),
                         ),
@@ -101,20 +90,20 @@ class _PicaSearchPageState extends State<PicaSearchPage> {
                 ).paddingSymmetric(horizontal: 8.0).paddingBottom(12.0),
               ]),
             ),
-          if (searchHistoryController.searchHistory.isNotEmpty)
+          if (ref.watch(searchHistoryProvider).isNotEmpty)
             SliverToBoxAdapter(
                 child: InkWell(
               onTap: () {
-                alertDialog(context, "${"Clear search history".tr}?", "", [
+                alertDialog(context, "${"clear_search_history".tr()}?", "", [
                   outlinedButton(
-                      label: "Cancel".tr,
+                      label: "cancel".tr(),
                       onPressed: () {
                         Navigator.of(context).pop();
                       }),
                   filledButton(
-                      label: "Ok".tr,
+                      label: "ok".tr(),
                       onPressed: () {
-                        searchHistoryController.clearHistory();
+                        ref.read(searchHistoryProvider.notifier).clearHistory();
                         Navigator.of(context).pop();
                       })
                 ]);
@@ -132,7 +121,7 @@ class _PicaSearchPageState extends State<PicaSearchPage> {
                         color: context.moonTheme?.tokens.colors.bulma,
                       ),
                       SizedBox(width: 8.0),
-                      Text("Clear search history".tr).subHeader()
+                      Text("clear_search_history".tr()).subHeader()
                     ],
                   ),
                 ),
@@ -140,11 +129,11 @@ class _PicaSearchPageState extends State<PicaSearchPage> {
             )),
         ],
       ),
-    ));
+    );
   }
 
   void onSubmitted(String value) {
-    searchHistoryController.addHistory(value);
-    Go.to(PicaResultsPage(keyword: value), preventDuplicates: false);
+    ref.read(searchHistoryProvider.notifier).addHistory(value);
+    Go.to(PicaResultsPage(keyword: value));
   }
 }

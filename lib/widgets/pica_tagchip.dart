@@ -1,13 +1,14 @@
 import 'package:bootstrap_icons/bootstrap_icons.dart';
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/controller/blocker.dart';
 import 'package:skana_pica/pages/pica_list_comics.dart';
 import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/widgetplugin.dart';
 
-class PicaTag extends StatefulWidget {
+class PicaTag extends HookConsumerWidget {
   final String text;
   final String type;
   final Color? backgroundColor;
@@ -19,67 +20,59 @@ class PicaTag extends StatefulWidget {
       this.backgroundColor});
 
   @override
-  State<PicaTag> createState() => _PicaTagState();
-}
-
-class _PicaTagState extends State<PicaTag> {
-  String get type => widget.type;
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return InkWell(
       onTap: () {
         switch (type) {
           case 'tag':
-            Go.to(PicaCatComicsPage(id: widget.text, type: "search"),
-                preventDuplicates: false);
+            Go.to(PicaCatComicsPage(id: text, type: "search"));
             break;
           case 'category':
           case 'author':
-            Go.to(PicaCatComicsPage(id: widget.text, type: type),
-                preventDuplicates: false);
+            Go.to(PicaCatComicsPage(id: text, type: type));
             break;
           default:
             break;
         }
       },
       onLongPress: () {
-        if (widget.type == 'tag' || widget.type == 'category') {
-          blockDialog(context, widget.text);
+        if (type == 'tag' || type == 'category') {
+          blockDialog(context, text, ref);
         }
       },
       child: Container(
         padding: const EdgeInsets.all(4.0),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: widget.backgroundColor ??
+          color: backgroundColor ??
               context.moonTheme?.tokens.colors.frieza60,
         ),
         child: Transform.translate(
-            offset: Offset(0, -1), child: Text(widget.text).small()),
+            offset: Offset(0, -1), child: Text(text).small()),
       ),
     );
   }
 }
 
-void blockDialog(BuildContext context, String keyword) {
+void blockDialog(BuildContext context, String keyword, WidgetRef ref) {
   showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('${"Block keyword".tr}"$keyword"?'),
+          title: Text('${"block_keyword".tr()}"$keyword"?'),
           actions: [
             TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text('Cancel'.tr)),
+                child: Text('cancel'.tr())),
             TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  blocker.addKeyword(keyword);
-                  showToast('${"Block keyword".tr}"$keyword"');
+                  ref.read(blockerProvider.notifier).addKeyword(keyword);
+                  showToast('${"block_keyword".tr()}"$keyword"');
                 },
-                child: Text('Ok'.tr)),
+                child: Text('ok'.tr())),
           ],
         );
       });
@@ -94,10 +87,10 @@ class TagFinished extends StatelessWidget {
         padding: const EdgeInsets.all(4.0),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: Get.context!.moonTheme?.tokens.colors.cell60,
+          color: context.moonTheme?.tokens.colors.cell60,
         ),
         child: Transform.translate(
-            offset: Offset(0, -1), child: Text("Finished".tr).xSmall()));
+            offset: Offset(0, -1), child: Text("finished".tr()).xSmall()));
   }
 }
 
@@ -111,17 +104,17 @@ ChoiceChip picaChoiceChip(
   return ChoiceChip(
     label: Text(
       text,
-      style: Get.context!.moonTheme?.tokens.typography.heading.text12.apply(
-        color: Get.context!.moonTheme?.tokens.colors.bulma,
+      style: Go.context!.moonTheme?.tokens.typography.heading.text12.apply(
+        color: Go.context!.moonTheme?.tokens.colors.bulma,
       ),
     ).small(),
     selected: selected,
     onSelected: onSelected,
-    selectedColor: selectedColor?.applyDarkMode(reverse: true, percent: 40) ?? Get.context!.moonTheme?.tokens.colors.hit
+    selectedColor: selectedColor?.applyDarkMode(reverse: true, percent: 40) ?? Go.context!.moonTheme?.tokens.colors.hit
         .applyDarkMode(reverse: true, percent: 40),
-    backgroundColor: backgroundColor ?? Get.context!.moonTheme?.tokens.colors.cell60,
-    disabledColor: disabledColor ?? Get.context!.moonTheme?.tokens.colors.cell60,
-    checkmarkColor: Get.context!.moonTheme?.tokens.colors.bulma,
+    backgroundColor: backgroundColor ?? Go.context!.moonTheme?.tokens.colors.cell60,
+    disabledColor: disabledColor ?? Go.context!.moonTheme?.tokens.colors.cell60,
+    checkmarkColor: Go.context!.moonTheme?.tokens.colors.bulma,
   );
 }
 
@@ -129,11 +122,11 @@ Chip picaDeleteChip({required String text, required Function() onDeleted, Color?
   return Chip(
     label: Text(
       text,
-      style: Get.context!.moonTheme?.tokens.typography.heading.text12.apply(
-        color: Get.context!.moonTheme?.tokens.colors.bulma,
+      style: Go.context!.moonTheme?.tokens.typography.heading.text12.apply(
+        color: Go.context!.moonTheme?.tokens.colors.bulma,
       ),
     ).small(),
-    backgroundColor: backgroundColor ?? Get.context!.moonTheme?.tokens.colors.cell60,
+    backgroundColor: backgroundColor ?? Go.context!.moonTheme?.tokens.colors.cell60,
     deleteIcon: const Icon(BootstrapIcons.x),
     onDeleted: onDeleted,
   );
