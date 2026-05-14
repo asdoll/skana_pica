@@ -6,7 +6,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:moon_design/moon_design.dart';
 import 'package:skana_pica/controller/updater.dart';
-import 'package:skana_pica/util/leaders.dart';
 import 'package:skana_pica/util/tool.dart';
 import 'package:skana_pica/util/widgetplugin.dart';
 import 'package:skana_pica/widgets/custom_indicator.dart';

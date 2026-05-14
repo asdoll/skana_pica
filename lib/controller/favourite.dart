@@ -25,7 +25,6 @@ abstract class FavorState with _$FavorState {
 class Favor extends _$Favor {
   @override
   FavorState build() {
-    fetch();
     return const FavorState();
   }
 

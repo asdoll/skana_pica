@@ -64,73 +64,75 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    ref.read(favorProvider.notifier).fetch();
-    ref.read(profileProvider.notifier).fetch();
-    ref.read(visitHistoryControllerProvider.notifier).init();
-    ref.read(downloadProvider.notifier).restore();
-    ref.read(updaterProvider.notifier).init();
-    ref.read(boardProvider.notifier).init();
-    return ValueListenableBuilder(
-      valueListenable: appValueNotifier.theme,
-      builder: (context, value, child) {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-        resetOrientation();
-        Go.context = context;
-        return EasyLocalization(
-            supportedLocales: [
-              Locale('en'),
-              Locale('zh', 'CN'),
-              Locale('zh', 'TW'),
-            ],
-            path: 'assets/translations',
-            fallbackLocale: const Locale('en'),
-            child: MaterialApp(
-                supportedLocales: context.supportedLocales,
-                localizationsDelegates: context.localizationDelegates,
-                theme: value,
-                locale: Base.locale,
-                builder: (context, child) => MediaQuery(
-                      data: MediaQuery.of(context)
-                          .copyWith(textScaler: TextScaler.linear(1.0)),
-                      child: child!,
-                    ),
-                home: AnnotatedRegion<SystemUiOverlayStyle>(
-                  value: SystemUiOverlayStyle(
-                    systemNavigationBarColor: Colors.transparent,
-                    systemNavigationBarDividerColor: Colors.transparent,
-                    statusBarColor: Colors.transparent,
+    Future(() {
+      ref.read(favorProvider.notifier).fetch();
+      ref.read(profileProvider.notifier).fetch();
+      ref.read(visitHistoryControllerProvider.notifier).init();
+      ref.read(downloadProvider.notifier).restore();
+      ref.read(updaterProvider.notifier).init();
+      ref.read(boardProvider.notifier).init();
+    });
+    return EasyLocalization(
+      supportedLocales: [
+        Locale('en'),
+        Locale('zh', 'CN'),
+        Locale('zh', 'TW'),
+      ],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('en'),
+      child: ValueListenableBuilder(
+        valueListenable: appValueNotifier.theme,
+        builder: (context, value, child) {
+          SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+          resetOrientation();
+          Go.context = context;
+          return MaterialApp(
+              supportedLocales: context.supportedLocales,
+              localizationsDelegates: context.localizationDelegates,
+              theme: value,
+              locale: Base.locale,
+              builder: (context, child) => MediaQuery(
+                    data: MediaQuery.of(context)
+                        .copyWith(textScaler: TextScaler.linear(1.0)),
+                    child: child!,
                   ),
-                  child: Mains(),
+              home: AnnotatedRegion<SystemUiOverlayStyle>(
+                value: SystemUiOverlayStyle(
+                  systemNavigationBarColor: Colors.transparent,
+                  systemNavigationBarDividerColor: Colors.transparent,
+                  statusBarColor: Colors.transparent,
                 ),
-                initialRoute: Mains.route,
-                routes: {
-                  Mains.route: (_) => Mains(),
-                  PicaLoginPage.route: (_) => PicaLoginPage(),
-                  SettingPage.route: (_) => SettingPage(),
-                  PicaSearchPage.route: (_) => PicaSearchPage(),
-                  MangaSettingPage.route: (_) => MangaSettingPage(),
-                },
-                onGenerateRoute: (settings) {
-                  switch (settings.name) {
-                    case PicaResultsPage.route:
-                      final args = settings.arguments as Map<String, String>;
-                      return MaterialPageRoute(
-                        builder: (_) =>
-                            PicaResultsPage(keyword: args["keyword"]!),
-                      );
+                child: Mains(),
+              ),
+              initialRoute: Mains.route,
+              routes: {
+                PicaLoginPage.route: (_) => PicaLoginPage(),
+                SettingPage.route: (_) => SettingPage(),
+                PicaSearchPage.route: (_) => PicaSearchPage(),
+                MangaSettingPage.route: (_) => MangaSettingPage(),
+              },
+              onGenerateRoute: (settings) {
+                switch (settings.name) {
+                  case PicaResultsPage.route:
+                    final args = settings.arguments as Map<String, String>;
+                    return MaterialPageRoute(
+                      builder: (_) =>
+                          PicaResultsPage(keyword: args["keyword"]!),
+                    );
 
-                    case PicaCatComicsPage.route:
-                      final args = settings.arguments as Map<String, String>;
-                      return MaterialPageRoute(
-                        builder: (_) => PicaCatComicsPage(
-                          id: args['id']!,
-                          type: args['type']!,
-                        ),
-                      );
-                  }
-                  return null;
-                }));
-      },
+                  case PicaCatComicsPage.route:
+                    final args = settings.arguments as Map<String, String>;
+                    return MaterialPageRoute(
+                      builder: (_) => PicaCatComicsPage(
+                        id: args['id']!,
+                        type: args['type']!,
+                      ),
+                    );
+                }
+                return null;
+              });
+        },
+      ),
     );
   }
 }

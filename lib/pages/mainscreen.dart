@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:skana_pica/controller/categories.dart';
-import 'package:skana_pica/controller/comiclist.dart' show leaderboardController, leaderboardProvider;
+import 'package:skana_pica/controller/comiclist.dart' show leaderboardProvider;
 import 'package:skana_pica/controller/main_controller.dart';
 import 'package:skana_pica/controller/profile.dart';
 import 'package:skana_pica/controller/setting_controller.dart'
@@ -64,7 +64,7 @@ class _MainsState extends ConsumerState<Mains> {
                     actions: [
                       filledButton(
                         onPressed: () {
-                          Go.to(PicaLoginPage.route);
+                          Go.toNamed(PicaLoginPage.route);
                         },
                         label: "login".tr(),
                       )

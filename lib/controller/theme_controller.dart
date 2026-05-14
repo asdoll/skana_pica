@@ -69,7 +69,7 @@ ThemeData getTheme(bool isDark) {
           ? ThemeData.dark().copyWith(
             primaryColor: MoonTheme(tokens: MoonTokens.dark).tokens.colors.piccolo,
               textTheme: GoogleFonts.notoSansTextTheme(
-                Theme.of(Go.context!).textTheme
+                Go.context!=null?Theme.of(Go.context!).textTheme:null
               ),
               appBarTheme: AppBarTheme(
                 titleSpacing: 0,
@@ -82,7 +82,7 @@ ThemeData getTheme(bool isDark) {
           : ThemeData.light().copyWith(
             primaryColor: MoonTheme(tokens: MoonTokens.light).tokens.colors.piccolo,
               textTheme: GoogleFonts.notoSansTextTheme(
-                Theme.of(Go.context!).textTheme
+                Go.context!=null?Theme.of(Go.context!).textTheme:null
               ),
               appBarTheme: AppBarTheme(
                 titleSpacing: 0,
