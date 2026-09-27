@@ -32,6 +32,17 @@ class ComicStore extends GetxController {
 
   RxBool useDarkBackground = settings.useDarkBackground.obs;
 
+  /// Colour painted behind the pages.
+  ///
+  /// [PhotoViewGallery] only forwards its backgroundDecoration to pages whose
+  /// image has already arrived; a page that is still loading renders its
+  /// loading builder on its own, without any background. So the surface behind
+  /// the gallery has to carry the colour as well, otherwise swiping to the next
+  /// page flashes the scaffold background - white in the light theme - until
+  /// that page's image shows up.
+  Color get readBackgroundColor =>
+      useDarkBackground.value ? Colors.black : Get.theme.colorScheme.surface;
+
   RxInt readMode = int.parse(settings.read[2]).obs;
 
   RxBool readModeMenu = false.obs;

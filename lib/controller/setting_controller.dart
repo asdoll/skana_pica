@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
@@ -46,6 +48,10 @@ class SettingController extends GetxController {
   void changeHighRefreshRate(bool value) {
     highRefreshRate.value = value;
     settings.highRefreshRate = value;
+    // flutter_displaymode only implements Android. On HarmonyOS and the desktop
+    // platforms the method channel is never registered, so only ask for the
+    // refresh rate where it can actually answer.
+    if (!Platform.isAndroid) return;
     try {
       if (value) {
         FlutterDisplayMode.setHighRefreshRate();

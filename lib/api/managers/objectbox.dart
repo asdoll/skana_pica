@@ -1,19 +1,22 @@
 import 'package:path_provider/path_provider.dart';
-// ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
 import 'package:skana_pica/api/comic_sources/picacg/pica_models.dart';
+import 'package:skana_pica/api/managers/store.dart';
 import 'package:skana_pica/api/models/objectbox_models.dart';
 
 import 'package:skana_pica/objectbox.g.dart';
 
-class ObjectBox {
+/// Default [AppStore], backed by objectbox.
+///
+/// Not available on HarmonyOS - objectbox ships no OHOS native library - so
+/// `history_manager.dart` selects [SqliteStore] there instead.
+class ObjectBox implements AppStore {
   late final Store _store;
 
   late final Box<PicaHistoryItem> _historyBox;
   late final Box<VisitHistory> _visitHistoryBox;
 
   late final Box<DownloadTask> _downloadTaskBox;
-
 
   ObjectBox._create(this._store) {
     _historyBox = Box<PicaHistoryItem>(_store);
@@ -29,19 +32,22 @@ class ObjectBox {
     return ObjectBox._create(store);
   }
 
+  @override
   Future<void> addHistoryItem(PicaHistoryItem item) async {
     _historyBox.put(item);
   }
 
-  Future<void> addVisitHistory(VisitHistory history,
-      {PutMode mode = PutMode.put}) async {
-    _visitHistoryBox.put(history, mode: mode);
+  @override
+  Future<void> addVisitHistory(VisitHistory history) async {
+    _visitHistoryBox.put(history);
   }
 
+  @override
   Future<void> addHistoryByComic(PicaComicItem item, {int id = 0}) async {
     _historyBox.put(PicaHistoryItem.withItem(item, id: id));
   }
 
+  @override
   Future<PicaHistoryItem> addHistoryWithCheck(PicaComicItem item) async {
     PicaHistoryItem hItem = PicaHistoryItem.withItem(item);
     final history = _historyBox
@@ -57,6 +63,7 @@ class ObjectBox {
     }
   }
 
+  @override
   Future<void> addVisit(String comicId, int eps, int index) async {
     final history = _visitHistoryBox
         .query(VisitHistory_.comicid.equals(comicId))
@@ -76,6 +83,7 @@ class ObjectBox {
     }
   }
 
+  @override
   Future<List<VisitHistory>> getVisitHistory() async {
     return _visitHistoryBox
         .query()
@@ -84,10 +92,12 @@ class ObjectBox {
         .find();
   }
 
+  @override
   Future<int> getVisitHistoryCount() async {
     return _visitHistoryBox.count();
   }
 
+  @override
   Future<List<VisitHistory>> getVisitHistoryByOffset(
       int offset, int limit) async {
     return (_visitHistoryBox
@@ -99,6 +109,7 @@ class ObjectBox {
         .find();
   }
 
+  @override
   Future<PicaComicItem?> getComicHistory(String comicId) async {
     final history = _historyBox
         .query(PicaHistoryItem_.comicid.equals(comicId))
@@ -110,6 +121,7 @@ class ObjectBox {
     return null;
   }
 
+  @override
   Future<VisitHistory?> getVisitHistoryByComic(String comicId) async {
     return _visitHistoryBox
         .query(VisitHistory_.comicid.equals(comicId))
@@ -117,8 +129,10 @@ class ObjectBox {
         .findFirst();
   }
 
+  @override
   Future<void> removeHistoryItem(int id) => _historyBox.removeAsync(id);
 
+  @override
   Future<void> removeHistoryItemByComic(String comicId) {
     final history = _historyBox
         .query(PicaHistoryItem_.comicid.equals(comicId))
@@ -130,9 +144,13 @@ class ObjectBox {
     return Future.value();
   }
 
+  @override
   int removeAllHistory() => _visitHistoryBox.removeAll();
+
+  @override
   int removeAllHistoryItem() => _historyBox.removeAll();
 
+  @override
   Future<void> removeVisitHistory(String comicId) {
     final history = _visitHistoryBox
         .query(VisitHistory_.comicid.equals(comicId))
@@ -145,26 +163,32 @@ class ObjectBox {
     return Future.value();
   }
 
+  @override
   Future<DownloadTask?> getDownloadTask(int id) async {
     return _downloadTaskBox.get(id);
   }
 
+  @override
   Future<void> addDownloadTask(DownloadTask task) async {
     _downloadTaskBox.put(task);
   }
 
+  @override
   Future<void> removeDownloadTask(int id) async {
     _downloadTaskBox.remove(id);
   }
 
+  @override
   Future<void> clearDownloadTask() async {
     _downloadTaskBox.removeAll();
   }
 
+  @override
   Future<int> getDownloadTaskCount() async {
     return _downloadTaskBox.count();
   }
 
+  @override
   Future<List<DownloadTask>> getDownloadTaskListWithOffset(
       int offset, int limit) async {
     return (_downloadTaskBox
@@ -176,6 +200,7 @@ class ObjectBox {
         .find();
   }
 
+  @override
   Future<List<DownloadTask>> getDownloadTaskList() async {
     return _downloadTaskBox
         .query()
@@ -184,6 +209,7 @@ class ObjectBox {
         .find();
   }
 
+  @override
   Future<List<DownloadTask>> restoreDownload() async {
     var list = _downloadTaskBox
         .query()
@@ -194,11 +220,13 @@ class ObjectBox {
     return list;
   }
 
+  @override
   Future<void> updateTaskEps(DownloadTask task) async {
     _store.box<DownloadEps>().putMany(task.taskEps);
   }
 
-  void clearDB(){
+  @override
+  void clearDB() {
     _historyBox.removeAll();
     _visitHistoryBox.removeAll();
     _downloadTaskBox.removeAll();

@@ -8,6 +8,11 @@
 # The following line activates a set of recommended lints for Flutter apps,
 # packages, and plugins designed to encourage good coding practices.
 analyzer:
+  # third_party/ holds verbatim copies of packages that had to be patched (and
+  # are pinned by path in pubspec.yaml). They ship their own analysis_options
+  # upstream and are not written against this project's lints.
+  exclude:
+    - third_party/**
   errors:
     non_constant_identifier_names: ignore
     overridden_fields: ignore

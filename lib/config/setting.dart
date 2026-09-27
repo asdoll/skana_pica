@@ -1,12 +1,12 @@
 import 'dart:ui';
 
 import 'package:flutter/widgets.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
 import 'package:skana_pica/api/comic_sources/picacg/pica_source.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skana_pica/api/managers/history_manager.dart';
 import 'package:skana_pica/config/base.dart';
+import 'package:skana_pica/config/secure_store.dart';
 import 'package:skana_pica/controller/blocker.dart';
 import 'package:skana_pica/controller/categories.dart';
 import 'package:skana_pica/controller/favourite.dart';
@@ -26,7 +26,7 @@ class Appdata {
 
   late SharedPreferences s;
 
-  late FlutterSecureStorage secureStorage;
+  late SecureStore secureStorage;
 
   Map<String, String> cookies = {};
 
@@ -35,9 +35,7 @@ class Appdata {
     pica.addAll(picaDefault);
     read.addAll(readDefault);
     s = await SharedPreferences.getInstance();
-    secureStorage = FlutterSecureStorage(
-        iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
-        aOptions: AndroidOptions(encryptedSharedPreferences: true));
+    secureStorage = SecureStore();
     cookies = await secureStorage.readAll();
     await readData();
   }
@@ -60,7 +58,10 @@ class Appdata {
     }
     _isSaving = true;
     for (var e in data.entries) {
-      settings.secureStorage
+      // Awaited: the OHOS backend reads, updates and writes back its index of
+      // stored keys on every write, so leaving these in flight could lose them
+      // if the process goes away right after a login.
+      await settings.secureStorage
           .write(key: "${key}_${e.key}", value: e.value.toString());
     }
     _isSaving = false;
@@ -323,9 +324,11 @@ class Appdata {
     settings.updateSettings("read");
   }
 
-  int get cachePeriod => int.tryParse(settings.general[7])??30;
+  int get cachePeriod => int.tryParse(settings.general[7]) ?? 30;
 
-  String getVersion() {return Base.version;}
+  String getVersion() {
+    return Base.version;
+  }
 
   bool get autoCheckUpdate => settings.general[8] == "1";
 

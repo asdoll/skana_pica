@@ -11,13 +11,18 @@ import 'package:skana_pica/controller/log.dart';
 
 class LocalComicStore extends GetxController {
   Rx<DownloadTask> task = DownloadTask(0).obs;
-  Rx<PicaHistoryItem> comic = PicaHistoryItem.withItem(PicaComicItem.error("")).obs;
+  Rx<PicaHistoryItem> comic =
+      PicaHistoryItem.withItem(PicaComicItem.error("")).obs;
   RxList<DownloadEps> eps = <DownloadEps>[].obs;
   RxInt dldEps = 0.obs;
   RxInt currentIndex = 0.obs;
 
-
   RxBool useDarkBackground = settings.useDarkBackground.obs;
+
+  /// Colour painted behind the pages. See [ComicStore.readBackgroundColor] for
+  /// why the gallery background alone is not enough.
+  Color get readBackgroundColor =>
+      useDarkBackground.value ? Colors.black : Get.theme.colorScheme.surface;
 
   RxInt readMode = int.parse(settings.read[2]).obs;
 
@@ -43,16 +48,18 @@ class LocalComicStore extends GetxController {
 
   ItemScrollController? autoPagingScrollController;
 
-  void fetch(DownloadTask t){
+  void fetch(DownloadTask t) {
     task.value = t;
     comic.value = t.comic.target!;
     eps.value = t.taskEps;
     fetchVisitHistory().then((value) {
       dldEps.listen((value) {
-        visitHistoryController.updateVisitHistory(comic.value.comicid, eps[value].eps, currentIndex.value);
+        visitHistoryController.updateVisitHistory(
+            comic.value.comicid, eps[value].eps, currentIndex.value);
       });
       currentIndex.listen((value) {
-        visitHistoryController.updateVisitHistory(comic.value.comicid, eps[dldEps.value].eps, value);
+        visitHistoryController.updateVisitHistory(
+            comic.value.comicid, eps[dldEps.value].eps, value);
       });
     });
   }
@@ -61,8 +68,8 @@ class LocalComicStore extends GetxController {
     var history =
         await visitHistoryController.fetchVisitHistory(comic.value.comicid);
     if (history == null) return;
-    for(int i = 0; i < eps.length; i++){
-      if(eps[i].eps == history.lastEps){
+    for (int i = 0; i < eps.length; i++) {
+      if (eps[i].eps == history.lastEps) {
         dldEps.value = i;
         currentIndex.value = history.lastIndex;
         break;
@@ -70,12 +77,11 @@ class LocalComicStore extends GetxController {
     }
   }
 
-  void setPage(int dldEps, int currentIndex){
+  void setPage(int dldEps, int currentIndex) {
     this.dldEps.value = dldEps;
     this.currentIndex.value = currentIndex;
   }
 
-  
   void nextChapter({PageController? controller, bool duo = false}) {
     if (dldEps.value < eps.length - 1) {
       dldEps.value++;

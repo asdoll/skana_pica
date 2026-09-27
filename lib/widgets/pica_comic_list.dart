@@ -389,7 +389,7 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                                         return progressIndicator(context)
                                             .paddingVertical(10);
                                       }
-                                    } else { 
+                                    } else {
                                       return Container();
                                     }
                                   }
@@ -408,9 +408,6 @@ class _PicaComicsPageState extends State<PicaComicsPage> {
                                   child: progressIndicator(context),
                                 )
                             ])))),
-                SizedBox(
-                  height: 10,
-                ),
               ],
             ),
     );

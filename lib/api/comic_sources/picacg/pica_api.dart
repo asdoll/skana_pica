@@ -279,7 +279,7 @@ class PicaClient {
     }
     user = res.data;
     picacg.data['user'] = user!.toJson();
-    settings.saveSecures(picacg.key);
+    await settings.saveSecures(picacg.key);
     return const Res(true);
   }
 

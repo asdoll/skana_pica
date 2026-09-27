@@ -45,10 +45,18 @@ dependencies:
   flutter_cache_manager: ^3.4.1
   cached_network_image: ^3.4.1
   scrollable_positioned_list: ^0.3.8
+  # Vendored copy of wgh136/photo_view at 94724a0b, which this app needs for
+  # `customChild`. Kept in third_party/ instead of a git dependency because it
+  # carries one local fix: `_handleImageFrame` (lib/src/core/image.dart) set its
+  # "already called" flag inside a microtask, so two onImage callbacks in the
+  # same event loop turn - a synchronous image-cache hit followed by the decoded
+  # frame, which is what HarmonyOS does - both got through and ran onLoadEnd
+  # twice. PhotoViewCoreState._onLoadEnd then threw "Field 'imageSize' has
+  # already been initialized", because it assigns `late final` fields. The flag
+  # is now set before the microtask is scheduled. Upstream `main`
+  # (a1255d1b) still has the bug, so there was no newer ref to pin to.
   photo_view:
-    git:
-      url: https://github.com/wgh136/photo_view
-      ref: 94724a0b
+    path: third_party/photo_view
   permission_handler: ^12.0.0
   image_gallery_saver_plus: ^4.0.1
   share_plus: ^11.0.0
@@ -59,8 +67,39 @@ dependencies:
   flutter_displaymode: ^0.6.0
   crypto: ^3.0.6
   flutter_spinkit: ^5.2.1
-  moon_design: ^1.1.0
-  google_fonts: ^6.2.1
+  # HarmonyOS aware fork of moon_design 1.1.0 (asdoll/moon_flutter). The copy
+  # published on pub.dev switches exhaustively over TargetPlatform without a
+  # `TargetPlatform.ohos` case, which is a hard compile error when targeting
+  # OHOS. The fork only adds the missing cases, so other platforms are
+  # unaffected. Pinned to the revision that was verified for this project.
+  moon_design:
+    git:
+      url: https://github.com/asdoll/moon_flutter.git
+      ref: 8974e53129f823b89e076c2369c37cba961618d4
+  # 6.2.1 builds a `const` map keyed by FontWeight. dart:ui's FontWeight
+  # overrides `==`, so const evaluation rejects it ("does not have a primitive
+  # operator '=='"); 8.x makes that map a `final` one instead.
+  google_fonts: ^8.2.1
+  # Only used by the HarmonyOS storage backend (see lib/api/managers/
+  # sqlite_store.dart): objectbox ships no native library for HarmonyOS, while
+  # sqlite3 has an OHOS port - see dependency_overrides below. `path` is used
+  # by both storage backends to build the database location.
+  path: ^1.9.0
+  sqlite3: ^2.4.6
+  sqlite3_flutter_libs: ^0.5.25
+  # Registers the HarmonyOS implementation of flutter_secure_storage.
+  #
+  # Only the ohos/ native plugin of this fork is used. It serves the very same
+  # method channel as the upstream package (plugins.it_nomads.com/
+  # flutter_secure_storage, see its FlutterSecureStorageOhosPlugin.ets) and
+  # keeps the key names, so the upstream Dart API - which is what
+  # lib/config/setting.dart calls - works unchanged on top of it. Its own Dart
+  # library is a full copy of flutter_secure_storage and is never imported.
+  flutter_secure_storage_ohos:
+    git:
+      url: https://gitcode.com/CPF-Flutter/fluttertpc_flutter_secure_storage.git
+      path: flutter_secure_storage_ohos
+      ref: br_v9.2.4_ohos
   bootstrap_icons: ^1.11.3
   custom_refresh_indicator: ^4.0.1
   flutter_list_view: ^1.1.29
@@ -77,6 +116,61 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   build_runner: ^2.4.13
   objectbox_generator: any
+
+# OHOS (HarmonyOS) platform implementations.
+#
+# Upstream versions of these packages either have no OHOS implementation at
+# all, or ship one in a fork only. They live here instead of under
+# `dependencies:` on purpose: a hosted package such as flutter_cache_manager or
+# cached_network_image requires path_provider *from pub.dev*, and pub refuses to
+# resolve one package name from two different sources at once.
+# dependency_overrides is the only place where pub lets us force a different
+# source for a package name, so the git forks have to be declared here.
+dependency_overrides:
+  url_launcher:
+    git:
+      url: https://gitcode.com/openharmony-tpc/flutter_packages.git
+      path: packages/url_launcher/url_launcher
+      ref: url_launcher_v6.3.2-ohos-1.0.2
+  path_provider:
+    git:
+      url: https://gitcode.com/openharmony-tpc/flutter_packages.git
+      path: packages/path_provider/path_provider
+      ref: provider-v2.1.5-ohos-1.0.1
+  shared_preferences:
+    git:
+      url: https://gitcode.com/openharmony-tpc/flutter_packages.git
+      path: packages/shared_preferences/shared_preferences
+      ref: shared_preferences-v2.5.4-ohos-1.0.1
+  # HarmonyOS port of sqlite3.dart (adds OperatingSystem.ohos to the ffi loader
+  # and ships the native library through the ohos/ har of sqlite3_flutter_libs).
+  sqlite3:
+    git:
+      url: https://github.com/SageMik/sqlite3-ohos.dart.git
+      path: sqlite3
+      ref: sqlite3-2.4.7-ohos
+  sqlite3_flutter_libs:
+    git:
+      url: https://github.com/SageMik/sqlite3-ohos.dart.git
+      path: sqlite3_flutter_libs
+      ref: sqlite3_flutter_libs-0.5.25-ohos
+  # HarmonyOS port of image_gallery_saver_plus (CPF-Flutter). Its OHOS
+  # implementation saves through photoAccessHelper.showAssetsCreationDialog, so
+  # it needs no gallery permission - just a user confirmation dialog.
+  # br_3.41_dev is the branch built against Flutter 3.41 (this project's SDK).
+  image_gallery_saver_plus:
+    git:
+      url: https://gitcode.com/CPF-Flutter/fluttertpc_image_gallery_saver_plus.git
+      ref: br_3.41_dev
+  # Built from the official OpenHarmony SIG mirror of fluttercommunity/plus_plugins
+  # (share_plus 12.0.1). Its har is named `share_plus`, matching the plugin name,
+  # so the tooling's local dependency key lines up. The deprecated `Share` static
+  # API is still present, so no call sites change.
+  share_plus:
+    git:
+      url: https://gitcode.com/openharmony-sig/flutter_plus_plugins.git
+      path: packages/share_plus/share_plus
+      ref: br_share_plus-v12.0.1_ohos
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

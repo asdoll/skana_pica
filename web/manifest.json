@@ -1,6 +1,6 @@
 {
-    "name": "skana_pica",
-    "short_name": "skana_pica",
+    "name": "SkanaPica",
+    "short_name": "SkanaPica",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
